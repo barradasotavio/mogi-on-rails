@@ -1,0 +1,208 @@
+{
+  "source": "https://github.com/PFQNiet/mkw-lounge-tracker/blob/4f0bce33404c734b6d3125b9e3ee4ac9da28d434/src/ui/export-results-dialog.js",
+  "commit": "4f0bce33404c734b6d3125b9e3ee4ac9da28d434",
+  "sourceSha256": "38acac40afbb278192cda11cb85edf04433ed15c47e65b43dbcb6ccc183bfe30",
+  "cases": [
+    {
+      "format": "FFA",
+      "tier": "D",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Player 1",
+          "points": 12
+        },
+        {
+          "id": "p2",
+          "name": "Player 2",
+          "points": 24
+        },
+        {
+          "id": "p3",
+          "name": "Player 3",
+          "points": 36
+        },
+        {
+          "id": "p4",
+          "name": "Player 4",
+          "points": 48
+        },
+        {
+          "id": "p5",
+          "name": "Player 5",
+          "points": 60
+        },
+        {
+          "id": "p6",
+          "name": "Player 6",
+          "points": 72
+        },
+        {
+          "id": "p7",
+          "name": "Player 7",
+          "points": 84
+        },
+        {
+          "id": "p8",
+          "name": "Player 8",
+          "points": 96
+        },
+        {
+          "id": "p9",
+          "name": "Player 9",
+          "points": 108
+        },
+        {
+          "id": "p10",
+          "name": "Player 10",
+          "points": 120
+        },
+        {
+          "id": "p11",
+          "name": "Player 11",
+          "points": 144
+        },
+        {
+          "id": "p12",
+          "name": "Player 12",
+          "points": 180
+        }
+      ],
+      "expected": "!submit 1 D\nPlayer 1 12\nPlayer 2 24\nPlayer 3 36\nPlayer 4 48\nPlayer 5 60\nPlayer 6 72\nPlayer 7 84\nPlayer 8 96\nPlayer 9 108\nPlayer 10 120\nPlayer 11 144\nPlayer 12 180"
+    },
+    {
+      "format": "2v2",
+      "tier": "D",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Player 1",
+          "points": 12
+        },
+        {
+          "id": "p2",
+          "name": "Player 2",
+          "points": 24
+        },
+        {
+          "id": "p3",
+          "name": "Player 3",
+          "points": 36
+        },
+        {
+          "id": "p4",
+          "name": "Player 4",
+          "points": 48
+        },
+        {
+          "id": "p5",
+          "name": "Player 5",
+          "points": 60
+        },
+        {
+          "id": "p6",
+          "name": "Player 6",
+          "points": 72
+        },
+        {
+          "id": "p7",
+          "name": "Player 7",
+          "points": 84
+        },
+        {
+          "id": "p8",
+          "name": "Player 8",
+          "points": 96
+        },
+        {
+          "id": "p9",
+          "name": "Player 9",
+          "points": 108
+        },
+        {
+          "id": "p10",
+          "name": "Player 10",
+          "points": 120
+        },
+        {
+          "id": "p11",
+          "name": "Player 11",
+          "points": 144
+        },
+        {
+          "id": "p12",
+          "name": "Player 12",
+          "points": 180
+        }
+      ],
+      "expected": "!submit 2 D\nPlayer 1 12\nPlayer 2 24\n\nPlayer 3 36\nPlayer 4 48\n\nPlayer 5 60\nPlayer 6 72\n\nPlayer 7 84\nPlayer 8 96\n\nPlayer 9 108\nPlayer 10 120\n\nPlayer 11 144\nPlayer 12 180"
+    },
+    {
+      "format": "3v3",
+      "tier": "D",
+      "players": [
+        {
+          "id": "p1",
+          "name": "Player 1",
+          "points": 12
+        },
+        {
+          "id": "p2",
+          "name": "Player 2",
+          "points": 24
+        },
+        {
+          "id": "p3",
+          "name": "Player 3",
+          "points": 36
+        },
+        {
+          "id": "p4",
+          "name": "Player 4",
+          "points": 48
+        },
+        {
+          "id": "p5",
+          "name": "Player 5",
+          "points": 60
+        },
+        {
+          "id": "p6",
+          "name": "Player 6",
+          "points": 72
+        },
+        {
+          "id": "p7",
+          "name": "Player 7",
+          "points": 84
+        },
+        {
+          "id": "p8",
+          "name": "Player 8",
+          "points": 96
+        },
+        {
+          "id": "p9",
+          "name": "Player 9",
+          "points": 108
+        },
+        {
+          "id": "p10",
+          "name": "Player 10",
+          "points": 120
+        },
+        {
+          "id": "p11",
+          "name": "Player 11",
+          "points": 144
+        },
+        {
+          "id": "p12",
+          "name": "Player 12",
+          "points": 180
+        }
+      ],
+      "expected": "!submit 3 D\nPlayer 1 12\nPlayer 2 24\nPlayer 3 36\n\nPlayer 4 48\nPlayer 5 60\nPlayer 6 72\n\nPlayer 7 84\nPlayer 8 96\nPlayer 9 108\n\nPlayer 10 120\nPlayer 11 144\nPlayer 12 180"
+    }
+  ]
+}

@@ -1,0 +1,1235 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.508 0.118 165.612);
+  --primary-foreground: oklch(0.979 0.021 166.113);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.596 0.145 163.225);
+  --sidebar-primary-foreground: oklch(0.979 0.021 166.113);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: "Inter Variable", sans-serif;
+  /* The preset contract stores this value with its line break. */
+  /* prettier-ignore */
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  --font-heading: var(--font-sans);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.opening-icon {
+  border-radius: 22%;
+}
+
+.opening-screen {
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+}
+
+.opening-screen[data-state="closed"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opening-screen {
+    transition: none !important;
+  }
+}
+
+button,
+select {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+input,
+textarea,
+select {
+  font-size: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.app-sheet {
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  background: var(--background);
+}
+
+body {
+  min-height: 100dvh;
+}
+
+html,
+body {
+  overflow: hidden;
+}
+
+.app-content {
+  height: calc(100dvh - 4rem - var(--safe-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  @media (width >= 48rem) {
+    height: calc(100dvh - 4rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+
+/*
+ * Top inset: the installed app's translucent status bar on iPhone, or the title bar strip under Window
+ * Controls Overlay (env(titlebar-area-*) exist only in that display mode, so both fall back to 0).
+ * --safe-top is where compact content and surfaces over everything start. On regular the toolbar is the
+ * title bar, so the shell moves down only for the status bar. Everything reads the title bar through
+ * the --titlebar-* properties, never env() directly, so a test can emulate its geometry.
+ * --toolbar-height and --toolbar-control size the regular toolbar and its controls. Under Window Controls
+ * Overlay (`data-titlebar="overlay"` on the root, set by the head script) the browser draws its window
+ * controls centered in a band of fixed height, so the toolbar becomes that band and its controls shrink to
+ * centre on the same line, as large as the band allows, as in a macOS compact toolbar.
+ */
+:root {
+  --titlebar-x: env(titlebar-area-x, 0px);
+  --titlebar-width: env(titlebar-area-width, 100vw);
+  --titlebar-height: env(titlebar-area-height, 0px);
+  --safe-top: max(env(safe-area-inset-top), var(--titlebar-height));
+  --toolbar-height: 3.25rem;
+  --toolbar-control: 2.75rem;
+  /* Section spacing, ink to ink: the content before a title to it, and a title to its content. */
+  --section-gap: 2rem;
+  --section-title-gap: 1rem;
+  --page-gap: 4rem;
+  --page-gap-wide: 7.5rem;
+}
+:root[data-titlebar="overlay"] {
+  --toolbar-height: max(var(--titlebar-height), 2rem);
+  --toolbar-control: clamp(1.5rem, calc(var(--titlebar-height) - 0.25rem), 1.875rem);
+}
+
+/* The inset lives on the shell because the sheets' scroll lock clears the body's padding. */
+.app-shell {
+  height: 100dvh;
+  padding-top: var(--safe-top);
+  @media (width >= 48rem) {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* The mogi screen scrolls behind the floating controls. */
+.mogi-content,
+.app-list-content {
+  height: calc(100dvh - var(--safe-top));
+  scrollbar-gutter: auto;
+  scroll-timeline: --content block;
+  @media (width >= 48rem) {
+    height: calc(100dvh - env(safe-area-inset-top));
+  }
+}
+
+/*
+ * Compact under Window Controls Overlay: an empty strip that drags the window, above the content. Like the
+ * toolbar, it stays above every scrim: the title bar never dims, as in macOS. On regular the toolbar and the
+ * sidebar header back the band and scrims start below it; only a blocking glass alert dims around itself
+ * (`glass-scrim`), so the strip returns while one is open and draws the docked sidebar's hairline through it.
+ * Open dialogs are read as `:root:has(> body > …)`: Radix portals them straight into body, and the fixed depth
+ * keeps Chrome from re-scanning the whole document on every attribute change (a track save makes many).
+ */
+.titlebar-strip {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 55;
+  background-color: var(--background);
+  height: var(--titlebar-height);
+  -webkit-app-region: drag;
+  app-region: drag;
+  @media (width >= 48rem) {
+    display: none;
+    :root:has(> body > .glass-scrim[data-state="open"]) & {
+      display: block;
+    }
+  }
+  @media (width >= 80rem) {
+    [data-sidebar="open"] > & {
+      background-image: linear-gradient(var(--rule), var(--rule));
+      background-size: 1px 100%;
+      background-position: calc(20rem - 1px) 0;
+      background-repeat: no-repeat;
+    }
+  }
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.432 0.095 166.913);
+  --primary-foreground: oklch(0.979 0.021 166.113);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.696 0.17 162.48);
+  --sidebar-primary-foreground: oklch(0.262 0.051 172.552);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  *:hover {
+    scrollbar-color: var(--scrollbar-thumb-hover) transparent;
+  }
+  @supports not (scrollbar-color: auto) {
+    @media not (forced-colors: active) {
+      *::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      *::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      *::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: var(--radius);
+      }
+      *:hover::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb-hover);
+      }
+    }
+  }
+  @media (forced-colors: active) {
+    *,
+    *:hover {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+    }
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+/* Product tokens: extend the preset without redefining it (design-system/product-tokens.json). */
+:root {
+  --rule: var(--border);
+  --scrollbar-thumb: color-mix(in oklab, var(--foreground) 20%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklab, var(--foreground) 40%, transparent);
+  --link: var(--primary);
+  --art-device: oklch(0.38 0.012 260);
+  --art-device-detail: oklch(0.55 0.01 260);
+  --art-screen: oklch(0.2 0.01 260);
+  --art-screen-row: oklch(0.24 0.02 260);
+  --art-screen-ink: oklch(0.97 0.005 260);
+  --player-1: var(--team-1);
+  --player-2: var(--team-2);
+  --player-3: var(--team-3);
+  --player-4: var(--team-4);
+  --player-5: var(--team-5);
+  --player-6: var(--team-6);
+  --player-7: oklch(0.7 0.19 350);
+  --player-8: oklch(0.7 0.13 195);
+  --player-9: oklch(0.76 0.18 128);
+  --player-10: oklch(0.58 0.2 268);
+  --player-11: oklch(0.6 0.1 55);
+  --player-12: oklch(0.62 0.05 250);
+  --movement-up: oklch(0.627 0.194 149.214);
+  --movement-up-foreground: oklch(0.527 0.154 150.069);
+  --movement-down: var(--destructive);
+  --value-gain: var(--movement-up);
+  --value-loss: var(--movement-down);
+  --team-1: oklch(0.685 0.169 237.323);
+  --team-1-foreground: oklch(0.5 0.134 242.749);
+  --team-2: oklch(0.645 0.246 16.439);
+  --team-2-foreground: oklch(0.514 0.222 16.935);
+  --team-3: oklch(0.769 0.188 70.08);
+  --team-3-foreground: oklch(0.473 0.137 46.201);
+  --team-4: oklch(0.723 0.219 149.579);
+  --team-4-foreground: oklch(0.527 0.154 150.069);
+  --team-5: oklch(0.606 0.25 292.717);
+  --team-5-foreground: oklch(0.491 0.27 292.581);
+  --team-6: oklch(0.705 0.213 47.604);
+  --team-6-foreground: oklch(0.553 0.195 38.402);
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --scrollbar-thumb: color-mix(in oklab, var(--foreground) 50%, transparent);
+  }
+}
+
+.dark {
+  --link: oklch(0.765 0.177 163.223);
+  --movement-up: oklch(0.792 0.209 151.711);
+  --movement-up-foreground: var(--movement-up);
+  --movement-down: var(--destructive);
+  --value-gain: oklch(0.66 0.15 149.6);
+  --value-loss: oklch(0.58 0.19 22.2);
+  --rule: color-mix(in oklab, var(--foreground) 20%, var(--background));
+  --team-1-foreground: oklch(0.828 0.111 230.318);
+  --team-2-foreground: oklch(0.81 0.117 11.638);
+  --team-3-foreground: oklch(0.879 0.169 91.605);
+  --team-4-foreground: oklch(0.871 0.15 154.449);
+  --team-5-foreground: oklch(0.811 0.111 293.571);
+  --team-6-foreground: oklch(0.837 0.128 66.29);
+}
+
+@theme inline {
+  --color-rule: var(--rule);
+  --color-link: var(--link);
+  --color-art-device: var(--art-device);
+  --color-art-device-detail: var(--art-device-detail);
+  --color-art-screen: var(--art-screen);
+  --color-art-screen-row: var(--art-screen-row);
+  --color-art-screen-ink: var(--art-screen-ink);
+  --color-movement-up: var(--movement-up);
+  --color-movement-up-foreground: var(--movement-up-foreground);
+  --color-movement-down: var(--movement-down);
+  --color-value-gain: var(--value-gain);
+  --color-value-loss: var(--value-loss);
+  --color-team-1: var(--team-1);
+  --color-team-1-foreground: var(--team-1-foreground);
+  --color-team-2: var(--team-2);
+  --color-team-2-foreground: var(--team-2-foreground);
+  --color-team-3: var(--team-3);
+  --color-team-3-foreground: var(--team-3-foreground);
+  --color-team-4: var(--team-4);
+  --color-team-4-foreground: var(--team-4-foreground);
+  --color-team-5: var(--team-5);
+  --color-team-5-foreground: var(--team-5-foreground);
+  --color-team-6: var(--team-6);
+  --color-team-6-foreground: var(--team-6-foreground);
+  --color-player-1: var(--player-1);
+  --color-player-2: var(--player-2);
+  --color-player-3: var(--player-3);
+  --color-player-4: var(--player-4);
+  --color-player-5: var(--player-5);
+  --color-player-6: var(--player-6);
+  --color-player-7: var(--player-7);
+  --color-player-8: var(--player-8);
+  --color-player-9: var(--player-9);
+  --color-player-10: var(--player-10);
+  --color-player-11: var(--player-11);
+  --color-player-12: var(--player-12);
+}
+
+/* Liquid Glass for the control layer only (HIG Materials); opaque under reduced transparency. */
+/*
+ * Glass as in the macOS Notes toolbar: a fill of its own, offset from the background (near-white in light,
+ * a step lighter than the background in dark), a top specular line, a 0.5px hairline and almost no shadow.
+ */
+@utility glass {
+  background-color: color-mix(in oklab, var(--background) 72%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.9),
+    inset 0 0 0 0.5px rgb(0 0 0 / 0.1),
+    0 1px 3px rgb(0 0 0 / 0.06);
+  &:where(.dark, .dark *) {
+    background-color: color-mix(
+      in oklab,
+      var(--foreground) 8%,
+      color-mix(in oklab, var(--background) 55%, transparent)
+    );
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.18),
+      inset 0 0 0 0.5px rgb(255 255 255 / 0.12);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/*
+ * The dim behind a blocking surface, never under glass: glass samples what is behind it, so a scrim there
+ * turns it muddy (HIG Materials dims only under clear glass over light media; ours is regular). Opaque
+ * surfaces sit on `scrim`; blocking glass keeps a clear overlay and dims around itself with `glass-scrim`:
+ * an outer shadow on a child layer, which the glass's backdrop never includes (its own shadow it would).
+ */
+@utility scrim {
+  background-color: rgb(0 0 0 / 0.2);
+  /* The title bar never dims: under Window Controls Overlay the dim starts below the band. */
+  :root[data-titlebar="overlay"] & {
+    top: var(--titlebar-height);
+  }
+}
+
+@utility glass-scrim {
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.2);
+    pointer-events: none;
+  }
+}
+
+@utility glass-tint {
+  background-color: color-mix(in oklab, var(--primary) 85%, transparent);
+  color: var(--primary-foreground);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.35),
+    inset 0 0 0 0.5px rgb(255 255 255 / 0.2),
+    0 1px 3px rgb(0 0 0 / 0.1);
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--primary);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/*
+ * Scroll edge effect ("soft" style of iOS): the scrolling content itself fades near an edge with floating
+ * controls. A mask on the scroller, not a glass layer, because a backdrop filter ends in a hard line.
+ * --edge-top / --edge-bottom go from 0 (none) to 1 (full); the ramp is a smoothstep that keeps at least
+ * 25% of the content at the edge. The scroll timeline clamps both intensities during bounce.
+ */
+@property --edge-top {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@property --edge-bottom {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@keyframes edge-top {
+  from {
+    --edge-top: 0;
+  }
+  to {
+    --edge-top: 1;
+  }
+}
+@keyframes edge-bottom {
+  from {
+    --edge-bottom: 1;
+  }
+  to {
+    --edge-bottom: 0;
+  }
+}
+@utility edge-mask {
+  --edge-top: 0;
+  --edge-bottom: 0;
+  --edge-top-size: 7rem;
+  --edge-bottom-size: 7rem;
+  --edge-range: 48px;
+  @supports (animation-timeline: scroll()) {
+    animation:
+      var(--edge-top-animation, edge-top) auto linear both,
+      var(--edge-bottom-animation, edge-bottom) auto linear both;
+    animation-timeline: scroll(self block);
+    animation-range:
+      0px var(--edge-range),
+      calc(100% - var(--edge-range)) 100%;
+  }
+  @supports not (animation-timeline: scroll()) {
+    --edge-top: 1;
+    --edge-bottom: 1;
+  }
+  --edge-mask: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-top))) 0,
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-top) * 0.896)) calc(var(--edge-top-size) * 0.2),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-top) * 0.648)) calc(var(--edge-top-size) * 0.4),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-top) * 0.352)) calc(var(--edge-top-size) * 0.6),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-top) * 0.104)) calc(var(--edge-top-size) * 0.8),
+    rgb(0 0 0) var(--edge-top-size),
+    rgb(0 0 0) calc(100% - var(--edge-bottom-size)),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-bottom) * 0.104)) calc(100% - var(--edge-bottom-size) * 0.8),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-bottom) * 0.352)) calc(100% - var(--edge-bottom-size) * 0.6),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-bottom) * 0.648)) calc(100% - var(--edge-bottom-size) * 0.4),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-bottom) * 0.896)) calc(100% - var(--edge-bottom-size) * 0.2),
+    rgb(0 0 0 / calc(1 - 0.75 * var(--edge-bottom))) 100%
+  );
+  -webkit-mask-image: var(--edge-mask);
+  mask-image: var(--edge-mask);
+}
+
+@utility sheet-edge-mask {
+  --edge-bottom-size: 0px;
+  --edge-bottom-animation: none;
+  &[data-edge-footer] {
+    --edge-bottom-size: 7rem;
+    --edge-bottom-animation: edge-bottom;
+  }
+  &[data-edge-search] {
+    --edge-top-size: 10.5rem;
+  }
+}
+
+/*
+ * Score table: the pinned columns' shadow over what scrolls appears only once the races scroll under them,
+ * over the first 16px of the scroller's own inline timeline. Without scroll timelines it stays hidden.
+ */
+@keyframes matrix-edge {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@utility matrix-scroller {
+  scroll-timeline: --matrix inline;
+}
+@utility matrix-edge {
+  &::after {
+    opacity: 0;
+    @supports (animation-timeline: scroll()) {
+      animation: matrix-edge linear both;
+      animation-timeline: --matrix;
+      animation-range: 0px 16px;
+    }
+  }
+}
+
+/* Sheet geometry on compact screens, bounded by the safe areas. */
+@utility sheet-full {
+  height: calc(100dvh - var(--safe-top) - 0.75rem);
+}
+@utility sheet-fit {
+  max-height: calc(100dvh - var(--safe-top) - 0.75rem);
+}
+/* The regular inspector: inset from the window, and below the title bar under Window Controls Overlay. */
+@utility inspector-inset {
+  top: calc(var(--titlebar-height) + 0.5rem);
+  bottom: 0.5rem;
+}
+/* The floating sidebar and its veil: below the toolbar, whose toggle stays in place and closes it. */
+@utility sidebar-panel-inset {
+  top: calc(var(--toolbar-height) + 0.5rem);
+  bottom: 0.5rem;
+}
+@utility below-toolbar {
+  top: var(--toolbar-height);
+}
+@utility sheet-medium {
+  bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  max-height: 50dvh;
+}
+/* Floating controls: the compact bottom bar sits on the home indicator's safe area. */
+@utility floating-bar {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  /* Symbols as large as the glass pills beside them (48px), above the 44pt minimum. */
+  & button[data-shape="circle"] {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+/* Toasts: above the bottom bar on compact, under the toolbar on regular. */
+@utility toast-offset {
+  bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  @media (width >= 48rem) {
+    bottom: auto;
+    top: calc(var(--toolbar-height) + 0.5rem);
+  }
+}
+/* End padding of a sheet's scroller: room for a floating footer, or the home indicator. */
+@utility sheet-end-footer {
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+@utility sheet-end {
+  padding-bottom: max(env(safe-area-inset-bottom), 1.5rem);
+}
+@utility sheet-footer {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+
+/* Only the bottom edge, next to the compact floating bar; on regular the toolbar has a hard edge instead. */
+@utility mogi-edge-mask {
+  --edge-range: 32px;
+  --edge-top-size: 0px;
+  --edge-top-animation: none;
+  @media (width >= 48rem) {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+/*
+ * Regular toolbar (macOS unified toolbar): the content's own background at rest and, once content scrolls
+ * under it, glass with a hard edge, the macOS scroll edge style. --toolbar-under follows the content's
+ * scroll timeline, declared on the scroller and scoped by `toolbar-scope`. Under Window Controls Overlay it
+ * is the title bar: it clears the window controls on both sides and drags the window. No hover tone: macOS
+ * has none, and a drag region receives no pointer events. The browser paints its window controls with
+ * theme-color, the content's background, so the toolbar stays opaque there and only the edge appears.
+ */
+@property --toolbar-under {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@keyframes toolbar-under {
+  from {
+    --toolbar-under: 0;
+  }
+  to {
+    --toolbar-under: 1;
+  }
+}
+@utility toolbar-scope {
+  timeline-scope: --content;
+}
+@utility toolbar {
+  container: toolbar / inline-size;
+  height: var(--toolbar-height);
+  & > .toolbar-row {
+    padding-left: max(1rem, calc(var(--titlebar-x) + 0.5rem));
+    padding-right: max(1rem, calc(100vw - var(--titlebar-x) - var(--titlebar-width) + 0.5rem));
+  }
+  background-color: color-mix(in oklab, var(--background) calc(100% - var(--toolbar-under) * 45%), transparent);
+  -webkit-backdrop-filter: blur(calc(var(--toolbar-under) * 24px)) saturate(calc(100% + var(--toolbar-under) * 80%));
+  backdrop-filter: blur(calc(var(--toolbar-under) * 24px)) saturate(calc(100% + var(--toolbar-under) * 80%));
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--rule) calc(var(--toolbar-under) * 100%), transparent);
+  -webkit-app-region: drag;
+  app-region: drag;
+  & :is(button, a, input, [role="status"]) {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+  @supports (animation-timeline: scroll()) {
+    animation: toolbar-under linear both;
+    animation-timeline: --content;
+    animation-range: 0px 8px;
+  }
+  @supports not (animation-timeline: scroll()) {
+    --toolbar-under: 1;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  &:where([data-titlebar="overlay"] *) {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  /*
+   * In the title bar band it stays above every scrim, so the band never dims beside the window controls:
+   * sheets and dialogs start below it, as in macOS. While one is open, the band only drags the window.
+   */
+  :root[data-titlebar="overlay"] & {
+    z-index: 55;
+  }
+  /*
+   * Its controls follow the bar, and the open-modal state lands on the bar alone. A modal is read from the
+   * scroll lock every Radix modal puts on body (`data-scroll-locked`): a `:root:has()` over the document's
+   * dialogs re-runs on every attribute change and puts a long task on a track save.
+   */
+  & :is(button, a) {
+    pointer-events: inherit;
+  }
+  body[data-scroll-locked] & {
+    pointer-events: none;
+  }
+  /* The floating sidebar is the one modal its toolbar toggle closes. */
+  :root:has(> body > [data-slot="sidebar-panel"][data-state="open"]) & [data-show-mogis] {
+    pointer-events: auto;
+  }
+  /* HIG Toolbars: when width runs out, labels collapse to symbols, then items move into More. */
+  & .toolbar-more {
+    display: none;
+  }
+  @container toolbar (width < 68rem) {
+    /* A collapsed item is a circle like the symbol buttons; one that keeps a count stays a pill. */
+    & button:has(> .toolbar-label) {
+      padding-inline: calc((var(--toolbar-control) - var(--toolbar-symbol)) / 2);
+    }
+    & button:has(> .toolbar-label):not(:has(> span:not(.toolbar-label))) {
+      width: var(--toolbar-control);
+      padding-inline: 0;
+    }
+    & .toolbar-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+  @container toolbar (width < 52rem) {
+    & .toolbar-overflow {
+      display: none;
+    }
+    & .toolbar-more {
+      display: flex;
+    }
+  }
+  /* With the sidebar docked open, the window controls sit over the sidebar instead. */
+  &:where([data-sidebar="open"] *) > .toolbar-row {
+    @media (width >= 80rem) {
+      padding-left: 1rem;
+    }
+  }
+}
+/* Content under the regular toolbar: its height and a 12px gap. */
+@utility toolbar-clearance {
+  padding-top: calc(var(--toolbar-height) + 0.75rem);
+}
+/* The toolbar's title: under the subtitle, or beside it in the title bar band. */
+@utility toolbar-title {
+  &:where([data-titlebar="overlay"] *) {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    & > * {
+      min-width: 0;
+    }
+  }
+}
+/* Every control in the title band (toolbar and sidebar header) shares --toolbar-control as its height, and a symbol button is a circle of that diameter. */
+@utility toolbar-controls {
+  --toolbar-symbol: 1.25rem;
+  &:where([data-titlebar="overlay"] *) {
+    --toolbar-symbol: 1.125rem;
+    & button {
+      height: var(--toolbar-control);
+      font-size: 0.8125rem;
+    }
+    & button[data-shape="circle"] {
+      width: var(--toolbar-control);
+    }
+    & button svg {
+      width: var(--toolbar-symbol);
+      height: var(--toolbar-symbol);
+    }
+  }
+}
+/* The toolbar's sidebar toggle; the docked open sidebar holds its own. */
+@utility toolbar-sidebar-toggle {
+  &:where([data-sidebar="open"] *) {
+    @media (width >= 80rem) {
+      display: none;
+    }
+  }
+}
+/* The sidebar's header row: the toolbar's height, past the window controls, dragging the window. */
+@utility sidebar-header {
+  height: var(--toolbar-height);
+  padding-left: max(0.75rem, var(--titlebar-x));
+  -webkit-app-region: drag;
+  app-region: drag;
+  & :is(button, a) {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+  /* Docked in the title bar band: it holds still over the list and stays above every scrim, like the toolbar. */
+  :root[data-titlebar="overlay"] :where(aside) & {
+    position: sticky;
+    top: 0;
+    z-index: 55;
+    background-color: var(--background);
+  }
+  /* As in the toolbar: the controls follow the header, which alone takes the open-modal state. */
+  :where(aside) & :is(button, a) {
+    pointer-events: inherit;
+  }
+  body[data-scroll-locked] :where(aside) & {
+    pointer-events: none;
+  }
+}
+/* The docked sidebar slides its width away and the content widens with it; 300 ms in, 200 ms out. */
+@utility sidebar-docked {
+  width: 20rem;
+  transition:
+    width 300ms ease-out,
+    visibility 300ms;
+  &[data-state="closed"] {
+    width: 0;
+    visibility: hidden;
+    border-right-width: 0;
+    transition:
+      width 200ms ease-in,
+      visibility 200ms,
+      border-right-width 0s 200ms;
+  }
+}
+
+/* Capture viewer: glass controls inside the safe areas, over the opaque image. */
+@utility viewer-top {
+  top: max(var(--safe-top), 0.5rem);
+}
+@utility viewer-bottom {
+  bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+@utility viewer-inline {
+  padding-left: max(env(safe-area-inset-left), 0.5rem);
+  padding-right: max(env(safe-area-inset-right), 0.5rem);
+}
+/* The gesture writes only these properties; the transform itself stays in CSS. */
+@utility viewer-media {
+  transform: translate3d(var(--viewer-x, 0px), var(--viewer-y, 0px), 0) scale(var(--viewer-scale, 1));
+  transform-origin: center;
+  &[data-animate] {
+    transition: transform 200ms ease-out;
+  }
+}
+@utility viewer-fade {
+  opacity: var(--viewer-fade, 1);
+}
+/*
+ * Sections, by proximity measured between visible ink (text and box edges): a title sits `--section-title-gap`
+ * above its content and `--section-gap` below the content before it. `section-stack` spaces sections; the title is
+ * a 16px line with `section-title` below it. A list's rows are 44pt targets whose text starts inside them, so `list-group` pulls a list up (after its title)
+ * and down by that inset: 12px, or 8px for two-line and media rows. Spacing then counts from the rows' ink.
+ */
+@utility section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+}
+/* Under a sheet's header, a first section's title clears it as if the header were the content before it. */
+@utility sheet-sections {
+  & > :first-child > [data-section-title],
+  & > :first-child > :first-child > [data-section-title] {
+    margin-top: calc(var(--section-gap) - 0.5rem);
+  }
+}
+/*
+ * A long scrolling page (Instructions), spaced like Apple's feature pages: its sections `--page-gap` apart
+ * (`--page-gap-wide` from a 45rem container, about the 120px apple.com puts between sections).
+ */
+@utility page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-gap);
+  @container (width >= 45rem) {
+    gap: var(--page-gap-wide);
+  }
+}
+/*
+ * A drawing made of the app's components on Instructions (`IllustrationStage` with `fit`): laid out at `14rem / --fit`
+ * and zoomed by `--fit`, so it lands 14rem wide at its own proportions.
+ */
+@utility illustration-fit {
+  width: calc(14rem / var(--fit));
+  zoom: var(--fit);
+}
+@utility section-title {
+  padding-bottom: var(--section-title-gap);
+}
+@utility list-group {
+  & > :is(ul, [role="radiogroup"]) {
+    margin-bottom: calc(var(--spacing) * -3);
+  }
+  & > [data-section-title] + :is(ul, [role="radiogroup"]) {
+    margin-top: calc(var(--spacing) * -3);
+  }
+  & > [data-section-title] + ul:has(> li:first-child > [data-row-inset="tight"]),
+  & > [data-section-title] + [role="radiogroup"]:has(> label:first-child [data-description]) {
+    margin-top: calc(var(--spacing) * -2);
+  }
+  & > ul:has(> li:last-child > [data-row-inset="tight"]),
+  & > [role="radiogroup"]:has(> label:last-child [data-description]) {
+    margin-bottom: calc(var(--spacing) * -2);
+  }
+}
+/*
+ * The mogi's 12 race tiles, portrait (2:3) so the road has length. Compact: one row that scrolls sideways, edge to edge
+ * past the page gutters, snapping to tiles. From a 48rem container: 12 across, filling the width.
+ */
+@utility race-grid {
+  display: flex;
+  gap: 0.375rem;
+  margin-inline: -1rem;
+  padding: 0.25rem 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 1rem;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  & > * {
+    flex: 0 0 3.5rem;
+    scroll-snap-align: start;
+  }
+  /* 12 across only once each tile is at least as wide as on a phone: 12 × 3.5rem and the gaps. */
+  @container (width >= 48rem) {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-inline: 0;
+    padding-inline: 0;
+    overflow-x: visible;
+  }
+}
+/*
+ * A race tile is content, so no glass: a soft fill in the spirit of the Shortcuts tiles, a sheen from the top
+ * over the state's colour, and larger continuous corners where the browser draws them (round elsewhere).
+ * Inside, a road in perspective (data-race-road) under an eased fade toward the horizon, drawn in --race-ink,
+ * the tile's text colour. --race-ink switches halfway through a tile turning, so the road never matches the
+ * tile. A counted tile has the finish line at the top (data-race-finish) and its number under it.
+ */
+@property --race-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@utility race-tile {
+  --race-ink: var(--color-foreground);
+  aspect-ratio: 2 / 3;
+  border-radius: 1rem;
+  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.15), rgb(255 255 255 / 0) 80%);
+  transition:
+    transform 150ms,
+    background-color 300ms 300ms,
+    color 300ms 300ms,
+    border-color 300ms 300ms,
+    --race-ink 0s 400ms;
+  @supports (corner-shape: superellipse(1.5)) {
+    corner-shape: superellipse(1.5);
+    border-radius: 1.25rem;
+  }
+  /*
+   * The road scales with the tile (container units, drawn for a 60px tile): a dash and its gap are one period,
+   * --race-dash; RaceTile drives and brakes it by that period, read from the tile's width.
+   */
+  container-type: inline-size;
+  & > [data-race-road] {
+    --race-dash: calc(100cqw * 25 / 60);
+    position: absolute;
+    inset: -12% 12% -2px;
+    opacity: 0;
+    transform: perspective(150cqw) rotateX(32deg);
+    transform-origin: 50% 100%;
+    background:
+      repeating-linear-gradient(
+          to bottom,
+          color-mix(in oklab, var(--race-ink) 55%, transparent) 0 48%,
+          transparent 48% 100%
+        )
+        50% 0 / 5cqw var(--race-dash) repeat-y,
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--race-ink) 30%, transparent) 0 3.4cqw,
+        transparent 3.4cqw calc(100% - 3.4cqw),
+        color-mix(in oklab, var(--race-ink) 30%, transparent) calc(100% - 3.4cqw)
+      ),
+      color-mix(in oklab, var(--race-ink) 9%, transparent);
+    mask: linear-gradient(
+      to bottom,
+      transparent 8%,
+      rgb(0 0 0 / 0.15) 25%,
+      rgb(0 0 0 / 0.5) 42%,
+      rgb(0 0 0 / 0.85) 58%,
+      #000 70%
+    );
+    transition: opacity 250ms;
+  }
+  &:is([data-race-state="reading"], [data-race-state="counted"]) > [data-race-road] {
+    opacity: 1;
+  }
+  /* Full width; the height follows, so the checks stay square at any tile size. */
+  & > [data-race-finish] {
+    position: absolute;
+    inset: 0 0 auto;
+    inline-size: 100%;
+    block-size: auto;
+  }
+  & > [data-race-finish] path {
+    fill: var(--color-foreground);
+  }
+  & > [data-race-finish] path[data-dark] {
+    fill: var(--color-background);
+  }
+  & > [data-race-label] {
+    position: relative;
+    display: flex;
+    transition: opacity 250ms 450ms;
+  }
+  &[data-race-state="reading"] > [data-race-label] {
+    opacity: 0;
+    transition: none;
+  }
+  &[data-race-state="counted"] {
+    --race-ink: var(--color-background);
+    align-items: flex-start;
+  }
+  /* Under the finish line, whose height follows the tile's width. */
+  &[data-race-state="counted"] > [data-race-label] {
+    margin-top: 30cqw;
+  }
+  &[data-race-state="counted"] > [data-race-label] {
+    text-shadow:
+      0 0 3px var(--color-foreground),
+      0 0 6px var(--color-foreground);
+  }
+  /* A race that just counted: the finish line arrives from the horizon and the tile pops. */
+  &[data-arrived] > [data-race-finish] {
+    animation: race-finish 450ms ease-out;
+  }
+  &[data-arrived] {
+    animation: race-pop 450ms 500ms ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    & > *,
+    &[data-arrived],
+    &[data-arrived] > * {
+      animation: none;
+      transition: none;
+    }
+  }
+}
+@keyframes race-finish {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes race-pop {
+  40% {
+    transform: scale(1.07);
+  }
+}
+/*
+ * RaceBars: twelve full-height slots, each drawing its bar from the bottom at --bar-value (0 to 1), written by
+ * the component, or, diverging, up or down from a zero line across the middle. The last counted race is in full colour, the earlier ones lighter. A hovered slot, or the one
+ * under a dragging finger (data-touched), stands out and shows its data-label above, on the popover surface.
+ */
+@utility race-bars {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  block-size: 1.375rem;
+  inline-size: 4.5rem;
+  touch-action: pan-y;
+  user-select: none;
+  @media (width >= 48rem) {
+    inline-size: 7.5rem;
+  }
+  & > [data-bar] {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    transition: opacity 120ms;
+  }
+  & > [data-bar]::before {
+    content: "";
+    inline-size: 100%;
+    border-radius: 2px;
+    background: currentColor;
+    block-size: calc(var(--bar-value, 0) * 100%);
+  }
+  & > [data-bar]:not([data-last]) {
+    opacity: 0.55;
+  }
+  & > [data-empty]::before {
+    block-size: 3px;
+    opacity: 0.35;
+  }
+  /* Diverging (`domain`): a zero axis across the middle, 1px in a row; each half of the slot is the scale's reach. Empty slots draw nothing. */
+  &[data-diverging] {
+    inline-size: 4rem;
+    @media (width >= 48rem) {
+      inline-size: 7.5rem;
+    }
+    background: linear-gradient(var(--muted-foreground), var(--muted-foreground)) center / 100% var(--axis-width, 1px)
+      no-repeat;
+  }
+  &[data-diverging] > [data-empty]::before {
+    content: none;
+  }
+  &[data-diverging] > [data-bar]::before {
+    position: absolute;
+    inset-inline: 0;
+    block-size: calc(var(--bar-value, 0) * 50%);
+  }
+  &[data-diverging] > [data-tone="gain"] {
+    color: var(--value-gain);
+  }
+  &[data-diverging] > [data-tone="gain"]::before {
+    inset-block-end: 50%;
+  }
+  &[data-diverging] > [data-tone="loss"] {
+    color: var(--value-loss);
+  }
+  &[data-diverging] > [data-tone="loss"]::before {
+    inset-block-start: 50%;
+  }
+  &[data-diverging] > [data-tone="zero"]::before {
+    inset-block-start: calc(50% - 2px);
+    block-size: 4px;
+  }
+  /* Filling a chart (the track sheet's Over time), the axis is 2px, in proportion to the larger plot. */
+  &[data-fill] {
+    --axis-width: 2px;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  &:hover > [data-bar]:not(:hover),
+  &[data-reading] > [data-bar]:not([data-touched]) {
+    opacity: 0.25;
+  }
+  &:hover > [data-bar]:hover,
+  & > [data-touched] {
+    opacity: 1;
+  }
+  & > [data-label]:hover::after,
+  & > [data-touched]::after {
+    content: attr(data-label);
+    position: absolute;
+    inset-block-end: calc(100% + 6px);
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    z-index: 10;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--popover);
+    color: var(--popover-foreground);
+    box-shadow:
+      0 1px 3px rgb(0 0 0 / 0.15),
+      0 0 0 1px var(--rule);
+    pointer-events: none;
+  }
+}
+/* Meter's fill: the measured share of the track, written by the component as --meter-value (0 to 1). */
+@utility meter-fill {
+  inline-size: calc(var(--meter-value, 0) * 100%);
+}
+
+/* ValueTrend: the scale's labels beside a plot that takes the column's width; the plot draws itself in pixels. */
+@utility value-trend {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0.5rem;
+  block-size: 8rem;
+}
+/* A list row as tall as `--row-span` plain rows; dividers sit inside a row and add no height (`ListRow` `span`). */
+@utility row-span-height {
+  min-height: calc(var(--row-span) * --spacing(11));
+}

@@ -1,0 +1,4 @@
+# Bulk reformats. Use with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Format apps/web with Prettier and sort imports
+60488823755bc07ef985973c9046a00437e87a15

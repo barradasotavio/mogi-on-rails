@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# The steps that need neither Chrome nor the OCR models. Browser specs, the production build and
+# real OCR run locally in `npm run check` (docs/contracts/quality.md).
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Engine tests
+        run: npm run test:engine
+      - name: App rule tests
+        run: npm run test:app-rules
+      - name: Design check tests
+        run: npm run test:design

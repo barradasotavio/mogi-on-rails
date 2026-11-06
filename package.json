@@ -1,0 +1,43 @@
+{
+  "name": "mogi-on-rails",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22.18.0 || >=23.6.0"
+  },
+  "workspaces": [
+    "apps/web",
+    "packages/engine"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @mkw/web --",
+    "build": "npm run build --workspace @mkw/web && node scripts/collect-build.mjs",
+    "start": "npm run start --workspace @mkw/web --",
+    "lint": "node scripts/check-english.mjs && prettier --check \"packages/engine/**/*.{ts,tsx}\" \"apps/web/**/*.{ts,tsx,mts,mjs,css}\" && npm run lint --workspace @mkw/web && eslint --config apps/web/eslint.config.mjs packages/engine/src packages/engine/tests scripts --max-warnings 0",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "node scripts/run-validation.mjs app-quick",
+    "check": "node scripts/run-validation.mjs all",
+    "check:compiler": "npm run check:compiler --workspace @mkw/web --",
+    "prepare:ocr": "npm run prepare:ocr --workspace @mkw/web --",
+    "fixtures:ocr": "npm run fixtures:ocr --workspace @mkw/web --",
+    "check:design": "npm run check:design --workspace @mkw/web --",
+    "test:design": "npm run test:design --workspace @mkw/web --",
+    "install:ci": "node scripts/hosting/install-ci.mjs",
+    "test:engine": "npm test --workspace @mkw/engine",
+    "benchmark:engine": "node scripts/benchmark-batch.ts",
+    "benchmark:browser": "node scripts/run-validation.mjs batch",
+    "test:quick": "node scripts/run-validation.mjs app-quick",
+    "test:app-rules": "node --test \"apps/web/lib/**/*.test.ts\"",
+    "test:focused": "node scripts/run-validation.mjs focused",
+    "test:browser:all": "node scripts/run-validation.mjs app",
+    "check:quick": "node scripts/run-validation.mjs quick",
+    "format": "(cd apps/web && eslint . --fix); eslint --config apps/web/eslint.config.mjs --fix packages/engine/src packages/engine/tests scripts; prettier --write \"packages/engine/**/*.{ts,tsx}\" \"apps/web/**/*.{ts,tsx,mts,mjs,css}\""
+  },
+  "overrides": {
+    "onnxruntime-web": "1.24.3"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  }
+}

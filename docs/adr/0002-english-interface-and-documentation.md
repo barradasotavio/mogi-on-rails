@@ -1,0 +1,3 @@
+# English interface and documentation
+
+The app interface, including the accessible names the tests use, is English, because the Lounge, the bot and the game screens already speak English. The documentation is English too, and stays English even if the app later gets UI translations: product, UI and technology terms are English in the code and the issues, so a doc in another language forces a translation step and weakens the shared vocabulary that links docs to code. The maintainer talking to agents in Portuguese doesn't change the docs language. Domain vocabulary lives in [GLOSSARY.md](../../GLOSSARY.md).

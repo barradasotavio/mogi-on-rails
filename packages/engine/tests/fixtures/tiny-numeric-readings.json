@@ -1,0 +1,650 @@
+{
+  "source": "PP-OCRv6 Tiny, production ffb6a09, scenario-A.json from /tmp/ocr-tiny-111-baseline; original hashes in real-captures.json",
+  "captures": [
+    {
+      "file": "01_corrida-01_IMG_0353.jpeg",
+      "names": [
+        {
+          "text": "CvsPeach",
+          "confidence": 90
+        },
+        {
+          "text": "F☆ peepa",
+          "confidence": 93
+        },
+        {
+          "text": "Vs Kamek",
+          "confidence": 86
+        },
+        {
+          "text": "Diddy.",
+          "confidence": 100
+        },
+        {
+          "text": "KRAFunk",
+          "confidence": 90
+        },
+        {
+          "text": "TKingBoo",
+          "confidence": 97
+        },
+        {
+          "text": "Tavo",
+          "confidence": 99
+        },
+        {
+          "text": "Bloop",
+          "confidence": 100
+        },
+        {
+          "text": "Ktoad67",
+          "confidence": 100
+        },
+        {
+          "text": "Funky",
+          "confidence": 100
+        },
+        {
+          "text": "Bw.",
+          "confidence": 82
+        },
+        {
+          "text": "DonkeyKong",
+          "confidence": 100
+        }
+      ],
+      "right": [
+        {
+          "row": 1,
+          "text": "15",
+          "value": 15,
+          "uncertain": false
+        },
+        {
+          "row": 2,
+          "text": "12",
+          "value": 12,
+          "uncertain": true
+        },
+        {
+          "row": 3,
+          "text": "10",
+          "value": 10,
+          "uncertain": false
+        },
+        {
+          "row": 4,
+          "text": "9",
+          "value": 9,
+          "uncertain": false
+        },
+        {
+          "row": 5,
+          "text": "8",
+          "value": 8,
+          "uncertain": false
+        },
+        {
+          "row": 6,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 7,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 8,
+          "text": "5",
+          "value": 5,
+          "uncertain": false
+        },
+        {
+          "row": 9,
+          "text": "4",
+          "value": 4,
+          "uncertain": false
+        },
+        {
+          "row": 10,
+          "text": "3",
+          "value": 3,
+          "uncertain": false
+        },
+        {
+          "row": 11,
+          "text": "2",
+          "value": 2,
+          "uncertain": false
+        },
+        {
+          "row": 12,
+          "text": "1",
+          "value": 1,
+          "uncertain": false
+        }
+      ],
+      "addition": [
+        {
+          "row": 1,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 2,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 3,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 4,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 5,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 6,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 7,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 8,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 9,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 10,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 11,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 12,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        }
+      ],
+      "positions": [
+        1,
+        2,
+        null,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "file": "02_corrida-02_IMG_0352.jpeg",
+      "names": [
+        {
+          "text": "TKingBoo",
+          "confidence": 96
+        },
+        {
+          "text": "Tavo",
+          "confidence": 99
+        },
+        {
+          "text": "DonkeyKong",
+          "confidence": 100
+        },
+        {
+          "text": "Bloop",
+          "confidence": 100
+        },
+        {
+          "text": "KRJFunk",
+          "confidence": 92
+        },
+        {
+          "text": "cvsPeach",
+          "confidence": 91
+        },
+        {
+          "text": "Funky",
+          "confidence": 100
+        },
+        {
+          "text": "B·w.",
+          "confidence": 82
+        },
+        {
+          "text": "Diddy.",
+          "confidence": 100
+        },
+        {
+          "text": "K toad67",
+          "confidence": 92
+        },
+        {
+          "text": "Vs Kamek",
+          "confidence": 91
+        },
+        {
+          "text": "F☆peepa",
+          "confidence": 99
+        }
+      ],
+      "right": [
+        {
+          "row": 1,
+          "text": "7",
+          "value": 7,
+          "uncertain": false
+        },
+        {
+          "row": 2,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 3,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 4,
+          "text": "5",
+          "value": 5,
+          "uncertain": false
+        },
+        {
+          "row": 5,
+          "text": "8",
+          "value": 8,
+          "uncertain": false
+        },
+        {
+          "row": 6,
+          "text": "15",
+          "value": 15,
+          "uncertain": false
+        },
+        {
+          "row": 7,
+          "text": "3",
+          "value": 3,
+          "uncertain": false
+        },
+        {
+          "row": 8,
+          "text": "2",
+          "value": 2,
+          "uncertain": false
+        },
+        {
+          "row": 9,
+          "text": "9",
+          "value": 9,
+          "uncertain": false
+        },
+        {
+          "row": 10,
+          "text": "4",
+          "value": 4,
+          "uncertain": false
+        },
+        {
+          "row": 11,
+          "text": "10",
+          "value": 10,
+          "uncertain": false
+        },
+        {
+          "row": 12,
+          "text": "12",
+          "value": 12,
+          "uncertain": false
+        }
+      ],
+      "addition": [
+        {
+          "row": 1,
+          "text": "+15",
+          "value": 15,
+          "uncertain": false
+        },
+        {
+          "row": 2,
+          "text": "+12",
+          "value": 12,
+          "uncertain": false
+        },
+        {
+          "row": 3,
+          "text": "+10",
+          "value": 10,
+          "uncertain": false
+        },
+        {
+          "row": 4,
+          "text": "+9",
+          "value": 9,
+          "uncertain": false
+        },
+        {
+          "row": 5,
+          "text": "+8",
+          "value": 8,
+          "uncertain": false
+        },
+        {
+          "row": 6,
+          "text": "+7",
+          "value": 7,
+          "uncertain": false
+        },
+        {
+          "row": 7,
+          "text": "x 6",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 8,
+          "text": "+5",
+          "value": 5,
+          "uncertain": false
+        },
+        {
+          "row": 9,
+          "text": "+4",
+          "value": 4,
+          "uncertain": false
+        },
+        {
+          "row": 10,
+          "text": "+3",
+          "value": 3,
+          "uncertain": false
+        },
+        {
+          "row": 11,
+          "text": "+2",
+          "value": 2,
+          "uncertain": false
+        },
+        {
+          "row": 12,
+          "text": "+1",
+          "value": 1,
+          "uncertain": false
+        }
+      ],
+      "positions": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "file": "13_apos-corrida-12_IMG_0341.jpeg",
+      "names": [
+        {
+          "text": "VS Kamek",
+          "confidence": 94
+        },
+        {
+          "text": "KRSFunk",
+          "confidence": 98
+        },
+        {
+          "text": "CvsPeach",
+          "confidence": 92
+        },
+        {
+          "text": "Diddy.",
+          "confidence": 100
+        },
+        {
+          "text": "T KingBoo",
+          "confidence": 93
+        },
+        {
+          "text": "Ktoad67",
+          "confidence": 99
+        },
+        {
+          "text": "Tavo",
+          "confidence": 99
+        },
+        {
+          "text": "Bloop",
+          "confidence": 100
+        },
+        {
+          "text": "DonkeyKong",
+          "confidence": 100
+        },
+        {
+          "text": "B·W.",
+          "confidence": 64
+        },
+        {
+          "text": "F☆ peepa",
+          "confidence": 94
+        },
+        {
+          "text": "Funky",
+          "confidence": 100
+        }
+      ],
+      "right": [
+        {
+          "row": 1,
+          "text": "124",
+          "value": 124,
+          "uncertain": false
+        },
+        {
+          "row": 2,
+          "text": "122",
+          "value": 122,
+          "uncertain": false
+        },
+        {
+          "row": 3,
+          "text": "96",
+          "value": 96,
+          "uncertain": false
+        },
+        {
+          "row": 4,
+          "text": "94",
+          "value": 94,
+          "uncertain": false
+        },
+        {
+          "row": 5,
+          "text": "93",
+          "value": 93,
+          "uncertain": false
+        },
+        {
+          "row": 6,
+          "text": "74",
+          "value": 74,
+          "uncertain": false
+        },
+        {
+          "row": 7,
+          "text": "73",
+          "value": 73,
+          "uncertain": false
+        },
+        {
+          "row": 8,
+          "text": "73",
+          "value": 73,
+          "uncertain": false
+        },
+        {
+          "row": 9,
+          "text": "70",
+          "value": 70,
+          "uncertain": false
+        },
+        {
+          "row": 10,
+          "text": "58",
+          "value": 58,
+          "uncertain": false
+        },
+        {
+          "row": 11,
+          "text": "545",
+          "value": 545,
+          "uncertain": true
+        },
+        {
+          "row": 12,
+          "text": "53",
+          "value": 53,
+          "uncertain": false
+        }
+      ],
+      "addition": [
+        {
+          "row": 1,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 2,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 3,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 4,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 5,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 6,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 7,
+          "text": "2",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 8,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 9,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 10,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 11,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        },
+        {
+          "row": 12,
+          "text": "",
+          "value": null,
+          "uncertain": true
+        }
+      ],
+      "positions": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        7,
+        9,
+        10,
+        11,
+        12
+      ]
+    }
+  ]
+}

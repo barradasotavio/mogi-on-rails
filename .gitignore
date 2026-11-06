@@ -1,0 +1,65 @@
+# Dependencies
+**/node_modules
+**/.pnp
+.pnp.*
+# Keep authored Yarn tooling if the project adopts Yarn.
+**/.yarn/*
+!/.yarn/patches/
+!/.yarn/plugins/
+!/.yarn/releases/
+!/.yarn/versions/
+
+# Generated builds and framework state
+**/dist/
+**/.next/
+**/.vinext/
+**/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Test output
+**/coverage/
+
+# Package-manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local environment and keys
+.env*
+.dev.vars*
+*.pem
+
+# Checkout-local tool state (agent worktrees and settings, Wrangler)
+**/.sites-runtime/
+.claude/
+.wrangler/
+apps/web/.wrangler/
+
+# Workspace scaffolding and publication archives
+**/.agents/
+**/.codex/
+**/outputs/
+**/work/
+
+# OS metadata
+.DS_Store
+**/playwright-report/
+**/test-results/
+
+**/public/ocr/
+**/.fixtures/
+
+# Served from retained source notices during resource preparation
+**/public/licenses/third-party-notices.txt
+**/public/licenses/shadcn-MIT.txt
+**/public/licenses/shadcn-tailwind-MIT.txt
+
+# Timestamped validation reports and per-boundary artifacts
+.validation/
+
+packages/engine/.ocr-cache/
+
+# ChatGPT Sites project identity (private, kept only in the local checkout)
+.openai/hosting.json

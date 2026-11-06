@@ -1,0 +1,258 @@
+{
+  "date": "2026-10-29",
+  "baselineRevision": "e2c197ad1ee16265db34e94f34d7e087e62d0a9c",
+  "fixture": "packages/engine/tests/fixtures/real-captures.json",
+  "environment": {
+    "node": "v26.12.1",
+    "chrome": "156.0.8078.74",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4 Pro",
+    "viewport": {
+      "width": 375,
+      "height": 812
+    },
+    "browserMode": "Chrome desktop, desenvolvimento"
+  },
+  "method": {
+    "engine": "Ingestão do app + normalizeReconstructions + perguntas + overview, sem respostas; aquecimento de uma captura fora da medição.",
+    "browser": "13 originais privados, cópias byte a byte com lastModified uniforme (sem cronologia de cópia), OCR real e PerformanceObserver longtask. Intervalos estáveis excluem apenas o aquecimento inicial do OCR.",
+    "commands": [
+      "npm run benchmark:engine",
+      "CI=1 PORT=5531 VALIDATION_OUTPUT=/tmp/mkw-batch BATCH_CAPTURES_DIR=/caminho/dos/13/originais npm run benchmark:browser"
+    ]
+  },
+  "before": {
+    "engine": {
+      "iterative": {
+        "totalMs": 954.6543750000001,
+        "capturesMs": [
+          13.863957999999997,
+          24.299832999999992,
+          38.31929200000002,
+          44.05220800000001,
+          54.10320800000002,
+          62.886708999999996,
+          73.23554200000001,
+          83.90591699999999,
+          90.86950000000002,
+          100.9787080000001,
+          112.37137499999994,
+          124.67704200000003,
+          131.09108300000003
+        ],
+        "lastToFirst": 9.455530880863895
+      },
+      "batch": {
+        "totalMs": 162.41287499999999,
+        "capturesMs": [
+          162.41287499999999
+        ],
+        "lastToFirst": 1
+      }
+    },
+    "browser": {
+      "totalMs": 42816.79999999702,
+      "longTasksMs": 20373,
+      "taskCount": 221,
+      "maxTaskMs": 200,
+      "progress": [
+        {
+          "current": 1,
+          "ms": 69
+        },
+        {
+          "current": 2,
+          "ms": 3822.0999999940395
+        },
+        {
+          "current": 3,
+          "ms": 6851.5999999940395
+        },
+        {
+          "current": 4,
+          "ms": 9361.699999988079
+        },
+        {
+          "current": 5,
+          "ms": 12431.39999999106
+        },
+        {
+          "current": 6,
+          "ms": 15282.5
+        },
+        {
+          "current": 7,
+          "ms": 17956.29999999702
+        },
+        {
+          "current": 8,
+          "ms": 21375.79999999702
+        },
+        {
+          "current": 9,
+          "ms": 24559.19999998808
+        },
+        {
+          "current": 10,
+          "ms": 28289.39999999106
+        },
+        {
+          "current": 11,
+          "ms": 32102.5
+        },
+        {
+          "current": 12,
+          "ms": 34752.89999999106
+        },
+        {
+          "current": 13,
+          "ms": 37576.79999999702
+        }
+      ],
+      "intervalsMs": [
+        3753.0999999940395,
+        3029.5,
+        2510.0999999940395,
+        3069.7000000029802,
+        2851.1000000089407,
+        2673.7999999970198,
+        3419.5,
+        3183.3999999910593,
+        3730.2000000029802,
+        3813.1000000089407,
+        2650.3999999910593,
+        2823.9000000059605
+      ]
+    }
+  },
+  "after": {
+    "engine": {
+      "iterative": {
+        "totalMs": 55.11637299999998,
+        "capturesMs": [
+          2.718958999999998,
+          4.105041999999997,
+          7.85341600000001,
+          3.2058329999999984,
+          2.659958000000003,
+          3.114208000000005,
+          3.259083000000004,
+          3.36779199999998,
+          4.193540999999982,
+          4.791083000000015,
+          5.587041999999997,
+          4.957041000000004,
+          5.303374999999988
+        ],
+        "lastToFirst": 1.9505167234960115
+      },
+      "batch": {
+        "totalMs": 13.109332999999992,
+        "capturesMs": [
+          13.109332999999992
+        ],
+        "lastToFirst": 1
+      }
+    },
+    "browser": {
+      "totalMs": 34166,
+      "longTasksMs": 62,
+      "taskCount": 1,
+      "maxTaskMs": 62,
+      "progress": [
+        {
+          "current": 1,
+          "ms": 70.79999999701977
+        },
+        {
+          "current": 2,
+          "ms": 3854
+        },
+        {
+          "current": 3,
+          "ms": 6850.199999988079
+        },
+        {
+          "current": 4,
+          "ms": 9270.59999999404
+        },
+        {
+          "current": 5,
+          "ms": 12235.89999999106
+        },
+        {
+          "current": 6,
+          "ms": 14918.89999999106
+        },
+        {
+          "current": 7,
+          "ms": 17362.19999998808
+        },
+        {
+          "current": 8,
+          "ms": 20320.89999999106
+        },
+        {
+          "current": 9,
+          "ms": 22762.19999998808
+        },
+        {
+          "current": 10,
+          "ms": 25365.19999998808
+        },
+        {
+          "current": 11,
+          "ms": 27868.19999998808
+        },
+        {
+          "current": 12,
+          "ms": 29513.69999998808
+        },
+        {
+          "current": 13,
+          "ms": 31147.79999999702
+        }
+      ],
+      "intervalsMs": [
+        3783.2000000029802,
+        2996.199999988079,
+        2420.4000000059605,
+        2965.2999999970198,
+        2683,
+        2443.2999999970198,
+        2958.7000000029802,
+        2441.2999999970198,
+        2603,
+        2503,
+        1645.5,
+        1634.1000000089407
+      ]
+    }
+  },
+  "validation": {
+    "engine": 208,
+    "appRules": 26,
+    "roomSequence": 19,
+    "browserQuestionsAndRender": 14,
+    "realBatchBrowser": 1,
+    "typecheck": "passou",
+    "lint": "passou",
+    "scenarioAnswers": {
+      "batch5": 1,
+      "iterative": 1,
+      "allAtOnce": 1
+    },
+    "totals": "Todas as corridas e parciais iguais ao gabarito",
+    "counter": {
+      "header": "1 question",
+      "sheet": "Question 1 of 1",
+      "closedAfterIggy": true
+    }
+  },
+  "artifacts": {
+    "baseline": "/tmp/t110-browser-before-final",
+    "batch": "/tmp/t110-browser-headroom",
+    "questions": "/tmp/t110-questions-headroom"
+  }
+}

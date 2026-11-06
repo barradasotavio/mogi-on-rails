@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>io.github.barradasotavio.switch-airdrop</string>
+    <key>CFBundleName</key>
+    <string>Switch AirDrop</string>
+    <key>CFBundleDisplayName</key>
+    <string>Switch AirDrop</string>
+    <key>CFBundleExecutable</key>
+    <string>SwitchAirdrop</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>Switch AirDrop moves Nintendo Switch screenshots received by AirDrop into Downloads/Nintendo Switch App.</string>
+</dict>
+</plist>

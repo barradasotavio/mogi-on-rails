@@ -1,0 +1,284 @@
+{
+ "bot": "Room 1 MMR: 5210 - Tier EF\n1. VSPeach, Kameks Eye (5620 MMR)\n2. funk2006, toad67 (5440 MMR)\n3. Tavo, KingBoo (5260 MMR)\n4. pom, DonkeyKong (5080 MMR)\n5. PiranhaPlant, BloopMaster (4900 MMR)\n6. ActuFunk, iggy (4720 MMR)",
+ "ign": {
+  "VSPeach": "CVSPeach",
+  "Kameks Eye": "VS Kamek",
+  "funk2006": "KR♪Funk",
+  "toad67": "K toad67",
+  "Tavo": "Tavo",
+  "KingBoo": "T KingBoo",
+  "pom": "Diddy.",
+  "DonkeyKong": "DonkeyKong",
+  "PiranhaPlant": "B·ω·",
+  "BloopMaster": "Bloop",
+  "ActuFunk": "Funky",
+  "iggy": "F☆ peepa"
+ },
+ "races": [
+  {
+   "race": 1,
+   "placements": [
+    "VSPeach",
+    "iggy",
+    "Kameks Eye",
+    "pom",
+    "funk2006",
+    "KingBoo",
+    "Tavo",
+    "BloopMaster",
+    "toad67",
+    "ActuFunk",
+    "PiranhaPlant",
+    "DonkeyKong"
+   ]
+  },
+  {
+   "race": 2,
+   "placements": [
+    "KingBoo",
+    "Tavo",
+    "DonkeyKong",
+    "BloopMaster",
+    "funk2006",
+    "VSPeach",
+    "ActuFunk",
+    "PiranhaPlant",
+    "pom",
+    "toad67",
+    "Kameks Eye",
+    "iggy"
+   ]
+  },
+  {
+   "race": 3,
+   "placements": [
+    "Kameks Eye",
+    "pom",
+    "Tavo",
+    "VSPeach",
+    "BloopMaster",
+    "ActuFunk",
+    "PiranhaPlant",
+    "KingBoo",
+    "DonkeyKong",
+    "iggy",
+    "funk2006",
+    "toad67"
+   ]
+  },
+  {
+   "race": 4,
+   "placements": [
+    "Kameks Eye",
+    "funk2006",
+    "KingBoo",
+    "DonkeyKong",
+    "VSPeach",
+    "toad67",
+    "BloopMaster",
+    "Tavo",
+    "ActuFunk",
+    "pom",
+    "PiranhaPlant",
+    "iggy"
+   ]
+  },
+  {
+   "race": 5,
+   "placements": [
+    "funk2006",
+    "pom",
+    "iggy",
+    "KingBoo",
+    "DonkeyKong",
+    "BloopMaster",
+    "Tavo",
+    "PiranhaPlant",
+    "VSPeach",
+    "Kameks Eye",
+    "ActuFunk",
+    "toad67"
+   ]
+  },
+  {
+   "race": 6,
+   "placements": [
+    "toad67",
+    "pom",
+    "VSPeach",
+    "KingBoo",
+    "Kameks Eye",
+    "PiranhaPlant",
+    "funk2006",
+    "ActuFunk",
+    "BloopMaster",
+    "Tavo",
+    "iggy",
+    "DonkeyKong"
+   ]
+  },
+  {
+   "race": 7,
+   "placements": [
+    "Kameks Eye",
+    "pom",
+    "BloopMaster",
+    "funk2006",
+    "ActuFunk",
+    "PiranhaPlant",
+    "VSPeach",
+    "KingBoo",
+    "DonkeyKong",
+    "toad67",
+    "Tavo",
+    "iggy"
+   ]
+  },
+  {
+   "race": 8,
+   "placements": [
+    "Kameks Eye",
+    "funk2006",
+    "VSPeach",
+    "KingBoo",
+    "toad67",
+    "Tavo",
+    "BloopMaster",
+    "ActuFunk",
+    "DonkeyKong",
+    "iggy",
+    "PiranhaPlant",
+    "pom"
+   ]
+  },
+  {
+   "race": 9,
+   "placements": [
+    "funk2006",
+    "Kameks Eye",
+    "BloopMaster",
+    "pom",
+    "VSPeach",
+    "KingBoo",
+    "DonkeyKong",
+    "toad67",
+    "Tavo",
+    "iggy",
+    "ActuFunk",
+    "PiranhaPlant"
+   ]
+  },
+  {
+   "race": 10,
+   "placements": [
+    "toad67",
+    "Kameks Eye",
+    "VSPeach",
+    "DonkeyKong",
+    "PiranhaPlant",
+    "iggy",
+    "Tavo",
+    "funk2006",
+    "pom",
+    "KingBoo",
+    "BloopMaster",
+    "ActuFunk"
+   ]
+  },
+  {
+   "race": 11,
+   "placements": [
+    "funk2006",
+    "KingBoo",
+    "pom",
+    "toad67",
+    "VSPeach",
+    "Tavo",
+    "PiranhaPlant",
+    "Kameks Eye",
+    "DonkeyKong",
+    "iggy",
+    "BloopMaster",
+    "ActuFunk"
+   ]
+  },
+  {
+   "race": 12,
+   "placements": [
+    "funk2006",
+    "Kameks Eye",
+    "DonkeyKong",
+    "ActuFunk",
+    "iggy",
+    "PiranhaPlant",
+    "pom",
+    "Tavo",
+    "BloopMaster",
+    "toad67",
+    "KingBoo",
+    "VSPeach"
+   ]
+  }
+ ],
+ "totals": {
+  "VSPeach": 96,
+  "Kameks Eye": 124,
+  "funk2006": 122,
+  "toad67": 74,
+  "Tavo": 73,
+  "KingBoo": 93,
+  "pom": 94,
+  "DonkeyKong": 70,
+  "PiranhaPlant": 58,
+  "BloopMaster": 73,
+  "ActuFunk": 53,
+  "iggy": 54
+ },
+ "teams": [
+  [
+   "VSPeach",
+   "Kameks Eye",
+   220
+  ],
+  [
+   "funk2006",
+   "toad67",
+   196
+  ],
+  [
+   "Tavo",
+   "KingBoo",
+   166
+  ],
+  [
+   "pom",
+   "DonkeyKong",
+   164
+  ],
+  [
+   "PiranhaPlant",
+   "BloopMaster",
+   131
+  ],
+  [
+   "ActuFunk",
+   "iggy",
+   107
+  ]
+ ],
+ "captures": [
+  "01 R1 result",
+  "02 R2 result (+prior totals)",
+  "03 totals after R3",
+  "04 R4 result (+prior totals)",
+  "05 totals after R5",
+  "06 totals after R6",
+  "07 R7 result (+prior totals)",
+  "08 totals after R8",
+  "09 totals after R9",
+  "10 totals after R10",
+  "11 lobby before R11 (totals after R10; next SNES Ilha Chocolate 2)",
+  "12 lobby before R12 (totals after R11; next Naufrágio Wario)",
+  "13 totals after R12"
+ ]
+}

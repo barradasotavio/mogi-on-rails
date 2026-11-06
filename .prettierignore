@@ -1,0 +1,13 @@
+# Vendored shadcn originals stay byte-identical to upstream.
+apps/web/vendor/
+
+# Build output and framework state
+**/dist/
+**/.next/
+**/.vinext/
+**/.wrangler/
+**/node_modules/
+
+# Generated assets
+apps/web/public/ocr/
+apps/web/.fixtures/

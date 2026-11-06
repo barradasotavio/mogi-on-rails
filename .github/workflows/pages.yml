@@ -1,0 +1,54 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+# Publishes the sub-path build to https://barradasotavio.github.io/mogi-on-rails/.
+# Only the public repository deploys; elsewhere the jobs are skipped.
+jobs:
+  build:
+    if: github.repository == 'barradasotavio/mogi-on-rails'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: packages/engine/.ocr-cache
+          key: ocr-${{ hashFiles('packages/engine/scripts/paddle-models.json') }}
+      - run: npm ci
+      - uses: actions/configure-pages@v5
+      - name: Build
+        run: npm run build --prefix apps/web
+        env:
+          BASE_PATH: /mogi-on-rails
+      # Keeps Jekyll from hiding the `_next` folder.
+      - run: touch apps/web/dist/client/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist/client
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
