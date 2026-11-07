@@ -83,7 +83,8 @@ export function recordDeducedTotal(
   });
 }
 
-/** A majority of read zeros, including uncertain ones, supports a zero column; blank alone never does. */
+/** A majority of read zeros, including uncertain ones, supports a zero column; blank alone never does. A lone "O" is a
+ * misread 0 glyph: it fits the column without counting as a read zero. */
 export function zeroGameCumulativeColumn(source: Capture): boolean {
   const column = source.rows
     .slice(0, representedPlayers(source))
@@ -92,7 +93,7 @@ export function zeroGameCumulativeColumn(source: Capture): boolean {
     column.every(
       (reading, index) =>
         (source.numericAnswers?.find((answer) => answer.row === index + 1)?.value ?? reading?.value ?? 0) === 0 &&
-        (!reading?.text.trim() || reading.value === 0),
+        (!reading?.text.trim() || reading.value === 0 || /^[oO]$/.test(reading.text.trim())),
     ) && column.filter((reading) => reading?.value === 0).length > column.length / 2
   );
 }

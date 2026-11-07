@@ -1273,3 +1273,38 @@ test("a saved result screen that kept its assisted group's id is settled on load
   assert.deepEqual(mogi.races.find((race) => race.number === 4)!.placements, pair.race4);
   assert.deepEqual(mogi.races.find((race) => race.number === 5)!.placements, pair.race5);
 });
+
+test("a reopened room's first screen read mid-animation, every total an uncertain 0, a blank or an O, starts that room (zeroRoomBoundary)", async () => {
+  const timed = (capture: Capture, minute: number) => ({
+    ...capture,
+    photoMoment: { at: minute * 60000, source: "exif" as const },
+  });
+  const zeros = source("reopened-1", 0, "finishOrderAdding");
+  zeros.numericRows = zeros.numericRows!.map((row, i) => ({
+    ...row,
+    right:
+      i === 4
+        ? { ...reading(0), text: "O", value: null, confidence: 43, uncertain: true }
+        : [3, 7, 8].includes(i)
+          ? { ...reading(0), text: "", value: null, confidence: 0, uncertain: true }
+          : { ...reading(0), confidence: 71, uncertain: true },
+  }));
+  let mogi = ingest(
+    prefix(0),
+    timed(source("room-1", 0, "finishOrderAdding"), 0),
+    timed(source("room-2", 1, "finishOrderAdding"), 4),
+    timed(zeros, 16),
+    ...[1, 2, 3].map((n) => timed(source(`reopened-${n + 1}`, n, "finishOrderAdding"), 16 + 4 * n)),
+  );
+  mogi = (await normalizeReconstructions({ mogis: [mogi] })).mogis[0];
+  const [question, ...rest] = mogiQuestions(mogi);
+  assert.deepEqual([question?.kind, question?.captureId, rest], ["race", "reopened-1", []]);
+  mogi = (
+    await normalizeReconstructions({ mogis: [await answerMogiQuestion(mogi, question.id, { kind: "race", value: 3 })] })
+  ).mogis[0];
+  assert.deepEqual(mogiQuestions(mogi), []);
+  assert.deepEqual(
+    ["room-1", "room-2", "reopened-1", "reopened-2", "reopened-3", "reopened-4"].map((id) => number(mogi, id)),
+    [1, 2, 3, 4, 5, 6],
+  );
+});
