@@ -12,7 +12,7 @@ import type { Capture, Mogi, NameAssociation } from "../types.ts";
 import { jointNames } from "./joint-names.ts";
 import { type NameEvidence, nameEvidence } from "./name-evidence.ts";
 import { recognizedParticipant } from "./name-recognition.ts";
-import { normalizedName } from "./spelling.ts";
+import { normalizedName, spelling } from "./spelling.ts";
 import { withdrawnAssociation } from "./synonyms.ts";
 
 export { spelling } from "./spelling.ts";
@@ -385,6 +385,7 @@ export function answerNameQuestion<T extends Mogi>(input: T, questionId: string,
     throw new Error("Choose an available player.");
   const occurrences = new Map([question, ...question.occurrences].map((entry) => [entry.captureId, entry.row]));
   const changed = new Set<string>();
+  const withdrawn = new Set<string>();
   const captures = mogi.captures!.map((capture) => {
     const row = occurrences.get(capture.id);
     if (row === undefined || !questionOccurrence(mogi, capture).people.some((person) => person.id === participantId))
@@ -398,16 +399,22 @@ export function answerNameQuestion<T extends Mogi>(input: T, questionId: string,
     changed.add(capture.id);
     return {
       ...capture,
-      nameAssociations: associations.map((entry, index) =>
-        index === row - 1
-          ? { participantId: participantId!, ...(reading ? { ign: reading } : {}) }
-          : entry.participantId === participantId
-            ? withdrawnAssociation()
-            : entry,
-      ),
+      nameAssociations: associations.map((entry, index) => {
+        if (index === row - 1) return { participantId: participantId!, ...(reading ? { ign: reading } : {}) };
+        if (entry.participantId !== participantId) return entry;
+        withdrawn.add(spelling(entry.ign ?? capture.rows[index]?.text ?? ""));
+        return withdrawnAssociation();
+      }),
     };
   });
-  return settleCaptures({ ...mogi, captures }, changed, true);
+  // A learned IGN whose rows this answer takes away was taught by a wrong link: back to the fallback, so the
+  // accepted answer teaches it again instead of leaving two people recognized by one spelling.
+  const participants = mogi.participants.map((person) =>
+    person.id === participantId && person.ignOrigin === "learned" && withdrawn.has(spelling(person.ign))
+      ? { ...person, ign: person.loungeName, ignOrigin: "fallback" as const }
+      : person,
+  );
+  return settleCaptures({ ...mogi, participants, captures }, changed, true);
 }
 
 /**

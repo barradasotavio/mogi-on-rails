@@ -879,7 +879,10 @@ test("unlinking a synonym asks again every occurrence that depended on it", () =
 
 test("unlink only retracts results dependent on user answers and keeps independently recognized rows", () => {
   const current = fixture();
-  current.participants = participants.map((person) => (person.id === "p0" ? { ...person, ign: "Read 0" } : person));
+  // A typed IGN: recognition of it doesn't depend on the answer being unlinked.
+  current.participants = participants.map((person) =>
+    person.id === "p0" ? { ...person, ign: "Read 0", ignOrigin: "explicit" as const } : person,
+  );
   current.captures = current.captures!.map((source) => ({
     ...source,
     context: undefined,

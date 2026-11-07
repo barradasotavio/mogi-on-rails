@@ -32,6 +32,10 @@ export function withdrawnAssociation(): NameAssociation {
 /**
  * Removes only answers confirmed or propagated for that spelling. Readings recognition resolved stay
  * independent. Nothing is propagated again here: the next answer decides anew.
+ *
+ * A learned IGN came from an answer, so unlinking its spelling takes back what that answer taught: the
+ * recognitions it produced are withdrawn too and the IGN returns to the fallback, to be learned from the next
+ * accepted answer. An explicit IGN is the user's own statement and keeps its recognitions.
  */
 export function unlinkSynonym<T extends Mogi>(
   mogi: T,
@@ -41,12 +45,14 @@ export function unlinkSynonym<T extends Mogi>(
 ): T {
   const spellingKey = spellingGroups(mogi.captures ?? []),
     key = spellingKey(synonym);
+  const person = mogi.participants.find((entry) => entry.id === participantId);
+  const unlearned = !!key && person?.ignOrigin === "learned" && spellingKey(person.ign) === key;
   const changed = new Set<string>();
   const captures = mogi.captures?.map((capture) => {
     const associations = captureNameAssociations(capture);
     const next = associations.map((answer, index) =>
       answer.participantId === participantId &&
-      (includeRecognized || recognizedParticipant(mogi, capture.rows[index]) !== participantId) &&
+      (includeRecognized || unlearned || recognizedParticipant(mogi, capture.rows[index]) !== participantId) &&
       key &&
       spellingKey(answer.ign ?? capture.rows[index]?.text ?? "") === key
         ? withdrawnAssociation()
@@ -56,5 +62,10 @@ export function unlinkSynonym<T extends Mogi>(
     changed.add(capture.id);
     return { ...capture, nameAssociations: next };
   });
-  return changed.size ? settleCaptures({ ...mogi, captures }, changed, false) : mogi;
+  const participants = unlearned
+    ? mogi.participants.map((entry) =>
+        entry.id === participantId ? { ...entry, ign: entry.loungeName, ignOrigin: "fallback" as const } : entry,
+      )
+    : mogi.participants;
+  return changed.size || unlearned ? settleCaptures({ ...mogi, participants, captures }, changed, false) : mogi;
 }

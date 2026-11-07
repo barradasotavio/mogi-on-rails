@@ -2,9 +2,15 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { Capture, Mogi } from "@mkw/engine";
-import { mogiQuestions, nameAssociationsForCapture } from "@mkw/engine";
+import {
+  answerMogiQuestion,
+  mogiQuestions,
+  nameAssociationsForCapture,
+  normalizeReconstructions,
+  unlinkSynonym,
+} from "@mkw/engine";
 
-import { emptyRealMogi, raw } from "./support/real-captures.ts";
+import { checkTotals, emptyRealMogi, ingestReal, raw } from "./support/real-captures.ts";
 
 test("the real race's tags form the bot's six pairs without wrong deductions", () => {
   const mogi: Mogi = emptyRealMogi();
@@ -302,5 +308,40 @@ test("two tagged members of each trio stay together when the untagged rows compe
   assert.deepEqual(
     question.options.map((person) => person.id),
     ["p1", "p2"],
+  );
+});
+
+test("unlinking a swapped teammate takes back the IGN it taught, so every race links the name to its player", async () => {
+  let mogi = emptyRealMogi();
+  const id = (name: string) => mogi.participants.find((person) => person.loungeName === name)!.id;
+  const answerNames = async (key: Record<string, string>) => {
+    for (let question = mogiQuestions(mogi)[0]; question; question = mogiQuestions(mogi)[0]) {
+      assert.ok(question.kind === "name" && key[question.reading], JSON.stringify(question));
+      const answered = await answerMogiQuestion(mogi, question.id, {
+        kind: "name",
+        answer: { participantId: id(key[question.reading]) },
+      });
+      mogi = (await normalizeReconstructions({ mogis: [answered] })).mogis[0];
+    }
+  };
+  // Race 1 asks for one teammate; answering the other one teaches both swapped IGNs.
+  mogi = await ingestReal(mogi, [0]);
+  await answerNames({ "F☆ peepa": "ActuFunk" });
+  // Races 2 and 3 are recognized by those learned IGNs, so they ask nothing.
+  mogi = await ingestReal(mogi, [1, 2]);
+  await answerNames({});
+  // Players → Unlink, then the corrected answers.
+  mogi = unlinkSynonym(mogi, id("ActuFunk"), "F☆ peepa");
+  await answerNames({ "F☆ peepa": "iggy", Funky: "ActuFunk" });
+  for (const capture of mogi.captures!)
+    capture.rows.forEach((row, index) => {
+      const expected = { "F☆ peepa": "iggy", Funky: "ActuFunk" }[row.text];
+      if (expected)
+        assert.equal(capture.nameAssociations![index].participantId, id(expected), `${capture.fileName}: ${row.text}`);
+    });
+  checkTotals(mogi, 3);
+  assert.deepEqual(
+    ["iggy", "ActuFunk"].map((name) => mogi.participants.find((person) => person.id === id(name))!.ign),
+    ["F☆ peepa", "Funky"],
   );
 });
