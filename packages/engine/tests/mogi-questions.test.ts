@@ -658,8 +658,8 @@ test("an answer resolves that spelling across the mogi and future captures witho
 test("a confirmed spelling becomes a synonym of that participant only", () => {
   const answered = answerNameQuestion(fixture(), "name:c1:1", { participantId: "p0" });
   assert.deepEqual(participantSynonyms(answered, "p0"), ["Read 0"]);
-  // Readings recognition resolved on its own are not confirmed synonyms.
-  assert.deepEqual(participantSynonyms(answered, "p2"), []);
+  // A reading recognition resolved is linked too, so Players can unlink it.
+  assert.deepEqual(participantSynonyms(answered, "p2"), ["Player 2"]);
   assert.equal(answered.captures![0].nameAssociations![0].participantId, "p0");
 });
 
@@ -877,9 +877,9 @@ test("unlinking a synonym asks again every occurrence that depended on it", () =
   assert.deepEqual(unlinkSynonym(unlinked, "p0", "Read 0"), unlinked);
 });
 
-test("unlink only retracts results dependent on user answers and keeps independently recognized rows", () => {
+test("unlink retracts every result linked to that spelling, recognized rows included, and keeps an explicit IGN", () => {
   const current = fixture();
-  // A typed IGN: recognition of it doesn't depend on the answer being unlinked.
+  // A typed IGN recognizes race 3 with certainty; unlinking its spelling still withdraws that row.
   current.participants = participants.map((person) =>
     person.id === "p0" ? { ...person, ign: "Read 0", ignOrigin: "explicit" as const } : person,
   );
@@ -920,25 +920,23 @@ test("unlink only retracts results dependent on user answers and keeps independe
       .map((q) => q.id),
     ["name:c1:1"],
   );
-  assert.deepEqual(resultCoverage(unlinked).included, [3]);
+  assert.deepEqual(resultCoverage(unlinked).included, []);
   assert.deepEqual(
-    unlinked.races.slice(0, 2).map((race) => [race.status, race.placements, race.nativePoints]),
+    unlinked.races.map((race) => [race.status, race.placements, race.nativePoints]),
     [
+      ["pending", [], undefined],
       ["pending", [], undefined],
       ["pending", [], undefined],
     ],
   );
-  assert.deepEqual(
-    unlinked.captures!.find((source) => source.id === "c3"),
-    answered.captures!.find((source) => source.id === "c3"),
-  );
+  assert.equal(unlinked.participants[0].ign, "Read 0");
   assert.deepEqual(participantSynonyms(unlinked, "p0"), []);
   assert.deepEqual(answered, before);
   const restored = answerNameQuestion(unlinked, "name:c1:1", { participantId: "p0" });
   assert.deepEqual(resultCoverage(restored).included, [1, 2, 3]);
   const typed = changeIgn(unlinked, "p0", "Read 0");
   assert.deepEqual(resultCoverage(typed).included, [1, 2, 3]);
-  for (const id of ["c1", "c2"]) {
+  for (const id of ["c1", "c2", "c3"]) {
     assert.deepEqual(unlinked.captures!.find((source) => source.id === id)!.nameAssociations![0], {
       participantId: null,
       unlinked: true,
@@ -951,8 +949,20 @@ test("unlink only retracts results dependent on user answers and keeps independe
   }
   const manual: Mogi = { ...answered, races: answered.races.map((race) => ({ ...race, origin: "manual" })) };
   assert.deepEqual(resultCoverage(unlinkSynonym(manual, "p0", "Read 0")).included, [1, 2, 3]);
+  // Another accepted finish order that links p0 by another spelling still supports race 1.
   const alternate: Mogi = {
     ...answered,
+    captures: answered.captures!.map((source) =>
+      source.id === "c3"
+        ? {
+            ...source,
+            rows: source.rows.map((row, index) => (index ? row : { ...row, text: "Other 0", uncertain: true })),
+            nameAssociations: participants.map((person) =>
+              person.id === "p0" ? { participantId: "p0", ign: "Other 0" } : { participantId: person.id },
+            ),
+          }
+        : source,
+    ),
     races: answered.races.slice(0, 2).map((race) => (race.id === "r1" ? { ...race, captureIds: ["c1", "c3"] } : race)),
   };
   assert.deepEqual(resultCoverage(unlinkSynonym(alternate, "p0", "Read 0")).included, [1]);
@@ -1057,7 +1067,7 @@ test("an unlinked reading also offers the teammates, and choosing one reopens th
     teamId: `t${Math.floor(index / 2)}`,
     ...(index === 1 ? { ign: "Typo", ignOrigin: "explicit" as const } : {}),
   }));
-  let unlinked = reconcileSequence(unlinkSynonym(mogi, "p1", "Read 0", true));
+  let unlinked = reconcileSequence(unlinkSynonym(mogi, "p1", "Read 0"));
   assert.deepEqual(swappedRows(unlinked), [
     [null, "p0"],
     [null, "p0"],

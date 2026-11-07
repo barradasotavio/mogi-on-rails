@@ -7,10 +7,11 @@ import {
   mogiQuestions,
   nameAssociationsForCapture,
   normalizeReconstructions,
+  participantSynonyms,
   unlinkSynonym,
 } from "@mkw/engine";
 
-import { checkTotals, emptyRealMogi, ingestReal, raw } from "./support/real-captures.ts";
+import { checkTotals, emptyRealMogi, ingestReal, raw, replayReal } from "./support/real-captures.ts";
 
 test("the real race's tags form the bot's six pairs without wrong deductions", () => {
   const mogi: Mogi = emptyRealMogi();
@@ -344,4 +345,63 @@ test("unlinking a swapped teammate takes back the IGN it taught, so every race l
     ["iggy", "ActuFunk"].map((name) => mogi.participants.find((person) => person.id === id(name))!.ign),
     ["F☆ peepa", "Funky"],
   );
+});
+
+test("unlinking every reading Players lists under swapped teammates repairs all 12 races, whatever the IGN's origin", async () => {
+  // A saved mogi from older code: race 1 answered right, every later capture recognized with certainty by
+  // the swapped IGNs. The short readings have no unrecognized variant except race 10's odd one.
+  const replayed = (await replayReal([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]])).mogi;
+  const id = (name: string) => replayed.participants.find((person) => person.loungeName === name)!.id;
+  const [ko, bo] = [id("iggy"), id("ActuFunk")];
+  for (const origin of ["learned", undefined, "explicit"] as const) {
+    let mogi = structuredClone(replayed);
+    mogi.participants = mogi.participants.map((person) =>
+      person.id === ko || person.id === bo
+        ? { ...person, ign: person.id === ko ? "Bo" : "Ko★", ignOrigin: origin }
+        : person,
+    );
+    mogi.captures!.forEach((capture, race) =>
+      capture.rows.forEach((row, index) => {
+        const peepa = row.text.includes("peepa");
+        if (!peepa && row.text !== "Funky") return;
+        const truth = peepa ? ko : bo,
+          swapped = peepa ? bo : ko;
+        const text = peepa ? (race === 9 ? "Ko★ 161 1AYE" : "Ko★") : "Bo";
+        const recognized = race && text !== "Ko★ 161 1AYE";
+        capture.rows[index] = { ...row, text, suggestedParticipantId: swapped, uncertain: !recognized };
+        capture.nameAssociations![index] = !race
+          ? { participantId: truth, ign: text }
+          : recognized
+            ? { participantId: swapped }
+            : { participantId: swapped, ign: text, origin: "deduced" };
+      }),
+    );
+    // Players → Unlink every reading listed under both teammates, then answer what is asked.
+    for (const person of [bo, ko])
+      for (const synonym of participantSynonyms(mogi, person)) mogi = unlinkSynonym(mogi, person, synonym);
+    for (let question = mogiQuestions(mogi)[0]; question; question = mogiQuestions(mogi)[0]) {
+      assert.ok(question.kind === "name", JSON.stringify(question));
+      const answered = await answerMogiQuestion(mogi, question.id, {
+        kind: "name",
+        answer: { participantId: question.reading.startsWith("Ko★") ? ko : bo },
+      });
+      mogi = (await normalizeReconstructions({ mogis: [answered] })).mogis[0];
+    }
+    for (const capture of mogi.captures!)
+      capture.rows.forEach((row, index) => {
+        if (row.text.startsWith("Ko★") || row.text === "Bo")
+          assert.equal(
+            capture.nameAssociations![index].participantId,
+            row.text === "Bo" ? bo : ko,
+            `${origin}, ${capture.fileName}: ${row.text}`,
+          );
+      });
+    // An explicit IGN is the user's statement and stays; any other is learned again from the answers.
+    assert.deepEqual(
+      [ko, bo].map((person) => mogi.participants.find((entry) => entry.id === person)!.ign),
+      origin === "explicit" ? ["Bo", "Ko★"] : ["Ko★", "Bo"],
+      String(origin),
+    );
+    checkTotals(mogi, 12);
+  }
 });

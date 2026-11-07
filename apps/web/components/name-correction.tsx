@@ -63,7 +63,7 @@ export function NameCorrection({
   const person = mogi.participants.find((p) => p.id === association?.participantId);
   if (!capture || !person) return null;
   const reading = capture.rows[row - 1].text;
-  const unlinked = unlinkSynonym(mogi, person.id, reading, true);
+  const unlinked = unlinkSynonym(mogi, person.id, reading);
   const question = mogiQuestions(unlinked).find(
     (q) =>
       q.kind === "name" &&
