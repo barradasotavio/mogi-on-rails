@@ -17,18 +17,18 @@ for (const width of [390]) {
     await openMogiSettings(page);
     const settings = page.getByRole("dialog", { name: "Mogi Settings", exact: true });
     const nested = page.getByRole("dialog", { name: "Screenshots", exact: true });
-    await settings.getByRole("button", { name: "Screenshots (0)", exact: true }).click();
+    await settings.getByRole("button", { name: "Screenshots 0", exact: true }).click();
     await expect(nested.getByRole("button", { name: "Back", exact: true })).toBeFocused();
     await nested.getByRole("button", { name: "Back", exact: true }).click();
     await expect(settings.getByRole("button", { name: "Close", exact: true })).toBeFocused();
     // Export is a page of the same sheet, not a second sheet over it.
-    await settings.getByRole("button", { name: "Export Results", exact: true }).click();
+    await settings.getByRole("button", { name: "Export", exact: true }).click();
     const exported = page.getByRole("dialog", { name: "Export", exact: true });
     await expect(exported.getByRole("button", { name: "Back", exact: true })).toBeFocused();
     await expect(exported.getByRole("img", { name: "Table preview", exact: true })).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(1);
     await exported.getByRole("button", { name: "Back", exact: true }).click();
-    await settings.getByRole("button", { name: "Screenshots (0)", exact: true }).click();
+    await settings.getByRole("button", { name: "Screenshots 0", exact: true }).click();
     await page.keyboard.press("Escape");
     await expect(nested).toBeHidden();
     await expect(settings).toBeHidden();
@@ -42,21 +42,10 @@ test("Mogi Settings groups actions and includes images without a race in Images"
   await restoreState(page, state);
   await openMogiSettings(page);
   const settings = page.getByRole("dialog", { name: "Mogi Settings", exact: true });
-  await expect(settings.getByRole("heading", { level: 2 })).toHaveText([
-    "Mogi Settings",
-    "Bot list",
-    "Screenshots and races",
-    "Export",
-  ]);
-  await expect(settings.getByRole("button")).toHaveText([
-    "",
-    "Original List",
-    "Screenshots (2)",
-    "Export Results",
-    "Delete Mogi",
-  ]);
+  await expect(settings.getByRole("heading", { level: 2 })).toHaveText(["Mogi Settings"]);
+  await expect(settings.getByRole("button")).toHaveText(["", "Bot List", "Screenshots2", "Export", "Delete Mogi"]);
   await expect(page.getByRole("button", { name: "More options", exact: true })).toHaveCount(0);
-  await settings.getByRole("button", { name: "Screenshots (2)", exact: true }).click();
+  await settings.getByRole("button", { name: "Screenshots 2", exact: true }).click();
   const images = page.getByRole("dialog", { name: "Screenshots", exact: true });
   await expect(images.getByRole("listitem")).toHaveCount(2);
   // Thumbnails are decorative: the row title already names the image.
@@ -67,8 +56,8 @@ test("Mogi Settings groups actions and includes images without a race in Images"
   await unassigned.click();
   const image = page.getByRole("dialog", { name: "Screenshot 2", exact: true });
   await expect
-    .poll(() => image.getByRole("listitem").evaluateAll((rows) => rows.slice(0, 4).map((row) => row.textContent)))
-    .toEqual(["RaceNot Assigned", "MomentAfter the race", "ScreenFinish order, points added", "Pending names2"]);
+    .poll(() => image.getByRole("listitem").evaluateAll((rows) => rows.slice(0, 3).map((row) => row.textContent)))
+    .toEqual(["RaceNot Assigned", "MomentAfter the race", "ScreenFinish order, points added"]);
   await expect(
     image.getByRole("list", { name: "How this was counted", exact: true }).getByRole("listitem"),
   ).toHaveCount(3);

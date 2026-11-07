@@ -22,11 +22,12 @@ async function openFinalExport(page: Page, context: BrowserContext, checkEmpty =
     await page.goto("/");
     await createMogi(page, roster);
     await openMogiActions(page);
-    await page.getByRole("button", { name: "Export Results", exact: true }).click();
+    await page.getByRole("button", { name: "Export", exact: true }).click();
     const emptyExport = page.getByRole("dialog", { name: "Export", exact: true });
     await expect(emptyExport.getByRole("button", { name: "Copy Share Text", exact: true })).toBeEnabled();
-    await expect(emptyExport.getByLabel("!submit", { exact: true })).toHaveValue(
-      "Waiting on races 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 and 12",
+    await expect(emptyExport.getByRole("textbox", { name: "!submit", exact: true })).toHaveCount(0);
+    await expect(emptyExport.getByRole("list", { name: "!submit", exact: true })).toHaveText(
+      "!submitWaiting on 12 races",
     );
     await expect(emptyExport.getByRole("button", { name: "Copy Table", exact: true })).toBeEnabled();
     await page.keyboard.press("Escape");
@@ -94,7 +95,7 @@ async function openFinalExport(page: Page, context: BrowserContext, checkEmpty =
     await expect(page.getByRole("button", { name: "1 Question", exact: true })).toHaveCount(0);
   }
   await openMogiActions(page);
-  await page.getByRole("button", { name: "Export Results", exact: true }).click();
+  await page.getByRole("button", { name: "Export", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Export", exact: true });
   return panel;
 }
@@ -174,8 +175,10 @@ test("an empty tier explains why the final header cannot submit", async ({ page,
   await expect(missingTier).toBeVisible();
   await expect(missingTier).toBeDisabled();
   await openMogiActions(page);
-  await page.getByRole("button", { name: "Export Results", exact: true }).click();
-  await expect(panel.getByLabel("!submit", { exact: true })).toHaveValue("Add the tier to submit");
+  await page.getByRole("button", { name: "Export", exact: true }).click();
+  await expect(panel.getByRole("textbox", { name: "!submit", exact: true })).toHaveCount(0);
+  await expect(panel.getByRole("list", { name: "!submit", exact: true })).toHaveCount(0);
+  await expect(panel.getByLabel("Tier", { exact: true })).toHaveAccessibleDescription("Needed for !submit");
   await panel.getByLabel("Tier", { exact: true }).fill("D");
   await panel.getByLabel("Tier", { exact: true }).blur();
   await expect(panel.getByLabel("!submit", { exact: true })).toHaveValue(finalCommand);
@@ -186,7 +189,7 @@ test("export refuses data changed in another tab", async ({ page, context }) => 
   const other = await context.newPage();
   await other.goto(page.url());
   await openMogiActions(other);
-  await other.getByRole("button", { name: "Export Results", exact: true }).click();
+  await other.getByRole("button", { name: "Export", exact: true }).click();
   const otherExport = other.getByRole("dialog", { name: "Export", exact: true });
   await otherExport.getByLabel("Tier", { exact: true }).fill("E");
   await otherExport.getByLabel("Tier", { exact: true }).blur();

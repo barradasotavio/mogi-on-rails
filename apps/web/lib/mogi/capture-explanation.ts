@@ -9,6 +9,7 @@ type DisplayStep = CaptureExplanationStep & {
   playerName?: string;
   format?: Mogi["format"];
 };
+/** `reason` is empty when the origin already says it, as for a reading or an answer. */
 type Phrase = { decision: string; reason: string };
 const reference = (step: DisplayStep) =>
   step.referenceImage === undefined ? "another screenshot" : `screenshot ${step.referenceImage}`;
@@ -31,7 +32,7 @@ export const rulePhrases: Record<RuleCode, (step: DisplayStep) => Phrase> = {
   }),
   "race.reopen-first": (step) => ({
     decision: `Race ${step.value} · first in a new room`,
-    reason: step.evidence.reopeningBasis === "answered" ? "the room was marked as reopened" : "most totals went down",
+    reason: step.evidence.reopeningBasis === "answered" ? "" : "most totals went down",
   }),
   "race.reopen-later": (step) => ({
     decision: `Race ${step.value}`,
@@ -39,16 +40,16 @@ export const rulePhrases: Record<RuleCode, (step: DisplayStep) => Phrase> = {
   }),
   "race.answered": (step) => ({
     decision: step.value === null ? "Race not assigned" : `Race ${step.value}`,
-    reason: "as you chose",
+    reason: "",
   }),
   "race.finish-order": (step) => ({ decision: `Race ${step.value}`, reason: "its finish order matches that race" }),
   "order.photo-time": (step) => ({
     decision: `After ${reference(step)}`,
     reason: `${reference(step)} ${{ exif: "taken", "switch-name": "saved", pasted: "pasted", "file-date": "file dated" }[step.evidence.photoTimeSource ?? "file-date"]} before ${step.subjectImage === undefined ? "this screenshot" : `screenshot ${step.subjectImage}`}`,
   }),
-  "order.answered": (step) => ({ decision: `After ${reference(step)}`, reason: "by the race numbers you chose" }),
+  "order.answered": (step) => ({ decision: `After ${reference(step)}`, reason: "" }),
   "duplicate.same-vector": (step) => ({ decision: `Same totals as ${reference(step)}`, reason: "counted once" }),
-  "points.as-shown": (step) => ({ decision: `${step.value} of ${step.evidence.compared} totals`, reason: "as shown" }),
+  "points.as-shown": (step) => ({ decision: `${step.value} of ${step.evidence.compared} totals`, reason: "" }),
   "points.race1-permutation": (step) => ({
     decision: total(step),
     reason: `${ordinal(step.evidence.row!)} place in race 1`,
@@ -63,7 +64,7 @@ export const rulePhrases: Record<RuleCode, (step: DisplayStep) => Phrase> = {
     reason: `read ${step.evidence.readText}, the extra digit was noise`,
   }),
   "points.restart": (step) => ({ decision: total(step), reason: "they restarted from zero" }),
-  "name.as-shown": (step) => ({ decision: `${step.value} of ${step.evidence.compared} names`, reason: "as shown" }),
+  "name.as-shown": (step) => ({ decision: `${step.value} of ${step.evidence.compared} names`, reason: "" }),
   "name.similar": (step) => ({ decision: named(step), reason: "the names are close" }),
   "name.tag": (step) => ({ decision: named(step), reason: "same tag as the team" }),
   "name.exclusion": (step) => ({
@@ -79,7 +80,7 @@ export const rulePhrases: Record<RuleCode, (step: DisplayStep) => Phrase> = {
     decision: named(step),
     reason: `same name read ${(step.evidence.variants?.length ?? 0) + 1} ways`,
   }),
-  "name.answered": (step) => ({ decision: named(step), reason: "as you chose" }),
+  "name.answered": (step) => ({ decision: named(step), reason: "" }),
   "pending.question": (step) => ({
     decision: "Not counted yet",
     reason: `${step.value} ${step.value === 1 ? "question" : "questions"}`,

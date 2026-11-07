@@ -137,7 +137,7 @@ test("the list and sidebar summarize teams and players in the right groups", asy
   await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier D", exact: true })).toBeVisible();
   await openMogiSettings(page);
   await page.getByRole("button", { name: "Delete Mogi", exact: true }).click();
-  await page.getByRole("alertdialog").getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Delete Mogi", exact: true }).click();
   await expect(sidebar.getByRole("heading", { level: 2 })).toHaveText(["Previous mogis"]);
   await expect(main.getByText("Choose a mogi, or paste a bot list in New Mogi.", { exact: true })).toBeVisible();
   await expect(main.getByRole("heading", { name: "No Mogis Yet", exact: true })).toHaveCount(0);

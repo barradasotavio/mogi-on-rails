@@ -16,22 +16,17 @@ import {
 import { withBase } from "../base-path.ts";
 import type { Mogi } from "./types";
 
-/** Present engine blockers without counting credit questions twice. */
-export function submissionBlockerText(mogi: Mogi, blockers: ResultBlockers): string {
-  const slots = rosterSlots(mogi);
-  const name = (id: string) => slots.find((slot) => slot.id === id)!.loungeName;
+/** The one state that keeps `!submit` unavailable, the first that applies; none when only the tier is missing (its field says so). */
+export function submissionBlockerText(mogi: Mogi, blockers: ResultBlockers): string | null {
   const races = blockers.pendingRaces;
-  const raceList = races.length > 1 ? `${races.slice(0, -1).join(", ")} and ${races.at(-1)}` : String(races[0]);
-  const questions = blockers.openQuestions.filter((question) => question.kind !== "credit");
-  return [
-    ...(blockers.missingTier ? ["Add the tier to submit"] : []),
-    ...(races.length ? [`Waiting on ${races.length === 1 ? "race" : "races"} ${raceList}`] : []),
-    ...(blockers.unknownTotals.length ? [`Unknown total for ${blockers.unknownTotals.map(name).join(", ")}`] : []),
-    ...blockers.openQuestions
-      .filter((question) => question.kind === "credit")
-      .map((question) => `Choose who gets the credit for ${name(question.id.slice("credit:".length))}`),
-    ...(questions.length ? [`${questions.length} open ${questions.length === 1 ? "question" : "questions"}`] : []),
-  ].join("\n");
+  if (races.length) return races.length === 1 ? `Waiting on race ${races[0]}` : `Waiting on ${races.length} races`;
+  const totals = blockers.unknownTotals;
+  if (totals.length === 1)
+    return `Unknown total for ${rosterSlots(mogi).find((slot) => slot.id === totals[0])!.loungeName}`;
+  if (totals.length) return `${totals.length} unknown totals`;
+  const questions = blockers.openQuestions.length;
+  if (questions) return `${questions} open ${questions === 1 ? "question" : "questions"}`;
+  return null;
 }
 
 /** Shared image and text title, including proven races without detailed results. */

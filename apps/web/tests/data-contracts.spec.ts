@@ -96,7 +96,7 @@ test("recovery restores a backup without loading existing data", async ({ page, 
 
 async function expectFailedImage(page: Page) {
   await openMogiActions(page);
-  await page.getByRole("button", { name: /^Screenshots \(\d+\)$/ }).click();
+  await page.getByRole("button", { name: /^Screenshots \d+$/ }).click();
   const images = page.getByRole("dialog", { name: "Screenshots", exact: true });
   await expect(images.getByText("finish-order-totals.jpeg", { exact: true })).toBeVisible();
   await images.getByRole("button", { name: /finish-order-totals.jpeg/ }).click();
@@ -443,8 +443,8 @@ test("a stale tab refuses overwrites and reloads the mogi saved by the other tab
   await expect(other.getByText("FFA · Race 1 of 12", { exact: true })).toBeVisible();
   await openMogiSettings(page);
   await page.getByRole("button", { name: "Delete Mogi", exact: true }).click();
-  const confirmation = page.getByRole("alertdialog", { name: "Delete This Mogi?", exact: true });
-  await confirmation.getByRole("button", { name: "Delete", exact: true }).click();
+  const confirmation = page.getByRole("alertdialog", { name: /^Delete .+\?$/ });
+  await confirmation.getByRole("button", { name: "Delete Mogi", exact: true }).click();
   // The refused write is the blocking alert, above the confirmation.
   const changed = page.getByRole("alertdialog", { name: "Your Data Changed in Another Window", exact: true });
   await expect(changed).toHaveAccessibleDescription(

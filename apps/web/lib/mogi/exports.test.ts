@@ -23,33 +23,30 @@ test("coverage conflict codes have one English presentation for sharing", () => 
   );
 });
 
-test("a missing tier is explained in the export instead of an empty submit command", () => {
-  const mogi: Mogi = { id: "m", name: "Mogi", format: "FFA", createdAt: "2026-10-29", participants: [], races: [] };
-  assert.equal(
-    submissionBlockerText(mogi, { pendingRaces: [], unknownTotals: [], openQuestions: [], missingTier: true }),
-    "Add the tier to submit",
-  );
-});
-
-test("export explains credit and pending questions on separate lines, without counting credit twice", () => {
+test("!submit's blocker is one short state, never a list of races", () => {
   const participants = Array.from({ length: 12 }, (_, index) => ({
     id: `p${index}`,
     loungeName: `Player ${index + 1}`,
     ign: `Player ${index + 1}`,
   }));
   const mogi: Mogi = { id: "m", name: "Mogi", format: "FFA", createdAt: "2026-10-29", participants, races: [] };
+  const none = { pendingRaces: [], unknownTotals: [], openQuestions: [] };
+  assert.equal(submissionBlockerText(mogi, { ...none, missingTier: true }), null);
+  assert.equal(
+    submissionBlockerText(mogi, { ...none, pendingRaces: [3, 4, 5], openQuestions: [{ id: "q1", kind: "number" }] }),
+    "Waiting on 3 races",
+  );
+  assert.equal(submissionBlockerText(mogi, { ...none, pendingRaces: [12] }), "Waiting on race 12");
+  assert.equal(submissionBlockerText(mogi, { ...none, unknownTotals: ["p2"] }), "Unknown total for Player 3");
   assert.equal(
     submissionBlockerText(mogi, {
-      pendingRaces: [],
-      unknownTotals: [],
+      ...none,
       openQuestions: [
         { id: "credit:p2", kind: "credit" },
         { id: "q1", kind: "row-identity" },
-        { id: "q2", kind: "row-identity" },
-        { id: "q3", kind: "number" },
       ],
     }),
-    "Choose who gets the credit for Player 3\n3 open questions",
+    "2 open questions",
   );
 });
 

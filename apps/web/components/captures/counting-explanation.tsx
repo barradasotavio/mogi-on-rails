@@ -37,8 +37,8 @@ export function CountingExplanation({
               key={`${line.rule}-${index}`}
               wrap
               aria-label={label}
-              description={line.reason}
-              trail={line.origin}
+              description={line.origin && line.reason ? line.reason : undefined}
+              trail={line.origin ?? line.reason}
               onSelect={onSelect}
               accessory={line.kind === "pending" ? "chevron" : undefined}
               disabled={busy}

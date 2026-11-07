@@ -25,18 +25,18 @@ for (const width of [375]) {
     capture.nameAssociations[11] = { participantId: null };
     await restoreState(page, state);
     await openMogiSettings(page);
-    await page.getByRole("button", { name: "Screenshots (2)", exact: true }).click();
+    await page.getByRole("button", { name: "Screenshots 2", exact: true }).click();
     await page
       .getByRole("dialog", { name: "Screenshots", exact: true })
       .getByRole("button", { name: /Race 3 · after the race/ })
       .click();
     const image = page.getByRole("dialog", { name: "Screenshot 2", exact: true });
     await expect
-      .poll(() => image.getByRole("listitem").evaluateAll((rows) => rows.slice(0, 4).map((row) => row.textContent)))
-      .toEqual(["Race3", "MomentAfter the race", "ScreenFinish order, points added", "Pending names2"]);
+      .poll(() => image.getByRole("listitem").evaluateAll((rows) => rows.slice(0, 3).map((row) => row.textContent)))
+      .toEqual(["Race3", "MomentAfter the race", "ScreenFinish order, points added"]);
     const section = image.getByRole("list", { name: "How this was counted", exact: true });
     await expect(section.getByRole("listitem")).toHaveCount(5);
-    const summary = section.getByRole("listitem", { name: "8 of 12 names, as shown, Read", exact: true });
+    const summary = section.getByRole("listitem", { name: "8 of 12 names, Read", exact: true });
     await expect(summary).toBeVisible();
     await expect(summary.getByRole("button")).toHaveCount(0);
     await expect(section.getByText(/Player \d+ is Player \d+/)).toHaveCount(0);
@@ -45,9 +45,7 @@ for (const width of [375]) {
       exact: true,
     });
     await expect(deduced).toBeVisible();
-    await expect(
-      section.getByRole("button", { name: "Funky is Player 11, as you chose, Your answer", exact: true }),
-    ).toBeVisible();
+    await expect(section.getByRole("button", { name: "Funky is Player 11, Your answer", exact: true })).toBeVisible();
     const pending = section.getByRole("button", { name: "Not counted yet, 2 questions", exact: true });
     await expect(pending).toBeVisible();
     await expect(pending.getByText("Deduced", { exact: true })).toHaveCount(0);
@@ -66,15 +64,11 @@ for (const width of [375]) {
     await page.keyboard.press("Escape");
     await expect(image).toBeVisible();
     await expect(image.getByRole("button", { name: "Not counted yet, 3 questions", exact: true })).toBeFocused();
-    await section.getByRole("button", { name: "Funky is Player 11, as you chose, Your answer", exact: true }).click();
+    await section.getByRole("button", { name: "Funky is Player 11, Your answer", exact: true }).click();
     const chosen = page.getByRole("dialog", { name: "Player 11", exact: true });
     await chosen.getByRole("button", { name: "Raindrop", exact: true }).click();
-    await expect(
-      section.getByRole("button", { name: "Funky is Raindrop, as you chose, Your answer", exact: true }),
-    ).toBeVisible();
-    await expect(
-      section.getByRole("button", { name: "Funky is Player 11, as you chose, Your answer", exact: true }),
-    ).toHaveCount(0);
+    await expect(section.getByRole("button", { name: "Funky is Raindrop, Your answer", exact: true })).toBeVisible();
+    await expect(section.getByRole("button", { name: "Funky is Player 11, Your answer", exact: true })).toHaveCount(0);
   });
   test(`image explains race, order, repetition and points, shows raw numbers and updates after correction at ${width}px`, async ({
     page,
@@ -96,7 +90,7 @@ for (const width of [375]) {
     mogi.captures.push(copy);
     await restoreState(page, state);
     await openMogiSettings(page);
-    await page.getByRole("button", { name: "Screenshots (5)", exact: true }).click();
+    await page.getByRole("button", { name: "Screenshots 5", exact: true }).click();
     await page
       .getByRole("dialog", { name: "Screenshots", exact: true })
       .getByRole("button", { name: /repeat.jpeg/ })
@@ -110,7 +104,7 @@ for (const width of [375]) {
       "Race 3 · first in a new room, most totals went down, Deduced",
       "After screenshot 2, screenshot 2 taken before screenshot 5, Deduced",
       "Same totals as screenshot 3, counted once, Deduced",
-      "10 of 12 totals, as shown, Read",
+      "10 of 12 totals, Read",
       "Player 5 · 15, 1st place in race 1, Deduced",
       "Player 6 · 12, 2nd place in race 1, Deduced",
     ];
@@ -141,7 +135,7 @@ for (const width of [375]) {
     const race = page.getByRole("dialog", { name: "Race", exact: true });
     await expect(race).toBeVisible();
     await race.getByRole("button", { name: "Race 5", exact: true }).click();
-    await expect(section.getByRole("button", { name: "Race 5, as you chose, Your answer", exact: true })).toBeVisible();
+    await expect(section.getByRole("button", { name: "Race 5, Your answer", exact: true })).toBeVisible();
     await expect(image.getByRole("button", { name: "Race 5", exact: true })).toBeVisible();
     await expect(section.getByText("Your answer", { exact: true }).first()).toBeVisible();
   });

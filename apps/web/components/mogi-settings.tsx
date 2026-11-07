@@ -98,7 +98,7 @@ export function MogiSettings({
       ? page === "images"
         ? "Screenshots"
         : page === "original"
-          ? "Original List"
+          ? "Bot List"
           : page === "export"
             ? "Export"
             : "Mogi Settings"
@@ -110,9 +110,6 @@ export function MogiSettings({
           : page.kind === "race"
             ? "Race"
             : `Screenshot ${entries.findIndex((entry) => entry.id === page.id) + 1}`;
-  const pendingNames = capture?.rows.filter(
-    (row, index) => !capture.nameAssociations?.[index]?.participantId && (row.uncertain || !row.suggestedParticipantId),
-  ).length;
   async function assign(number: number | null) {
     if (
       capture &&
@@ -135,41 +132,36 @@ export function MogiSettings({
       >
         {page === "settings" ? (
           <>
-            <ListGroup title="Bot list">
-              <List dividers="row">
+            <ListGroup>
+              <List dividers="row" aria-label="Mogi">
                 <ListRow onSelect={() => pages.push("original")} accessory="chevron">
-                  Original List
+                  Bot List
                 </ListRow>
-              </List>
-            </ListGroup>
-            <ListGroup title="Screenshots and races">
-              <List dividers="row">
-                <ListRow onSelect={() => pages.push("images")} accessory="chevron">
-                  Screenshots ({entries.length})
+                <ListRow onSelect={() => pages.push("images")} accessory="chevron" trail={entries.length}>
+                  Screenshots
                 </ListRow>
-              </List>
-            </ListGroup>
-            <ListGroup title="Export">
-              <List dividers="row">
                 <ListRow disabled={busy} onSelect={() => pages.push("export")} accessory="chevron">
-                  Export Results
+                  Export
                 </ListRow>
               </List>
             </ListGroup>
-            <Button
-              ref={deleteTrigger}
-              variant="destructive-ghost"
-              className="w-full"
-              disabled={busy}
-              onClick={() => setConfirm(true)}
-            >
-              Delete Mogi
-            </Button>
+            <ListGroup>
+              <List aria-label="Delete">
+                <ListRow
+                  action="destructive"
+                  buttonProps={{ ref: deleteTrigger }}
+                  disabled={busy}
+                  onSelect={() => setConfirm(true)}
+                >
+                  Delete Mogi
+                </ListRow>
+              </List>
+            </ListGroup>
           </>
         ) : page === "export" ? (
           exported.body
         ) : page === "original" ? (
-          <ListGroup note="As pasted when the mogi was created. Lounge names come from here.">
+          <ListGroup>
             <pre className="whitespace-pre-wrap wrap-anywhere rounded-xl bg-muted p-3 text-sm leading-relaxed select-text">
               {mogiOriginalList(mogi)}
             </pre>
@@ -206,7 +198,6 @@ export function MogiSettings({
                 <ListRow trail={capture?.interpretation ? screens[capture.interpretation.screen].name : "Not read"}>
                   Screen
                 </ListRow>
-                <ListRow trail={pendingNames ?? "—"}>Pending names</ListRow>
               </List>
               {capture && (
                 <CountingExplanation
@@ -282,9 +273,9 @@ export function MogiSettings({
         open={confirm}
         onOpenChange={setConfirm}
         busy={busy}
-        title="Delete This Mogi?"
-        description="Its races, screenshots and answers are removed from this device. This can't be undone."
-        confirmLabel="Delete"
+        title={`Delete ${mogi.name}?`}
+        description="This can't be undone."
+        confirmLabel="Delete Mogi"
         errorMessage="Couldn't delete the mogi. Your data was kept. Try again."
         onCloseAutoFocus={(event) => {
           event.preventDefault();
