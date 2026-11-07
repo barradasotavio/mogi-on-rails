@@ -6,7 +6,7 @@ import { closeExportPanel } from "./export-navigation";
 export async function returnToStandings(page: Page) {
   // Replace is asynchronous; wait for its confirmation to release the underlying sheet.
   await expect(
-    page.getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true, includeHidden: true }),
+    page.getByRole("alertdialog", { name: "Replace All Data?", exact: true, includeHidden: true }),
   ).toHaveCount(0);
   // A successful restore closes Settings; let its exit animation finish before reading the sheets.
   await expect(page.locator('[role="dialog"][data-state="closed"]')).toHaveCount(0);

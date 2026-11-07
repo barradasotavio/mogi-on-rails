@@ -152,7 +152,7 @@ test("backup refuses unsupported formats and restores normal queue formats with 
   });
   await page.getByRole("button", { name: "Replace All Data", exact: true }).click();
   await page
-    .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+    .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
     .getByRole("button", { name: "Replace", exact: true })
     .click();
   await expectRestored(page);

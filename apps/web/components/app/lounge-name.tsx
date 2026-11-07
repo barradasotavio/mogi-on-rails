@@ -54,7 +54,7 @@ export function LoungeNameSettings({
   return (
     <div className="section-stack">
       {saved.length > 0 && (
-        <ListGroup note="Tracks counts races with any of these names.">
+        <ListGroup>
           <List aria-label="Your Lounge names">
             {saved.map((entry) => (
               <ListRow
@@ -77,7 +77,7 @@ export function LoungeNameSettings({
         </ListGroup>
       )}
       {suggestion && !saved.some((entry) => same(entry, suggestion)) && (
-        <ListGroup note="This name is in every mogi.">
+        <ListGroup>
           <List aria-label="Suggestion">
             <ListRow action="primary" disabled={busy} onSelect={() => add(suggestion)}>
               Use {suggestion}
@@ -85,13 +85,7 @@ export function LoungeNameSettings({
           </List>
         </ListGroup>
       )}
-      <ListGroup
-        note={
-          saved.length
-            ? "Lounge name changed? Add the new one and keep the old."
-            : "Tracks counts only races with your Lounge name."
-        }
-      >
+      <ListGroup note={saved.length ? "Lounge name changed? Add the new one and keep the old." : undefined}>
         <form
           onSubmit={(event) => {
             event.preventDefault();

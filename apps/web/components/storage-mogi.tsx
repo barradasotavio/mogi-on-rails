@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { mogiTitle } from "@/components/mogi-overview";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import type { Mogi } from "@/lib/mogi/types";
@@ -64,12 +65,8 @@ export function StorageMogi({
           if (!open) setConfirm(null);
         }}
         busy={busy}
-        title={confirm === "images" ? `Delete Screenshots of ${mogi.name}?` : `Delete ${mogi.name}?`}
-        description={
-          confirm === "images"
-            ? "Results and the table are kept. The screenshots can't be recovered."
-            : "This mogi and its screenshots can't be recovered."
-        }
+        title={confirm === "images" ? `Delete Screenshots of ${mogiTitle(mogi)}?` : `Delete ${mogiTitle(mogi)}?`}
+        description={confirm === "images" ? "Results and the table are kept." : "This can't be undone."}
         confirmLabel={confirm === "images" ? "Delete Screenshots" : "Delete Mogi"}
         onCloseAutoFocus={(event) => {
           event.preventDefault();

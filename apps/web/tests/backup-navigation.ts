@@ -11,7 +11,7 @@ export async function downloadBackup(page: Page, outputPath: string) {
 }
 /** A restore ends when Settings closes on the restored data; no toast confirms it. */
 export async function expectRestored(page: Page) {
-  await expect(page.getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("alertdialog", { name: "Replace All Data?", exact: true })).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText("Backup restored", { exact: true })).toHaveCount(0);
 }

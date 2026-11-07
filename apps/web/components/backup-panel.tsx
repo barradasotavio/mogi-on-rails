@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { AutomaticBackups } from "@/components/automatic-backups";
+import { mogiTitle } from "@/components/mogi-overview";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Input } from "@/components/ui/input";
@@ -221,10 +222,7 @@ export function useBackupPanel({
   const storage = (
     <>
       {page === "storage" && failure}
-      <ListGroup
-        title="Backup"
-        note="A ZIP with every mogi and its screenshots. Restoring one replaces everything on this device."
-      >
+      <ListGroup title="Backup">
         <List aria-label="Backup">
           <ListRow action="primary" disabled={disabled} onSelect={() => void exportCurrent()}>
             Save Backup
@@ -292,7 +290,6 @@ export function useBackupPanel({
             }
           >
             <List aria-label="Summary">
-              <ListRow trail={preview.mogis.length}>Mogis</ListRow>
               <ListRow trail={races}>Races</ListRow>
               <ListRow trail={images}>Screenshots</ListRow>
             </List>
@@ -304,7 +301,7 @@ export function useBackupPanel({
                   key={mogi.id}
                   description={`${mogi.format} · ${mogi.races.length} ${mogi.races.length === 1 ? "race" : "races"}`}
                 >
-                  {mogi.name}
+                  {mogiTitle(mogi)}
                 </ListRow>
               ))}
             </List>
@@ -327,7 +324,7 @@ export function useBackupPanel({
           <ConfirmationDialog
             open={confirming}
             onOpenChange={setConfirming}
-            title="Replace All Data on This Device?"
+            title="Replace All Data?"
             description={`Your current mogis will be replaced by the ${preview.mogis.length} in this backup.`}
             confirmLabel="Replace"
             busy={disabled}

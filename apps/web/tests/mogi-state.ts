@@ -61,7 +61,7 @@ export async function restoreState(page: Page, state: TrackerState) {
   await page.getByLabel("Restore from file").setInputFiles(file);
   await page.getByRole("button", { name: "Replace All Data", exact: true }).click();
   await page
-    .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+    .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
     .getByRole("button", { name: "Replace", exact: true })
     .click();
   await expectRestored(page);
