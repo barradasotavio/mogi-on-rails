@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import { Sheet, type SheetPager } from "@/components/ui/sheet";
+import { captureRace } from "@/lib/mogi/capture-label";
 import { changeRaceValidity } from "@/lib/mogi/race-validity";
 import type { Mogi, Race } from "@/lib/mogi/types";
 import { settled } from "@/lib/settled";
@@ -51,6 +52,7 @@ export function RaceSheet({
   onCloseAutoFocus,
   onEdit,
   onQuestions,
+  onScreenshots,
   onUpdate,
   onResumeDraft,
   onDiscardDraft,
@@ -68,6 +70,8 @@ export function RaceSheet({
   onCloseAutoFocus: (event: Event) => void;
   onEdit: () => void;
   onQuestions: () => void;
+  /** Hands the race over to Mogi Settings, opened on its screenshots. */
+  onScreenshots: () => void;
   onUpdate: (mogi: Mogi) => Promise<boolean>;
   /** The race's edit in progress: Resume and Discard take the place of Edit Result. */
   onResumeDraft: () => void;
@@ -100,6 +104,9 @@ export function RaceSheet({
   const number = race ? raceNumber(mogi, race) : undefined;
   const full = mogi.races.filter((entry) => entry.status !== "discarded").length >= 12;
   const capture = mogi.captures?.find((capture) => race?.captureIds?.includes(capture.id));
+  const screenshots = race
+    ? (mogi.captures ?? []).filter((entry) => captureRace(mogi, entry)?.id === race.id).length
+    : 0;
   const draft = !!race && mogi.raceDraft?.raceId === race.id;
   // A result typed over what the screenshots proved can always go back to them.
   const revertible =
@@ -176,6 +183,16 @@ export function RaceSheet({
                     >
                       Track
                     </ListRow>
+                    {screenshots > 0 && (
+                      <ListRow
+                        accessory="chevron"
+                        disabled={busy || saving}
+                        trail={screenshots}
+                        onSelect={onScreenshots}
+                      >
+                        Screenshots
+                      </ListRow>
+                    )}
                   </List>
                 </ListGroup>
                 <ListGroup

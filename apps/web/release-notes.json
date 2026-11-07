@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "new",
+        "text": "The race sheet has a Screenshots row that lists that race's screenshots. Open one and use Remove Screenshot to drop it and recount the race; Undo brings it back."
+      },
+      {
+        "kind": "new",
         "text": "The mogi list titles each mogi by its tier and starts its second line with the format. Before the first race, the list and the mogi header say No races yet."
       },
       {
