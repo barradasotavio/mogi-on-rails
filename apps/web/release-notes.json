@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "new",
+        "text": "Edit Result shows each place's points and total under Points and Total headings. The race sheet, In-Game Points, Absent Players and their confirmations drop the notes that explained them."
+      },
+      {
+        "kind": "new",
         "text": "Questions and the Needs a Screenshot sheet are shorter: no notes that repeat the question, one caption when two screenshots share it, and the sheet is titled by its race."
       },
       {
