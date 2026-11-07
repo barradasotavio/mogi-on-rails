@@ -3,7 +3,7 @@ import { screenProperties } from "../capture/screens.ts";
 import { applyReviewedRace, reviewedRace } from "../mogi/race-review.ts";
 import { representedPlayers, roomSizeNeedsAnswer } from "../numeric-readings/numeric-candidates.ts";
 import { participantsAtPhysical, participantsForRace } from "../participation/participation.ts";
-import { sequenceConflictReview } from "../reconstruction/origin-scope.ts";
+import { lostInferredNumberReview, sequenceConflictReview } from "../reconstruction/origin-scope.ts";
 import type { CaptureSequence, Race, SequenceGap, SequenceLink } from "../types.ts";
 import { cumulativeRacePlacements } from "./first-race.ts";
 import type { OccurrenceNode } from "./occurrences.ts";
@@ -51,11 +51,17 @@ export function projectOccurrencesIntoRaces<T extends Mogi>(
   let mogi = input;
   if (!conflict) {
     const races = [...input.races];
+    const released = followOccurrenceNumbers(input, nodes, races, priorProjected, manualTargets);
     conflict = occurrenceRaces(input, original, detached, nodes, gaps, races, priorProjected, manualTargets, projected);
     if (!conflict) {
       pendingRacesThrough(nodes, races, detached, priorProjected, manualTargets, projected);
       mogi = {
         ...input,
+        captures: input.captures?.map((capture) =>
+          released.has(capture.id)
+            ? { ...capture, stage: "context" as const, context: { phase: contextPhase(capture) } }
+            : capture,
+        ),
         races: races.sort((a, b) => (a.number ?? 0) - (b.number ?? 0)),
         sequence: {
           ...old,
@@ -168,6 +174,55 @@ function occurrenceRaces(
     node.occurrence.raceId = node.occurrence.id;
   }
   return conflict;
+}
+
+/** A projected race whose result was read only from its own screens follows its occurrence as a fresh import of the
+ * same screens would: it takes the occurrence's current number, or, when the occurrence has none, it is withdrawn and
+ * its screens go back to context. An older analysis may have numbered it differently, or left it marked by a sequence
+ * conflict that this numbering no longer has. Returns the released screens. */
+function followOccurrenceNumbers(
+  input: Mogi,
+  nodes: OccurrenceNode[],
+  races: Race[],
+  priorProjected: Set<string>,
+  manualTargets: Set<string>,
+): Set<string> {
+  const released = new Set<string>();
+  for (const node of nodes) {
+    const number = node.occurrence.number;
+    const at = races.findIndex((race) => race.id === node.occurrence.id);
+    const race = races[at];
+    if (
+      !race ||
+      race.number === undefined ||
+      (race.number === number && race.participationReview !== sequenceConflictReview) ||
+      (number !== undefined && (number < 1 || number > 99)) ||
+      !priorProjected.has(race.id) ||
+      manualTargets.has(race.id) ||
+      race.origin !== "observed" ||
+      race.status === "discarded" ||
+      (race.participationReview &&
+        race.participationReview !== lostInferredNumberReview &&
+        race.participationReview !== sequenceConflictReview) ||
+      !race.captureIds?.length ||
+      race.captureIds.some((id) => !node.captures.some((capture) => capture.id === id)) ||
+      Object.values(race.nativePointOrigins ?? {}).includes("manual") ||
+      input.assistance?.facts.some((fact) => fact.raceId === race.id) ||
+      input.substitutions?.some((entry) => entry.fromRaceId === race.id)
+    )
+      continue;
+    if (number === undefined) {
+      races.splice(at, 1);
+      for (const id of race.captureIds) released.add(id);
+    } else
+      races[at] = {
+        ...race,
+        number,
+        ...(race.physicalNumber === undefined ? {} : { physicalNumber: number }),
+        participationReview: undefined,
+      };
+  }
+  return released;
 }
 
 function pendingRacesThrough(
