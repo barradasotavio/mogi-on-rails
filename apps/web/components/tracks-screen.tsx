@@ -30,12 +30,14 @@ const sortBys: { value: SortBy; label: string }[] = [
 ];
 const counts: { value: Count; label: string; short: string }[] = [
   { value: "both", label: "Plus/Minus", short: "+/−" },
-  { value: "plus", label: "Plus Only", short: "plus" },
-  { value: "minus", label: "Minus Only", short: "minus" },
+  { value: "plus", label: "Plus Only", short: "Plus" },
+  { value: "minus", label: "Minus Only", short: "Minus" },
 ];
-/** A measure's name under its number: "typical +/−", "total minus". */
-const measureName = (by: Exclude<SortBy, "races">, count: Count) =>
-  `${by} ${counts.find((entry) => entry.value === count)!.short}`;
+/** The list's measure, named once above its numbers: "Typical +/−", "Total Minus", "Races". */
+const measureName = (by: SortBy, count: Count) =>
+  by === "races"
+    ? "Races"
+    : `${sortBys.find((entry) => entry.value === by)!.label} ${counts.find((entry) => entry.value === count)!.short}`;
 /** The chosen measure of a track; null when it has no race on that side. */
 const measureOf = (standing: TrackStanding, by: SortBy, count: Count): number | null =>
   by === "races"
@@ -268,15 +270,21 @@ function TrackList({
     .sort((a, b) =>
       a.value === null ? (b.value === null ? 0 : 1) : b.value === null ? -1 : direction * (a.value - b.value),
     );
+  const measure = measureName(sortBy, count);
+  // The measure's name heads the column of numbers, as a table's column heading: the numbers end where the
+  // chevron's 16px and the trail's 16px gap begin, so the heading ends there too.
   return (
     <ListGroup inset>
+      <h2 data-section-title className="section-title pr-8 text-right text-sm/4 font-medium text-muted-foreground">
+        {measure}
+      </h2>
       <List aria-label="Tracks">
         {ordered.map(({ standing, value }) => (
           <TrackRow
             key={standing.track.short}
             standing={standing}
             sortBy={sortBy}
-            count={count}
+            measure={measure}
             value={value}
             onSelect={onSelect}
           />
@@ -289,13 +297,13 @@ function TrackList({
 function TrackRow({
   standing,
   sortBy,
-  count,
+  measure,
   value,
   onSelect,
 }: {
   standing: TrackStanding;
   sortBy: SortBy;
-  count: Count;
+  measure: string;
   value: number | null;
   onSelect: (standing: TrackStanding) => void;
 }) {
@@ -314,18 +322,16 @@ function TrackRow({
       />
     </span>
   );
-  const main =
-    sortBy === "races" ? (
-      <Measure value={String(standing.recent)} unit={standing.recent === 1 ? "race" : "races"} />
-    ) : (
-      <Measure
-        value={value === null ? "—" : signedPlaces(value)}
-        unit={measureName(sortBy, count)}
-        ink={value === null ? undefined : valueInk(value)}
-      />
-    );
-  // Every number carries its name. The symbol is leading artwork as tall as the row. Compact: the name and badge,
-  // then the race count leading and the chart and value trailing under them. Regular: the chart and value in the trail.
+  const main = (
+    <Measure
+      value={sortBy === "races" ? String(standing.recent) : value === null ? "—" : signedPlaces(value)}
+      name={measure}
+      ink={sortBy === "races" || value === null ? undefined : valueInk(value)}
+    />
+  );
+  // The column heading names the number. The symbol is leading artwork as tall as the row. Compact: the name and
+  // badge, then the race count leading and the chart and value trailing under them. Regular: the chart and value in
+  // the trail. Sorted by Races, the number is the race count, so the second line leaves it out.
   return (
     <ListRow
       accessory="chevron"
@@ -334,7 +340,7 @@ function TrackRow({
       media={<TrackIcon track={standing.track} size="row" />}
       description={
         <span className="flex items-center gap-2">
-          <span className="min-w-0 flex-1 truncate">{plural(standing.recent, "race")}</span>
+          <span className="min-w-0 flex-1 truncate">{sortBy !== "races" && plural(standing.recent, "race")}</span>
           <span className="flex shrink-0 items-center gap-2 md:hidden">
             {chart}
             {main}
@@ -360,12 +366,12 @@ function TrackRow({
   );
 }
 
-/** A row's main number with its name below it, so "+2.5 typical +/−" fits beside the race bars at phone width. */
-function Measure({ value, unit, ink = "text-foreground" }: { value: string; unit: string; ink?: string }) {
+/** A row's main number, its measure named to screen readers only: the column heading names it on screen. */
+function Measure({ value, name, ink = "text-foreground" }: { value: string; name: string; ink?: string }) {
   return (
-    <span className="flex min-w-13 flex-col items-end leading-tight">
+    <span className="min-w-13 text-right">
+      <span className="sr-only">{name} </span>
       <span className={cn("font-medium", ink)}>{value}</span>
-      <span className="text-xs text-muted-foreground">{unit}</span>
     </span>
   );
 }
@@ -386,7 +392,8 @@ const MeasureValue = ({ value }: { value: number | null }) =>
 
 /**
  * The six measures as a 2×3 grid, rows Typical and Total, columns +/−, Plus and Minus: two rows compare plus with
- * minus at a glance, where two grouped lists took eight rows and repeated "positions" on each.
+ * minus at a glance, where two grouped lists took eight rows. Usual range and Worst / best follow in the same list,
+ * so the group's title "Positions" names the unit of every value once.
  */
 function MeasureGrid({ standing }: { standing: TrackStanding }) {
   // List rows draw the dividers; each cell keeps one width so the columns line up under their names, and screen
@@ -418,6 +425,10 @@ function MeasureGrid({ standing }: { standing: TrackStanding }) {
           {row.label}
         </ListRow>
       ))}
+      <ListRow trail={`${signedPlaces(standing.lowerQuartile)} to ${signedPlaces(standing.upperQuartile)}`}>
+        Usual range
+      </ListRow>
+      <ListRow trail={`${signedPlaces(standing.worst)} / ${signedPlaces(standing.best)}`}>Worst / best</ListRow>
     </List>
   );
 }
@@ -443,7 +454,7 @@ function TrackSheet({
         return (
           <ListRow
             key={`${race.mogiId}:${race.raceId}`}
-            description={`${date.format(new Date(race.createdAt))} · Race ${race.raceNumber}`}
+            description={`${date.format(new Date(race.createdAt))} · ${race.format} · Race ${race.raceNumber}`}
             trail={
               <>
                 <span>
@@ -453,7 +464,7 @@ function TrackSheet({
               </>
             }
           >
-            {mogi ? mogiTitle(mogi) : race.mogiName} · {race.format}
+            {mogi ? mogiTitle(mogi) : race.mogiName}
           </ListRow>
         );
       })}
@@ -467,16 +478,8 @@ function TrackSheet({
         </ListGroup>
         <ListGroup note={older.length ? WINDOW : undefined}>
           <List aria-label="Summary">
-            <ListRow
-              trail={`${signedPlaces(standing.lowerQuartile)} to ${signedPlaces(standing.upperQuartile)} positions`}
-            >
-              Usual range
-            </ListRow>
-            <ListRow trail={`${signedPlaces(standing.worst)} / ${signedPlaces(standing.best)} positions`}>
-              Worst / best
-            </ListRow>
             <ListRow trail={older.length ? `${recent.length} of ${standing.races.length}` : standing.races.length}>
-              Races
+              Counted
             </ListRow>
           </List>
         </ListGroup>

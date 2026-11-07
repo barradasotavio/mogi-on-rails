@@ -21,11 +21,7 @@ test("the empty compact start lands on Instructions over the list, whose empty s
   ]);
   await expect(main.getByRole("heading", { level: 1, name: "Mogis", exact: true })).toBeVisible();
   await expect(main.getByRole("heading", { level: 2 })).toHaveText(["No Mogis Yet"]);
-  await expect(
-    main
-      .getByRole("paragraph")
-      .filter({ hasText: "Paste the bot list to start. Add screenshots after each race, then copy the table." }),
-  ).toBeVisible();
+  await expect(main.getByRole("paragraph").filter({ hasText: "Paste a bot list to start." })).toBeVisible();
   const create = main.getByRole("button", { name: "New Mogi", exact: true });
   await expect(create).toHaveClass(/glass-tint/);
   await create.click();
