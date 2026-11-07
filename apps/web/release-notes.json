@@ -4,7 +4,7 @@
     "changes": [
       {
         "kind": "fix",
-        "text": "Unlinking a name in Players removes it from every race, including races the app linked on its own, so each one is asked again. Players also lists the in-game names the app recognized."
+        "text": "Unlinking a name in Players now removes it from every race."
       },
       {
         "kind": "new",
