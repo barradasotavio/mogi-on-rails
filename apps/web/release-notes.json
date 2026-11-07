@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "fix",
+        "text": "On a laptop trackpad, swiping again turns to the next race without moving the pointer first."
+      },
+      {
+        "kind": "fix",
         "text": "Unlinking a name in Players now removes it from every race."
       },
       {
