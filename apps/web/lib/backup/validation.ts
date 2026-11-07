@@ -314,7 +314,7 @@ function validateRaceDraft(
   if (placements.length + absent.length > 12 || absent.some((id) => placements.includes(id)))
     fail("Invalid draft fields.");
   validateNameAssociations(draft.fields.nameAssociations, people);
-  for (const id of Object.keys(draft.fields.rawOverrides)) if (!people.has(id)) fail("Invalid draft points.");
+  for (const id of Object.keys(draft.fields.rawOverrides ?? {})) if (!people.has(id)) fail("Invalid draft points.");
 }
 
 /** A draft's answers must fit the image it came from; without one it has no next track. */
@@ -670,6 +670,7 @@ function validateAssistance(group: Group, context: Context, targetsLabel = "Assi
       if (!agree(race.represented, placements, absent)) fail("Inconsistent native context.");
       for (const id of Object.keys(race.nativePoints))
         if (!people.has(id)) fail("Native contribution: player not found.");
+      // "manual" is legacy and read-only history.
       for (const [id, origin] of Object.entries(race.nativePointOrigins))
         if (!placements.includes(id) || !["modeled", "manual"].includes(String(origin))) fail("Invalid native origin.");
     }

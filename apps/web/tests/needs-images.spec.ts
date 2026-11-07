@@ -58,7 +58,6 @@ test(`"!" explains races that need images and Enter Result opens an empty order`
   ]);
   await expect(editor.getByRole("list", { name: "More options", exact: true }).getByRole("button")).toHaveText([
     "Absent Players",
-    "In-Game Points",
   ]);
 });
 

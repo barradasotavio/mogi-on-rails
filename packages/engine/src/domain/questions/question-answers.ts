@@ -70,7 +70,6 @@ export async function answerMogiQuestion<T extends Mogi>(mogi: T, id: string, an
           {
             placements: [],
             absentParticipantIds: [],
-            rawOverrides: {},
             reviewed: false,
             nameAssociations: captureNameAssociations(capture),
             numericAnswers: capture.numericAnswers,
@@ -146,9 +145,7 @@ export async function answerMogiQuestion<T extends Mogi>(mogi: T, id: string, an
     };
     const { race } = questionOccurrence(mogi, capture);
     const fields = {
-      ...(race
-        ? initialRaceReview(race)
-        : { placements: [], absentParticipantIds: [], rawOverrides: {}, reviewed: false }),
+      ...(race ? initialRaceReview(race) : { placements: [], absentParticipantIds: [], reviewed: false }),
       nameAssociations: captureNameAssociations(capture),
       numericAnswers: capture.numericAnswers,
       groupTotalAnswers: capture.groupTotalAnswers,

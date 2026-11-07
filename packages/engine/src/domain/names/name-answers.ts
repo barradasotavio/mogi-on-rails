@@ -473,9 +473,7 @@ export function settleCaptures<T extends Mogi>(input: T, changed: ReadonlySet<st
       capture.reviewedPlacements = [];
     }
     const fields = {
-      ...(race
-        ? initialRaceReview(race)
-        : { placements: [], absentParticipantIds: [], rawOverrides: {}, reviewed: false }),
+      ...(race ? initialRaceReview(race) : { placements: [], absentParticipantIds: [], reviewed: false }),
       nameAssociations: capture.nameAssociations,
       numericAnswers: capture.numericAnswers,
       groupTotalAnswers: capture.groupTotalAnswers,

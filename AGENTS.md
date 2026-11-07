@@ -13,7 +13,7 @@ Before exploring or changing domain concepts, read `docs/agents/domain.md`.
 Before adding a test or check, running tests, integrating changes, or debugging Playwright across worktrees, read `docs/contracts/quality.md`. New tests and checks are minimal: they meet its criteria and fit its budgets.
 
 ### UI
-Before changing screens, navigation, UI components or theme tokens, read `docs/contracts/experience.md` and `docs/contracts/design-system.md`. Before writing or changing UI text, read `docs/contracts/copy.md`. A user-visible change adds its release-note line: see `docs/contracts/experience.md#release-notes`.
+Before changing screens, navigation, UI components or theme tokens, read `docs/contracts/experience.md` and `docs/contracts/design-system.md`. Before writing or changing UI text, read `docs/contracts/copy.md`. A critical fix or a new feature adds its release-note line: see `docs/contracts/experience.md#release-notes`.
 
 ### Engine
 Before changing `packages/engine`'s public API, read `docs/contracts/engine.md`.

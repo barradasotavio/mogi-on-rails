@@ -546,7 +546,6 @@ test("an image explicitly attached to an existing race explains the user's chose
       {
         placements: [],
         absentParticipantIds: [],
-        rawOverrides: {},
         reviewed: false,
         nameAssociations: capture.nameAssociations,
       },

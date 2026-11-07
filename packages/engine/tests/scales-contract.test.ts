@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { individualStandings, raceTotal, resultCoverage } from "@mkw/engine";
+import { individualStandings, normalizeReconstructions, raceTotal, resultCoverage } from "@mkw/engine";
 
 import { mogi, source } from "./support/mogi.ts";
 
@@ -23,4 +23,36 @@ test("native twelve eleven and ten rooms yield adjusted totals without a univers
     983,
   );
   assert.equal(resultCoverage(twelveRaces).final, true);
+});
+
+test("a race whose in-game points were entered by hand loads with the native scale and the same Lounge points", async () => {
+  const eleven = source("eleven", 1, [], 11, 0);
+  const placements = eleven.placements;
+  const manual = {
+    ...eleven,
+    nativePoints: Object.fromEntries(
+      placements.map((id, n) => [id, n === 0 ? 9 : [12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1][n]]),
+    ),
+    nativePointOrigins: Object.fromEntries(
+      placements.map((id, n) => [id, n === 0 ? ("manual" as const) : ("modeled" as const)]),
+    ),
+  };
+  const pending = {
+    ...source("pending", 2, []),
+    status: "pending" as const,
+    placements: [],
+    nativePoints: { p1: 9 },
+    nativePointOrigins: { p1: "manual" as const },
+  };
+  const stored = mogi([manual, pending]);
+  const loaded = (await normalizeReconstructions({ mogis: [stored] })).mogis[0];
+  const [race, withdrawn] = loaded.races;
+  assert.deepEqual(
+    race.nativePoints,
+    Object.fromEntries(placements.map((id, n) => [id, [12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1][n]])),
+  );
+  assert.deepEqual(new Set(Object.values(race.nativePointOrigins!)), new Set(["modeled"]));
+  assert.equal(withdrawn.nativePoints, undefined);
+  assert.deepEqual(individualStandings(loaded), individualStandings(stored));
+  assert.equal(await normalizeReconstructions({ mogis: [loaded] }).then((state) => state.mogis[0]), loaded);
 });

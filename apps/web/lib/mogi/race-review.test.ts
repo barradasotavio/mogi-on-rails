@@ -21,7 +21,6 @@ test("autosaving a complete edit keeps it in the draft: the race and its absence
   const fields = {
     placements: race.placements.slice(1),
     absentParticipantIds: ["p0"],
-    rawOverrides: {},
     reviewed: false,
   };
   const drafted = await withRaceDraft(mogi, race, fields, await raceReviewSignature(race));

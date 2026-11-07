@@ -51,7 +51,6 @@ export function sourceFields(mogi: Mogi, capture: Capture, number?: number): Rac
   return {
     placements: [],
     absentParticipantIds: [],
-    rawOverrides: {},
     reviewed: false,
     nameAssociations: historicalUnknown
       ? (capture.nameAssociations ??
@@ -99,8 +98,8 @@ export function ingestCaptureReview(state: TrackerState, mogiId: string, accepte
       const number = existing?.number ?? (item.numberKnown === true ? item.number : undefined);
       const fields = item.draft?.fields ?? sourceFields(mogi, capture, number);
       // Preserve complete-result edits as drafts; a context source cannot carry
-      // manual absence/raw-gain edits and must not silently consume them.
-      if (item.draft && (fields.absentParticipantIds.length || Object.keys(fields.rawOverrides).length)) return item;
+      // manual absence edits and must not silently consume them.
+      if (item.draft && fields.absentParticipantIds.length) return item;
       const notFinishOrder = screenProperties(capture.interpretation?.screen)?.order !== "finishOrder";
       const sizeHint =
         capture.interpretation?.representedBy === "rows" && (capture.interpretation.represented ?? 12) < 12;

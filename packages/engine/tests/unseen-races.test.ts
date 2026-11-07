@@ -81,7 +81,6 @@ function raceTen(): Mogi {
     applyCaptureContext(mogi, capture, {
       placements: [],
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
       nameAssociations: capture.nameAssociations,
     }),
@@ -139,7 +138,7 @@ test("editing unseen race 3 keeps the evidence, recomputes the sequence and keep
   const capture = structuredClone(mogi.captures);
   const result = reviewedRace(
     third,
-    { placements: mogi.participants.map((p) => p.id), absentParticipantIds: [], rawOverrides: {}, reviewed: true },
+    { placements: mogi.participants.map((p) => p.id), absentParticipantIds: [], reviewed: true },
     mogi.participants,
   )!;
   mogi = (await normalizeReconstructions({ mogis: [applyReviewedRace(mogi, result)] })).mogis[0];
@@ -168,11 +167,7 @@ test("editing race 3 against the cumulatives reopens a question without erasing 
     mogi = reconcileSequence(
       applyReviewedRace(
         mogi,
-        reviewedRace(
-          race,
-          { placements, absentParticipantIds: [], rawOverrides: {}, reviewed: true },
-          mogi.participants,
-        )!,
+        reviewedRace(race, { placements, absentParticipantIds: [], reviewed: true }, mogi.participants)!,
       ),
     );
   }
@@ -183,11 +178,7 @@ test("editing race 3 against the cumulatives reopens a question without erasing 
       mogis: [
         applyReviewedRace(
           mogi,
-          reviewedRace(
-            third,
-            { placements, absentParticipantIds: [], rawOverrides: {}, reviewed: true },
-            mogi.participants,
-          )!,
+          reviewedRace(third, { placements, absentParticipantIds: [], reviewed: true }, mogi.participants)!,
         ),
       ],
     })
@@ -207,7 +198,6 @@ test("an absence entered in race 3 requires clarifying the first image without e
     {
       placements: initial.participants.slice(1).map((p) => p.id),
       absentParticipantIds: [absent],
-      rawOverrides: {},
       reviewed: true,
     },
     initial.participants,
@@ -226,18 +216,14 @@ test("an absence edited after a known prefix withdraws the first image's deducti
   mogi = reconcileSequence(
     applyReviewedRace(
       mogi,
-      reviewedRace(
-        first,
-        { placements, absentParticipantIds: [], rawOverrides: {}, reviewed: true },
-        mogi.participants,
-      )!,
+      reviewedRace(first, { placements, absentParticipantIds: [], reviewed: true }, mogi.participants)!,
     ),
   );
   assert.deepEqual(mogiQuestions(mogi), []);
   const third = mogi.races.find((r) => r.number === 3)!;
   const result = reviewedRace(
     third,
-    { placements: placements.slice(1), absentParticipantIds: [placements[0]], rawOverrides: {}, reviewed: true },
+    { placements: placements.slice(1), absentParticipantIds: [placements[0]], reviewed: true },
     mogi.participants,
   )!;
   mogi = (await normalizeReconstructions({ mogis: [applyReviewedRace(mogi, result)] })).mogis[0];
