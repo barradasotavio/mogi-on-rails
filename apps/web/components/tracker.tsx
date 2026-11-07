@@ -28,6 +28,7 @@ import { InstructionsScreen } from "@/components/instructions-screen";
 import { MogiDetail } from "@/components/mogi-detail";
 import { MogiSetup } from "@/components/mogi-setup";
 import { useOfflinePanel } from "@/components/offline-panel";
+import { ReleaseNotesScreen } from "@/components/release-notes-screen";
 import { TracksScreen } from "@/components/tracks-screen";
 import { ActionErrorProvider } from "@/components/ui/action-error";
 import { BlockingAlert } from "@/components/ui/blocking-alert";
@@ -197,7 +198,10 @@ export function Tracker() {
               className={
                 loadError
                   ? "flex h-full min-w-0 flex-col overflow-y-auto"
-                  : screen === "dashboard" || screen === "tracks" || screen === "instructions"
+                  : screen === "dashboard" ||
+                      screen === "tracks" ||
+                      screen === "instructions" ||
+                      screen === "release-notes"
                     ? "app-content mogi-content edge-mask mogi-edge-mask min-w-0"
                     : screen === "list"
                       ? "app-content app-list-content min-w-0 px-4 pb-28 pt-5 sm:px-6 md:px-0 md:py-0"
@@ -367,6 +371,15 @@ export function Tracker() {
                   onNew={() => sheets.open("create")}
                   canInstall={installContext === "prompt"}
                   onInstall={() => void promptInstall()}
+                />
+              )}
+              {ready && screen === "release-notes" && (
+                <ReleaseNotesScreen
+                  visible
+                  controlsContainer={mogiControls}
+                  mogisShown={sidebar.open}
+                  onShowMogis={sidebar.toggle}
+                  onBack={() => route.navigate({ type: "back" })}
                 />
               )}
               {ready && screen === "tracks" && (

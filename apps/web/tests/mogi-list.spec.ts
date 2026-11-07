@@ -15,6 +15,7 @@ test("the empty compact start lands on Instructions over the list, whose empty s
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(main.getByRole("list", { name: "Destinations", exact: true }).getByRole("button")).toHaveText([
     "Instructions",
+    "Release Notes",
     "Tracks",
   ]);
   await expect(main.getByRole("heading", { level: 1, name: "Mogis", exact: true })).toBeVisible();
@@ -40,6 +41,19 @@ test("the empty compact start lands on Instructions over the list, whose empty s
   await expect(page.getByRole("dialog", { name: "Settings", exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(restore).toBeFocused();
+});
+
+test("Release Notes opens from the list, newest date first, each line labeled", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  const main = page.getByRole("main");
+  await main.getByRole("button", { name: "Release Notes", exact: true }).click();
+  await expect(page).toHaveURL(/view=release-notes/);
+  await expect(main.getByRole("heading", { level: 1, name: "Release Notes", exact: true })).toBeVisible();
+  await expect(main.getByRole("heading", { level: 2 }).first()).toHaveText("November 7, 2026");
+  await expect(
+    main.getByRole("list", { name: "November 7, 2026", exact: true }).getByRole("listitem").first(),
+  ).toHaveText(/^New\s*Watched folders can add new screenshots straight to the mogi\./);
 });
 
 test("the empty regular start lands on Instructions, with New Mogi in the bar", async ({ page }) => {
@@ -97,6 +111,7 @@ test("the list and sidebar summarize teams and players in the right groups", asy
   await expect(main.getByRole("heading", { level: 2 })).toHaveText(["Current mogis", "Previous mogis"]);
   await expect(main.getByRole("list").getByRole("button")).toHaveText([
     "Instructions",
+    "Release Notes",
     "Tracks",
     "Mogi Tier D · 2v2Race 1 of 12 · XO leads with 27",
     "Mogi Tier B · FFAPlayer 1 won · 180Oct 27",

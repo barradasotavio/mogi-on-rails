@@ -1,5 +1,5 @@
 import { mogiSummary, resultCoverage } from "@mkw/engine";
-import { BookOpen, Route } from "lucide-react";
+import { BookOpen, Route, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { List, ListGroup, ListRow } from "@/components/ui/list";
@@ -9,6 +9,7 @@ import type { Mogi } from "@/lib/mogi/types";
 /** Destinations beside the mogis, above the groups. */
 const destinations = [
   { view: "instructions", title: "Instructions", Icon: BookOpen },
+  { view: "release-notes", title: "Release Notes", Icon: Sparkles },
   { view: "tracks", title: "Tracks", Icon: Route },
 ] as const;
 
