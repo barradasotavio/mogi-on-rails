@@ -27,6 +27,9 @@ import { settled } from "@/lib/settled";
 
 type Page = { kind: "result" } | { kind: "place"; position: number } | { kind: "absent" } | { kind: "points" };
 
+/** A trailing column of Finish order, as wide as its heading, so values line up under it. */
+const column = "w-12 text-right";
+
 const invalidPoints = (value: string | undefined) =>
   value !== undefined &&
   (value.trim() === "" || !Number.isInteger(Number(value)) || Number(value) < 0 || Number(value) > 15);
@@ -35,8 +38,9 @@ const invalidPoints = (value: string | undefined) =>
  * Edit Result, as pages of the race sheet: the finish order is a grouped list, each place opens a page
  * of players and choosing one swaps the two places. Absent players and in-game points sit under
  * More options, always shown. Saving is the review: there is no separate "I checked" step.
- * In a race no screenshot shows, each place shows the player's total after this race, so a result typed by
- * hand can be checked against the game's totals.
+ * Each place trails its points, under a Points heading; in a race no screenshot shows, with every earlier total
+ * proven, a Total column adds the player's total after this race, so a result typed by hand can be checked
+ * against the game's totals.
  */
 export function RaceEditor({
   mogi,
@@ -113,7 +117,7 @@ export function RaceEditor({
       : page.kind === "absent"
         ? "Absent Players"
         : page.kind === "points"
-          ? "In-Game Points and Adjustments"
+          ? "In-Game Points"
           : "Edit Result";
   const footer = useSheetPage({
     page: page.kind === "place" ? `place-${page.position}` : page.kind,
@@ -178,7 +182,7 @@ export function RaceEditor({
   if (page.kind === "absent")
     return (
       <>
-        <ListGroup note="Absent players are missing from the results screen and get 1 point each. A disconnect isn't an absence, since the CPU still finishes under the player's name, and neither is an unread name.">
+        <ListGroup note="1 point each.">
           <List dividers="row" aria-label="Absent players">
             {participants.map((person) => (
               <ListRow
@@ -206,7 +210,7 @@ export function RaceEditor({
             </AlertDescription>
           </Alert>
         )}
-        <ListGroup note="Only for a results screen whose in-game points differ from the usual scale. Lounge points follow the finish order.">
+        <ListGroup note="Lounge points follow the finish order.">
           <List dividers="row" aria-label="In-game points">
             {placements.map((id, position) => {
               const invalid = invalidPoints(rawOverrides[id]);
@@ -214,9 +218,7 @@ export function RaceEditor({
                 <ListRow
                   key={id}
                   lead={position + 1}
-                  description={
-                    invalid ? "Enter a whole number from 0 to 15." : `${placementPoints[position]} Lounge points`
-                  }
+                  description={invalid ? "Enter a whole number from 0 to 15." : undefined}
                   trail={
                     <Input
                       variant="filled"
@@ -292,20 +294,18 @@ export function RaceEditor({
       )}
       {unreadable.length > 2 && (
         <Alert>
-          <AlertDescription>
-            {unreadable.length} names weren&apos;t read. That doesn&apos;t mean {unreadable.length} players
-            disconnected. If this isn&apos;t a results screen, go back and choose another screenshot.
-          </AlertDescription>
+          <AlertDescription>{unreadable.length} names weren&apos;t read.</AlertDescription>
         </Alert>
       )}
       <ListGroup
         title="Finish order"
-        note={
-          capture
-            ? "Check each place against the screenshot."
-            : provenBefore
-              ? "Beside each place's points, the player's total after this race."
-              : undefined
+        actions={
+          <span aria-hidden="true" className="flex gap-4 text-right text-sm/4 font-medium text-muted-foreground">
+            <span className={column}>Points</span>
+            {provenBefore && <span className={column}>Total</span>}
+            {/* Over the rows' chevron, so each heading sits over its values. */}
+            <span className="w-4" />
+          </span>
         }
       >
         <List dividers="row" aria-label="Finish order">
@@ -317,9 +317,10 @@ export function RaceEditor({
               disabled={busy || position > placements.length}
               description={id ? reading(position, id) : undefined}
               trail={
-                id && totalAfter(id, position) !== undefined
-                  ? `+${placementPoints[position]} · ${totalAfter(id, position)}`
-                  : `+${placementPoints[position]}`
+                <>
+                  <span className={column}>+{placementPoints[position]}</span>
+                  {provenBefore && <span className={column}>{id ? totalAfter(id, position) : undefined}</span>}
+                </>
               }
               buttonProps={{
                 "aria-label": `${position + 1}, ${id ? name(id) : "Choose player"}${id && totalAfter(id, position) !== undefined ? `, ${totalAfter(id, position)} after this race` : ""}`,
@@ -358,7 +359,7 @@ export function RaceEditor({
             trail={Object.keys(rawOverrides).length ? "Edited" : undefined}
             onSelect={() => setPage({ kind: "points" })}
           >
-            In-Game Points and Adjustments
+            In-Game Points
           </ListRow>
         </List>
       </ListGroup>

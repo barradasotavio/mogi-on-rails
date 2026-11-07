@@ -23,7 +23,7 @@ for (const [width, colorScheme] of [[375, "light"]] as const) {
     await row.scrollIntoViewIfNeeded();
     await row.click();
     const detail = page.getByRole("dialog", { name: "Race 3", exact: true });
-    await expect(detail.getByText("No screenshot", { exact: true })).toBeVisible();
+    await expect(detail.getByRole("img")).toHaveCount(0);
     await detail.getByRole("button", { name: "Edit Result", exact: true }).click();
     await expect(page.getByRole("button", { name: "Save Result", exact: true })).toBeDisabled();
     await choosePlace(page, "1st", "Player 1");

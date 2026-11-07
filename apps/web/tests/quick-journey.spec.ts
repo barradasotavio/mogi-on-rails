@@ -31,12 +31,11 @@ test("overview inspects, discards and reinstates races, answers names and preser
   await expect(page.getByText("FFA · Race 1 of 12", { exact: true })).toBeVisible();
   const raceSheet = page.getByRole("dialog", { name: "Race 1", exact: true });
   await expect(raceSheet.getByRole("button", { name: "Close", exact: true })).toBeFocused();
-  await expect(raceSheet.getByText("No screenshot", { exact: true })).toBeVisible();
+  await expect(raceSheet.getByRole("img")).toHaveCount(0);
   await expect(raceSheet.getByRole("list", { name: "Results", exact: true }).getByRole("listitem")).toHaveCount(12);
   await expect(raceSheet.getByRole("list", { name: "Results", exact: true }).getByRole("listitem").first()).toHaveText(
     "1Piloto 2+15",
   );
-  await expect(raceSheet.getByText("Filled in when there's a pre-race screenshot.", { exact: true })).toBeVisible();
   await raceSheet.getByRole("button", { name: "Track Choose", exact: true }).click();
   const trackPage = page.getByRole("dialog", { name: "Track", exact: true });
   await expect(trackPage.getByRole("button", { name: "Back", exact: true })).toBeFocused();
@@ -48,7 +47,6 @@ test("overview inspects, discards and reinstates races, answers names and preser
   await trackPage.getByRole("searchbox", { name: "Search track or code", exact: true }).fill("rmmm");
   await trackPage.getByRole("button", { name: "rMMM Moo Moo Meadows rMMM", exact: true }).click();
   await expect(raceSheet.getByRole("button", { name: "Track rMMM Moo Moo Meadows", exact: true })).toBeVisible();
-  await expect(raceSheet.getByText("Filled in when there's a pre-race screenshot.", { exact: true })).toHaveCount(0);
   await raceSheet.getByRole("button", { name: "Track rMMM Moo Moo Meadows", exact: true }).click();
   await trackPage.getByRole("searchbox", { name: "Search track or code", exact: true }).fill("meadows");
   await expect(
@@ -57,9 +55,7 @@ test("overview inspects, discards and reinstates races, answers names and preser
   await trackPage.getByRole("button", { name: "Back", exact: true }).click();
   await raceSheet.getByRole("button", { name: "Discard Race", exact: true }).click();
   const confirmation = page.getByRole("alertdialog", { name: "Discard Race 1?", exact: true });
-  await expect(confirmation).toContainText(
-    "Its points leave the totals and the following races move up one number. The screenshot stays in Discarded.",
-  );
+  await expect(confirmation).toContainText("Later races move up one number.");
   await confirmation.getByRole("button", { name: "Discard", exact: true }).click();
   await expect(raceSheet).toBeHidden();
   await expect(page.getByRole("button", { name: "Race 1 · future", exact: true })).toBeFocused();

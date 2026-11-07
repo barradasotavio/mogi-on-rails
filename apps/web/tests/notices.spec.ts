@@ -204,10 +204,8 @@ test("an edit in progress is a pencil on the race, with Resume and Discard in th
   await expect(second.getByRole("button", { name: "Resume Edit", exact: true })).toBeVisible();
   await second.getByRole("button", { name: "Discard Edit", exact: true }).click();
   const confirm = page.getByRole("alertdialog", { name: "Discard Edit?", exact: true });
-  await expect(confirm).toHaveAccessibleDescription(
-    "Only the draft is removed. Confirmed results and screenshots are kept.",
-  );
-  await confirm.getByRole("button", { name: "Discard Draft", exact: true }).click();
+  await expect(confirm).toHaveAccessibleDescription("Saved results are kept.");
+  await confirm.getByRole("button", { name: "Discard Edit", exact: true }).click();
   await expect(confirm).toHaveCount(0);
   await expect(second.getByRole("button", { name: "Edit Result", exact: true })).toBeFocused();
   await expect(second).not.toHaveAccessibleDescription("Edit in progress");
