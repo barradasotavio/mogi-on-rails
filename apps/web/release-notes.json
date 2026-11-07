@@ -3,6 +3,10 @@
     "date": "2026-11-07",
     "changes": [
       {
+        "kind": "fix",
+        "text": "On a laptop trackpad, swiping again turns to the next race without moving the pointer first."
+      },
+      {
         "kind": "new",
         "text": "The race sheet says Don't Count This Race instead of Discard Race, as a plain command at the end. To drop a bad screenshot, use Screenshots and Remove Screenshot."
       },

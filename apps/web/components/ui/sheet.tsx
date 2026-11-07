@@ -20,7 +20,14 @@ import { Drawer as Vaul } from "vaul";
 import { ActionErrorText, useActionScope } from "@/components/ui/action-error";
 import { GlassButton, ToolbarGroup } from "@/components/ui/glass-button";
 import { ListMaterial } from "@/components/ui/list";
-import { keyboardPageStep, listenForTrackpadPaging } from "@/components/ui/paging";
+import {
+  dragVelocity,
+  keyboardPageStep,
+  listenForTrackpadPaging,
+  rubberBand,
+  settleSide,
+  springFrames,
+} from "@/components/ui/paging";
 import { currentSizeClass } from "@/components/ui/size-class";
 import { useUpdateBlock } from "@/components/ui/update-activity";
 import { cn } from "@/vendor/shadcn/lib/utils";
@@ -310,22 +317,38 @@ export function Sheet({
  */
 export type SheetPager = { previous?: () => void; next?: () => void; previousLabel: string; nextLabel: string };
 
-/** Distance a finger drags the page before letting go turns it. */
-const SWIPE_DISTANCE = 60;
+type Side = 1 | -1 | 0;
 
-/** Moves the page with a sideways drag, finger or trackpad; past the first or last page it resists, at a quarter. */
-function follow(element: HTMLElement | null, dx: number, pager: SheetPager | undefined) {
-  const end = dx > 0 ? !pager?.previous : !pager?.next;
-  element?.style.setProperty("translate", `${end ? dx / 4 : dx}px 0`);
-}
+/**
+ * A sideways drag between pages, finger or trackpad. Once its way is known the pager turns there silently and a
+ * frozen copy of the page it started on stays beside the new one, so both move with the drag; letting go springs
+ * them to the side the drag favours, or turns back silently.
+ */
+type Drag = {
+  /** Offset of the page the drag started on, in pixels; positive toward the previous page. */
+  dx: number;
+  width: number;
+  /** The pager of the page the drag started on, and the way back to it from the neighbour once that is drawn. */
+  origin?: SheetPager;
+  back?: () => void;
+  /** The page asked for (1 next, -1 previous, 0 the first) and the one drawn: they differ until React commits. */
+  side: Side;
+  drawn: Side;
+  copy?: HTMLElement;
+  top: number;
+  scrollTop: number;
+  /** Let go before the page asked for was drawn: settles once it is. */
+  released?: { velocity: number; cancelled: boolean };
+  /** A running settle; finishing it jumps to its end. */
+  settle?: { animations: Animation[]; done: () => void };
+  /** Settled back, waiting for the first page to be drawn again. */
+  closing?: () => void;
+};
 
-/** A drag that didn't turn the page brings it back into place. */
-function springBack(element: HTMLElement | null) {
-  if (!element) return;
-  const from = element.style.getPropertyValue("translate") || "0px 0";
-  element.style.removeProperty("translate");
-  element.animate([{ translate: from }, { translate: "0 0" }], { duration: 200, easing: "ease-out" });
-}
+const offsetOf = (drag: Drag) =>
+  drag.side === 0 && !(drag.dx > 0 ? drag.origin?.previous : drag.origin?.next)
+    ? rubberBand(drag.dx, drag.width)
+    : drag.dx;
 
 type InnerPage = { page: string; title: string; footer: boolean; back: boolean; depth: number };
 const InnerPages = createContext<{ show: (page: InnerPage | null) => void; setBack: (back?: () => void) => void }>({
@@ -430,38 +453,160 @@ function SheetPages({
   // The portal mounts the surface a commit after the sheet opens, so the trackpad listener follows the element itself.
   const [surface, setSurface] = useState<HTMLDivElement | null>(null);
   const pagerRef = useRef(pager);
+  const bar = useRef({ title, subtitle });
   useLayoutEffect(() => {
     pagerRef.current = pager;
+    bar.current = { title, subtitle };
   });
+  // While a drag shows two pages, the bar keeps the first one's title until the turn settles.
+  const [frozen, setFrozen] = useState<{ title: ReactNode; subtitle?: string } | null>(null);
+  const shown = frozen ?? { title, subtitle };
+  const drag = useRef<Drag | null>(null);
+  const finishSettle = () => {
+    const settle = drag.current?.settle;
+    settle?.animations.forEach((animation) => animation.cancel());
+    settle?.done();
+  };
   // Reads only refs, so the trackpad listener can keep the first one.
   const turn = (step: 1 | -1) => {
+    finishSettle();
     const go = step < 0 ? pagerRef.current?.previous : pagerRef.current?.next;
-    if (!go) return false;
+    if (!go || drag.current) return false;
     paged.current = true;
     goingBack.current = step < 0;
     go();
     return true;
   };
+  // The control that opened the page leaves with the previous one; focus goes to the corner, as in VoiceOver.
+  // Paging keeps it, unless its chevron just became disabled at an end: then the other chevron takes it.
+  const keepFocus = () => {
+    const active = document.activeElement;
+    if (active instanceof HTMLButtonElement && active.disabled)
+      corner.current
+        ?.closest("[role=dialog]")
+        ?.querySelector<HTMLButtonElement>("[data-pager] button:enabled")
+        ?.focus({ preventScroll: true });
+    else if (!active || active === document.body || !active.isConnected) corner.current?.focus({ preventScroll: true });
+  };
+  const place = (d: Drag) => {
+    if (d.settle || d.closing) return;
+    const x = offsetOf(d);
+    content.current?.style.setProperty("translate", `${x + d.drawn * d.width}px 0`);
+    d.copy?.style.setProperty("translate", `${x}px 0`);
+    d.copy?.style.setProperty("visibility", d.drawn ? "visible" : "hidden");
+  };
+  /** Moves the pages to `dx`; past 8 px the neighbour that way, if any, comes in beside a copy of this page. */
+  const dragTo = (dx: number) => {
+    if (drag.current?.settle) finishSettle();
+    const element = content.current,
+      box = scroller.current;
+    if (drag.current?.closing || !element || !box) return;
+    const d = drag.current ?? {
+      dx,
+      width: box.clientWidth,
+      origin: pagerRef.current,
+      side: 0,
+      drawn: 0,
+      top: 0,
+      scrollTop: 0,
+    };
+    drag.current = d;
+    d.dx = dx;
+    const way: Side = Math.abs(dx) < 8 ? d.side : dx < 0 ? 1 : -1;
+    const go = way > 0 ? d.origin?.next : d.origin?.previous;
+    if (way !== d.side && d.side === d.drawn) {
+      if (d.side) {
+        d.side = 0;
+        d.back?.();
+      } else if (go) {
+        if (!d.copy) {
+          const copy = element.cloneNode(true) as HTMLElement;
+          for (const node of [copy, ...copy.querySelectorAll("[id]")]) node.removeAttribute("id");
+          copy.setAttribute("aria-hidden", "true");
+          copy.inert = true;
+          copy.style.cssText = `position:absolute;top:${element.offsetTop}px;left:${element.offsetLeft}px;width:${element.offsetWidth}px;pointer-events:none`;
+          box.append(copy);
+          Object.assign(d, { copy, top: element.offsetTop, scrollTop: box.scrollTop });
+        }
+        setFrozen((current) => current ?? bar.current);
+        d.side = way;
+        go();
+      }
+    }
+    place(d);
+  };
+  /** Letting go springs the pages to the side the drag favours, at its speed; turning back is silent too. */
+  const release = (velocity: number, cancelled = false) => {
+    const d = drag.current,
+      element = content.current;
+    if (!d || !element || d.settle || d.closing) return;
+    if (d.side !== d.drawn) {
+      d.released = { velocity, cancelled };
+      return;
+    }
+    const to = !cancelled && d.side && settleSide(-d.dx, -velocity, d.width) === d.side ? d.side : 0;
+    const from = offsetOf(d),
+      target = -to * d.width,
+      copy = d.copy;
+    // Turning back, the first page is drawn again under the copy, which slides home over it.
+    const back = !to && !!d.side;
+    if (back) {
+      d.side = 0;
+      d.back?.();
+    }
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const done = () => {
+      d.settle = undefined;
+      if (d.side !== d.drawn) {
+        d.closing = done;
+        return;
+      }
+      copy?.remove();
+      content.current?.style.removeProperty("translate");
+      content.current?.style.removeProperty("visibility");
+      drag.current = null;
+      setFrozen(null);
+      if (copy) keepFocus();
+      if (!to) return;
+      setAnnounced(true);
+      if (reduced) content.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: "ease-out" });
+    };
+    if (reduced) return done();
+    const { frames, duration } = springFrames(from, target, from === d.dx ? velocity : 0);
+    const slide = (layer: HTMLElement, shift: number) => {
+      layer.style.setProperty("translate", `${target + shift}px 0`);
+      return layer.animate(
+        frames.map((x) => ({ translate: `${x + shift}px 0` })),
+        { duration, easing: "linear" },
+      );
+    };
+    const animations = back ? [slide(copy!, 0)] : [slide(element, to * d.width)];
+    if (back) element.style.setProperty("visibility", "hidden");
+    else if (to) animations.push(slide(copy!, 0));
+    animations[0].onfinish = done;
+    d.settle = { animations, done };
+  };
   const paging = !!pager;
-  const turnRef = useRef(turn);
+  const gesture = useRef({ dragTo, release });
   useLayoutEffect(() => {
-    turnRef.current = turn;
+    gesture.current = { dragTo, release };
   });
-  // Two fingers on a trackpad move the page as one finger does on a phone: it follows them, then turns or springs back.
+  // Two fingers on a trackpad move the pages as one finger does on a phone: they follow, then settle.
   useEffect(() => {
     if (!paging || !surface) return;
     return listenForTrackpadPaging(surface, {
-      onStep: (step) => {
-        const turned = turnRef.current(step);
-        if (turned) content.current?.style.removeProperty("translate");
-        return turned;
-      },
-      onTrack: (travel) => follow(content.current, -travel, pagerRef.current),
-      onCancel: () => springBack(content.current),
+      onTrack: (travel) => gesture.current.dragTo(-travel),
+      onRelease: (_, velocity) => gesture.current.release(-velocity),
     });
   }, [paging, surface]);
-  // A finger dragging sideways moves the page with it; letting go past the threshold turns it.
-  const swipe = useRef<{ pointer: number; x: number; y: number; horizontal: boolean | null } | null>(null);
+  // A finger dragging sideways moves the pages with it.
+  const swipe = useRef<{
+    pointer: number;
+    x: number;
+    y: number;
+    horizontal: boolean | null;
+    samples: { time: number; travel: number }[];
+  } | null>(null);
   function swipeStart(event: PointerEvent<HTMLDivElement>) {
     // React events bubble out of portals: a dialog or viewer opened from the content isn't the sheet's page.
     if (
@@ -471,7 +616,7 @@ function SheetPages({
       !event.currentTarget.contains(event.target as Node)
     )
       return;
-    swipe.current = { pointer: event.pointerId, x: event.clientX, y: event.clientY, horizontal: null };
+    swipe.current = { pointer: event.pointerId, x: event.clientX, y: event.clientY, horizontal: null, samples: [] };
   }
   function swipeMove(event: PointerEvent<HTMLDivElement>) {
     const current = swipe.current;
@@ -484,23 +629,22 @@ function SheetPages({
         return;
       }
       current.horizontal = Math.abs(dx) > Math.abs(dy);
+      // The page under the finger is replaced mid-drag: the scroller keeps the pointer.
+      if (current.horizontal) event.currentTarget.setPointerCapture(event.pointerId);
     }
     if (!current.horizontal) return;
     // The drawer underneath must not take a sideways swipe for a drag down.
     event.stopPropagation();
-    follow(content.current, dx, pagerRef.current);
+    current.samples = [...current.samples.slice(-7), { time: event.timeStamp, travel: dx }];
+    dragTo(dx);
   }
   function swipeEnd(event: PointerEvent<HTMLDivElement>, cancelled = false) {
     const current = swipe.current;
     if (!current || current.pointer !== event.pointerId) return;
     swipe.current = null;
     if (!current.horizontal) return;
-    const dx = event.clientX - current.x;
-    if (!cancelled && Math.abs(dx) > SWIPE_DISTANCE && turn(dx < 0 ? 1 : -1)) {
-      content.current?.style.removeProperty("translate");
-      return;
-    }
-    springBack(content.current);
+    current.samples.push({ time: event.timeStamp, travel: event.clientX - current.x });
+    release(dragVelocity(current.samples, event.timeStamp), cancelled);
   }
   function pageKey(event: KeyboardEvent<HTMLDivElement>) {
     if (!paging || event.defaultPrevented || !event.currentTarget.contains(event.target as Node)) return;
@@ -508,18 +652,26 @@ function SheetPages({
     if (step && turn(step)) event.preventDefault();
   }
   useLayoutEffect(() => {
+    const d = drag.current;
+    // A drag's silent turn: the neighbour is drawn beside the copy, or the first page again under it.
+    if (d && d.drawn !== d.side) {
+      d.drawn = d.side;
+      d.back = d.side > 0 ? pagerRef.current?.previous : d.side < 0 ? pagerRef.current?.next : undefined;
+      const top = d.side ? 0 : d.scrollTop;
+      scroller.current?.scrollTo({ top });
+      d.copy?.style.setProperty("top", `${d.top - d.scrollTop + top}px`);
+      if (d.settle || d.closing) content.current?.style.setProperty("visibility", "hidden");
+      place(d);
+      firstPage.current = page;
+      firstBase.current = base;
+      firstDepth.current = depth;
+      if (d.closing) d.closing();
+      else if (d.released) gesture.current.release(d.released.velocity, d.released.cancelled);
+      return;
+    }
     scroller.current?.scrollTo({ top: 0 });
-    // The control that opened the page leaves with the previous one; focus goes to the corner, as in VoiceOver.
-    // Paging keeps it, unless its chevron just became disabled at an end: then the other chevron takes it.
     if (page !== firstPage.current && paged.current) {
-      const active = document.activeElement;
-      if (active instanceof HTMLButtonElement && active.disabled)
-        corner.current
-          ?.closest("[role=dialog]")
-          ?.querySelector<HTMLButtonElement>("[data-pager] button:enabled")
-          ?.focus({ preventScroll: true });
-      else if (!active || active === document.body || !active.isConnected)
-        corner.current?.focus({ preventScroll: true });
+      keepFocus();
       setAnnounced(true);
     } else if (page !== firstPage.current) corner.current?.focus({ preventScroll: true });
     paged.current = false;
@@ -583,13 +735,13 @@ function SheetPages({
               {onBack ? <ChevronLeft aria-hidden="true" /> : <X aria-hidden="true" />}
             </GlassButton>
           </span>
-          {subtitle ? (
+          {shown.subtitle ? (
             <span className="min-w-0 flex-1 text-center">
-              <SheetTitle variant="bar">{title}</SheetTitle>
-              <SheetDescription variant="bar">{subtitle}</SheetDescription>
+              <SheetTitle variant="bar">{shown.title}</SheetTitle>
+              <SheetDescription variant="bar">{shown.subtitle}</SheetDescription>
             </span>
           ) : (
-            <SheetTitle variant="bar">{title}</SheetTitle>
+            <SheetTitle variant="bar">{shown.title}</SheetTitle>
           )}
           {pager ? (
             <span className="flex w-24 justify-end">
@@ -613,7 +765,7 @@ function SheetPages({
         </div>
         {pager && (
           <span className="sr-only" aria-live="polite">
-            {announced ? title : null}
+            {announced ? shown.title : null}
           </span>
         )}
         {description && !subtitle ? <SheetDescription hidden>{description}</SheetDescription> : null}
@@ -629,7 +781,7 @@ function SheetPages({
         onPointerCancel={(event) => swipeEnd(event, true)}
         className={cn(
           "edge-mask sheet-edge-mask min-h-0 flex-1 overflow-y-auto overflow-x-hidden",
-          paging && "touch-pan-y",
+          paging && "relative touch-pan-y",
           top ? "pt-32" : "pt-16",
           !bleed && "px-4",
           bottom ? "sheet-end-footer" : kind === "menu" && compact ? "pb-4" : "sheet-end",

@@ -110,7 +110,7 @@ test("the race sheet and a Tracks row's picker page among sibling races; the pic
   // The pointer may still rest on the mogi beside the sheet, where the tile was: the swipe pages all the same.
   const box = (await sheet.boundingBox())!;
   await page.mouse.move(box.x / 2, box.y + box.height / 2);
-  for (let step = 0; step < 12; step++) await page.mouse.wheel(-20, 0);
+  for (let step = 0; step < 12; step++) await page.mouse.wheel(-60, 0);
   await expect(sheet).toHaveAccessibleName("Race 2");
   await expect(page).toHaveURL(/mogi=/);
 
@@ -128,4 +128,52 @@ test("the race sheet and a Tracks row's picker page among sibling races; the pic
   const picker = page.getByRole("dialog", { name: "Race 1 Track", exact: true });
   await picker.getByRole("button", { name: "Next Race", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Race 2 Track", exact: true })).toBeVisible();
+});
+
+test("a trackpad turns one race per swipe: consecutive swipes turn consecutive races, a long momentum tail one", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await restoreState(
+    page,
+    mogiState({
+      roster,
+      races: (mogi) =>
+        [1, 2, 3, 4, 5].map((number) => ({
+          id: `race-${number}`,
+          origin: "manual",
+          number,
+          placements: mogi.participants.map((person) => person.id),
+        })),
+    }),
+  );
+  await page.getByRole("button", { name: "Race 1 · counted", exact: true }).click();
+  const sheet = page.getByRole("dialog");
+  await expect(sheet).toHaveAccessibleName("Race 1");
+  const box = (await sheet.boundingBox())!;
+  // A wheel stream as Chromium sends a trackpad swipe: deltas rise with the fingers, then decay as momentum, one
+  // event a frame at the same pointer position. The pointer never moves between swipes.
+  const swipe = (tail: number) => {
+    const deltas = [4, 10, 18, 26, 30, 26];
+    for (let delta = 20; delta > 0.5; delta *= tail) deltas.push(delta);
+    return deltas;
+  };
+  const stream = (deltas: number[]) =>
+    page.evaluate(
+      async ({ deltas, x, y }) => {
+        for (const deltaX of deltas) {
+          (document.elementFromPoint(x, y) ?? document.body).dispatchEvent(
+            new WheelEvent("wheel", { deltaX, clientX: x, clientY: y, bubbles: true, cancelable: true }),
+          );
+          await new Promise((resolve) => setTimeout(resolve, 16));
+        }
+      },
+      { deltas, x: box.x + box.width / 2, y: box.y + box.height / 2 },
+    );
+  // Two swipes, the second while the first's momentum still flows: two races.
+  await stream([...swipe(0.9).slice(0, 14), ...swipe(0.9)]);
+  await expect(sheet).toHaveAccessibleName("Race 3");
+  // One swipe whose momentum lasts over a second: one race.
+  await stream(swipe(0.97));
+  await expect(sheet).toHaveAccessibleName("Race 4");
 });
