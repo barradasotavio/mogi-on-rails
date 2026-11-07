@@ -77,8 +77,7 @@ export function contextQuestions(
           id: `origin:${capture.id}`,
           kind: "origin",
           mode: number ? "correction" : "pending",
-          reason:
-            "Did these totals start at zero when the mogi began, with the same twelve represented in every race, no reopening and no discarded race?",
+          reason: "Did these totals start at zero, with all 12 in every race and no reopening or discarded race?",
           options: ["zero-valid-12", "unknown"],
         });
       add({

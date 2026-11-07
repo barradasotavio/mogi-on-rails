@@ -150,8 +150,8 @@ export function InstructionsScreen({
                   See which tracks to vote for and which to practice, from your places across your last mogis.
                 </Feature>
                 <Feature Icon={Archive} title="Keep your data">
-                  A backup keeps your mogis safe and moves them to another device, or between the browser and the
-                  installed app.
+                  The browser may clear your mogis to free space. A backup keeps them safe and moves them to another
+                  device, or between the browser and the installed app.
                 </Feature>
               </ul>
             </div>
