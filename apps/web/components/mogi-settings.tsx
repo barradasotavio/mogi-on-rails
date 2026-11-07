@@ -1,6 +1,6 @@
 "use client";
 
-import { mogiOriginalList, screens, type SequenceAnswer, sequenceInputSignature } from "@mkw/engine";
+import { mogiOriginalList, raceNumber, screens, type SequenceAnswer, sequenceInputSignature } from "@mkw/engine";
 import { type ComponentProps, useRef, useState } from "react";
 
 import { CaptureImage, CaptureThumbnail } from "@/components/captures/capture-image";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import { Sheet, usePageStack } from "@/components/ui/sheet";
-import { imageLabel, imageMoment, imageRace } from "@/lib/mogi/capture-label";
+import { captureRace, imageLabel, imageMoment, imageRace } from "@/lib/mogi/capture-label";
 import type { Mogi, SharedFile } from "@/lib/mogi/types";
 
 type Page =
@@ -20,6 +20,8 @@ type Page =
   | "original"
   | "export"
   | { kind: "image" | "race" | "numbers"; id: string }
+  /** One race's screenshots, opened from its race sheet; `id` is the race. */
+  | { kind: "race-images"; id: string }
   | { kind: "name"; id: string; row: number };
 
 export function MogiSettings({
@@ -31,6 +33,7 @@ export function MogiSettings({
   onOpenChange,
   onCloseAutoFocus,
   initialCaptureId,
+  raceId,
   onUpdate,
   onRemoveSource,
   onRemovePendingSource,
@@ -44,6 +47,8 @@ export function MogiSettings({
   busy: boolean;
   open: boolean;
   initialCaptureId?: string;
+  /** Opens on this race's screenshots instead of the settings. */
+  raceId?: string;
   onOpenChange: (open: boolean) => void;
   onCloseAutoFocus: ComponentProps<typeof Sheet>["onCloseAutoFocus"];
   onUpdate: (mogi: Mogi) => Promise<boolean>;
@@ -60,7 +65,7 @@ export function MogiSettings({
   const deleteTrigger = useRef<HTMLButtonElement>(null);
   if (wasOpen !== open) {
     setWasOpen(open);
-    if (open) pages.reset("settings");
+    if (open) pages.reset(raceId ? { kind: "race-images", id: raceId } : "settings");
   }
   const entries = [
     ...(mogi.captures ?? []).map((capture) => ({
@@ -90,6 +95,12 @@ export function MogiSettings({
     }),
   ];
   const page = pages.page;
+  const raceImages = typeof page === "object" && page.kind === "race-images";
+  // A removal can renumber or drop the race; the list then follows the race id, or empties.
+  const shownRace = raceImages ? mogi.races.find((race) => race.id === page.id) : undefined;
+  const listed = raceImages
+    ? entries.filter((entry) => entry.capture && captureRace(mogi, entry.capture)?.id === page.id)
+    : entries;
   const exported = useResultsExport({ mogi, resultMogi, onUpdate, saving: busy, open: open && page === "export" });
   const image = typeof page === "object" ? entries.find((entry) => entry.id === page.id) : undefined;
   const capture = image?.capture;
@@ -102,14 +113,16 @@ export function MogiSettings({
           : page === "export"
             ? "Export"
             : "Mogi Settings"
-      : page.kind === "name"
-        ? (mogi.participants.find((p) => p.id === capture?.nameAssociations?.[page.row - 1]?.participantId)
-            ?.loungeName ?? "Name")
-        : page.kind === "numbers"
-          ? "Numbers Read"
-          : page.kind === "race"
-            ? "Race"
-            : `Screenshot ${entries.findIndex((entry) => entry.id === page.id) + 1}`;
+      : page.kind === "race-images"
+        ? "Screenshots"
+        : page.kind === "name"
+          ? (mogi.participants.find((p) => p.id === capture?.nameAssociations?.[page.row - 1]?.participantId)
+              ?.loungeName ?? "Name")
+          : page.kind === "numbers"
+            ? "Numbers Read"
+            : page.kind === "race"
+              ? "Race"
+              : `Screenshot ${entries.findIndex((entry) => entry.id === page.id) + 1}`;
   async function assign(number: number | null) {
     if (
       capture &&
@@ -126,6 +139,13 @@ export function MogiSettings({
         onOpenChange={onOpenChange}
         onCloseAutoFocus={onCloseAutoFocus}
         title={title}
+        subtitle={
+          shownRace
+            ? shownRace.status === "discarded"
+              ? "Discarded race"
+              : `Race ${raceNumber(mogi, shownRace)}`
+            : undefined
+        }
         page={typeof page === "string" ? page : `${page.kind}-${page.id}`}
         onBack={pages.depth > 1 ? pages.back : undefined}
         footer={page === "export" ? exported.footer : undefined}
@@ -166,9 +186,9 @@ export function MogiSettings({
               {mogiOriginalList(mogi)}
             </pre>
           </ListGroup>
-        ) : page === "images" ? (
-          <List aria-label="Mogi screenshots">
-            {entries.map((entry) => (
+        ) : page === "images" || raceImages ? (
+          <List aria-label={raceImages ? "Race screenshots" : "Mogi screenshots"}>
+            {listed.map((entry) => (
               <ListRow
                 key={entry.id}
                 media={<CaptureThumbnail original={entry.original} />}

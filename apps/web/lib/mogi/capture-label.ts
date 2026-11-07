@@ -4,14 +4,19 @@ import type { Capture, Mogi } from "./types.ts";
 
 /** Numbering and association remain engine facts; this only presents existing facts. */
 export function imageRace(mogi: Mogi, capture: Capture) {
-  const association = mogi.sequence?.associations?.find((entry) => entry.captureId === capture.id);
-  const race = mogi.races.find(
-    (race) =>
-      race.captureIds?.includes(capture.id) || race.id === capture.context?.raceId || race.id === association?.raceId,
-  );
+  const race = captureRace(mogi, capture);
   return race
     ? raceNumber(mogi, race)
     : (mogi.sequence?.numbers.find((entry) => entry.captureId === capture.id)?.number ?? undefined);
+}
+
+/** The race a screenshot belongs to: its proof, its pre-race context or its sequence association. */
+export function captureRace(mogi: Mogi, capture: Capture) {
+  const association = mogi.sequence?.associations?.find((entry) => entry.captureId === capture.id);
+  return mogi.races.find(
+    (race) =>
+      race.captureIds?.includes(capture.id) || race.id === capture.context?.raceId || race.id === association?.raceId,
+  );
 }
 
 export function imageMoment(capture?: Capture) {

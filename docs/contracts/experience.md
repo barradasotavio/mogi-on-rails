@@ -168,6 +168,8 @@ Two untitled groups: Bot List › (the text pasted at creation, read-only), Scre
 3. Numbers Read ›.
 4. Remove Screenshot.
 
+**From a race**: the race sheet's Screenshots › (trail: their count; shown while the race has any, a discarded race included) lists that race's screenshots alone (`captureRace`, `lib/mogi/capture-label.ts`), pre-race and repeats included, so one that hurts recognition comes out without searching the whole mogi. It hands the race sheet over to Mogi Settings, titled Screenshots and subtitled with the race, with no Back; each row opens the same detail. Removing recounts the mogi exactly as from the full list, with [Undo](#controls); closing returns focus to the race's tile.
+
 ## Capture viewer
 
 Every screenshot or crop opens on tap in the same `CaptureViewer` (`components/ui/capture-viewer.tsx`): question sheet, Images detail, name review, race editor, track picker and the Pasted Screenshot sheet. Images thumbnails stay rows that open the detail.

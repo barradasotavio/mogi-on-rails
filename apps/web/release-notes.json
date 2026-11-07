@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "new",
+        "text": "The race sheet has a Screenshots row that lists that race's screenshots. Open one and use Remove Screenshot to drop it and recount the race; Undo brings it back."
+      },
+      {
+        "kind": "new",
         "text": "Instructions › Keep your data says the browser may clear your mogis to free space, and that a backup keeps them. The question about where totals started is shorter."
       },
       {

@@ -140,6 +140,8 @@ export function MogiDetail({
   const [surface, setSurface] = useState<"menu" | "table" | "settings" | "questions" | "players" | null>(
     initialReview?.captureId ? "settings" : (initialReview?.surface ?? null),
   );
+  // The race sheet's Screenshots row opens Mogi Settings on that race's screenshots.
+  const [settingsRaceId, setSettingsRaceId] = useState<string>();
   // The header's Copy !submit falls back to Export on Save Text; Mogi Settings opens Export as one of its pages.
   const [exportOpen, setExportOpen] = useState(false);
   const exportTrigger = useRef<HTMLElement | null>(null);
@@ -153,6 +155,7 @@ export function MogiDetail({
   const controlsTrigger = useRef<HTMLElement | null>(null);
   function openSurface(next: typeof surface, player?: PlayerShortcut) {
     setImageQuestion(false);
+    setSettingsRaceId(undefined);
     controlsTrigger.current = document.activeElement as HTMLElement;
     setPlayerStart(player);
     setSurface(next);
@@ -406,7 +409,12 @@ export function MogiDetail({
                   Players
                 </span>
               </ListRow>
-              <ListRow onSelect={() => setSurface("settings")}>
+              <ListRow
+                onSelect={() => {
+                  setSettingsRaceId(undefined);
+                  setSurface("settings");
+                }}
+              >
                 <span className="flex items-center gap-3">
                   <Settings2 aria-hidden="true" />
                   Mogi Settings
@@ -547,6 +555,7 @@ export function MogiDetail({
             busy={busy}
             open={surface === "settings" || (imageQuestion && surface === "questions")}
             initialCaptureId={initialReview?.captureId}
+            raceId={settingsRaceId}
             onQuestion={(id) => {
               imageQuestionTrigger.current = document.activeElement as HTMLElement;
               setInitialQuestionId(id);
@@ -554,7 +563,9 @@ export function MogiDetail({
               setSurface("questions");
             }}
             onOpenChange={(open) => {
-              if (!open) setSurface(null);
+              if (open) return;
+              setSurface(null);
+              setSettingsRaceId(undefined);
             }}
             onDelete={onDelete}
             onUpdate={onUpdate}
@@ -621,6 +632,14 @@ export function MogiDetail({
               handingOff.current = true;
               setConsultingOpen(false);
               questions(consulting ?? undefined);
+              controlsTrigger.current = trigger;
+            }}
+            onScreenshots={() => {
+              const trigger = consultationTrigger.current;
+              handingOff.current = true;
+              setConsultingOpen(false);
+              setSettingsRaceId(consulting?.id);
+              setSurface("settings");
               controlsTrigger.current = trigger;
             }}
             onBack={consultingOpen ? onCloseEditor : undefined}

@@ -190,6 +190,31 @@ test("at 1440px, Undo is a toolbar button before Players, without a Notice, and 
   await expectRestored(page);
 });
 
+test("the race sheet opens its race's screenshots, and removing one there recounts the race until Undo", async ({
+  page,
+}) => {
+  await setUp(page, 375);
+  await page.getByRole("button", { name: "Race 1 · counted", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Race 1", exact: true })
+    .getByRole("button", { name: "Screenshots 1", exact: true })
+    .click();
+  const images = page.getByRole("dialog", { name: "Screenshots", exact: true });
+  await expect(images).toContainText("Race 1");
+  await expect(images.getByRole("button", { name: "Back", exact: true })).toHaveCount(0);
+  await images.getByRole("button", { name: /race-1\.jpeg/ }).click();
+  await page
+    .getByRole("dialog", { name: /^Screenshot \d+$/ })
+    .getByRole("button", { name: "Remove Screenshot", exact: true })
+    .click();
+  await expect(images.getByRole("listitem")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Race 1 · counted", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expectRestored(page);
+});
+
 test("going to another mogi or the list removes Undo", async ({ page }) => {
   await setUp(page, 1440, "light", ["B", "A"]);
   const sidebar = page.getByRole("complementary", { name: "Mogis", exact: true });
