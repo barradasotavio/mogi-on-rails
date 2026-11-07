@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "new",
+        "text": "Storage lists each mogi by name, date and size, and hides Before updates until there's a backup. Restore, Your Lounge Names and Watched Folders drop the notes that explained them."
+      },
+      {
+        "kind": "new",
         "text": "Mogi Settings is one short list: Bot List, Screenshots with its count, and Export. Export shows the !submit text only when it's ready, and a short status until then."
       },
       {
