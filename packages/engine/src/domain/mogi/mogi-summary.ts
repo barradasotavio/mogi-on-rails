@@ -17,7 +17,7 @@ export function tiedLeaders(names: string[], unit: "teams" | "players"): string 
 /** Summarizes the proven result for the mogi list, with the same conclusion export uses. */
 export function mogiSummary(mogi: Mogi): { final: boolean; text: string } {
   const coverage = resultCoverage(mogi);
-  if (!coverage.through) return { final: false, text: "12 players · no races yet" };
+  if (!coverage.through) return { final: false, text: "No races yet" };
   const standings =
     mogi.format === "FFA"
       ? individualStandings(mogi).map((person) => ({ ...person, name: person.loungeName }))

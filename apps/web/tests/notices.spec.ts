@@ -28,7 +28,7 @@ async function createTwo(page: Page) {
 async function openWithFailure(page: Page, name: string) {
   await createTwo(page);
   await setFailure(page, name);
-  await page.getByRole("button", { name: /^Mogi Tier A · FFA/ }).click();
+  await page.getByRole("button", { name: /^Mogi Tier A\W*FFA/ }).click();
   // The modal alert hides the mogi from the accessibility tree.
   await expect(
     page.getByRole("heading", { level: 1, name: "Mogi Tier A", exact: true, includeHidden: true }),
@@ -106,7 +106,7 @@ test("a closed connection or new version asks only for Reload; another cause ask
   await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier A", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await setFailure(page, "UnknownError");
-  await page.getByRole("button", { name: /^Mogi Tier B · FFA/ }).click();
+  await page.getByRole("button", { name: /^Mogi Tier B\W*FFA/ }).click();
   const unknown = await expectAlert(
     page,
     "Couldn't Save on This Device",

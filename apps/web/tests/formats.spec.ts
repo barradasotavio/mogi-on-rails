@@ -160,10 +160,10 @@ test("backup refuses unsupported formats and restores normal queue formats with 
   // Without an active mogi, loading opens the list.
   const back = page.getByRole("button", { name: "Back", exact: true });
   await expect(page.getByRole("heading", { name: "Mogis", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Mogi Tier D · FFA/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Mogi Tier D · 2v2/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Mogi Tier D · 3v3/ })).toBeVisible();
-  await page.getByRole("button", { name: /^Mogi Tier D · 2v2/ }).click();
+  await expect(page.getByRole("button", { name: /^Mogi Tier D\W*FFA/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Mogi Tier D\W*2v2/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Mogi Tier D\W*3v3/ })).toBeVisible();
+  await page.getByRole("button", { name: /^Mogi Tier D\W*2v2/ }).click();
   await openParticipants(page);
   await expect(
     page.getByRole("dialog", { name: "Players", exact: true }).getByLabel("Team 1 · XO", { exact: true }).first(),
@@ -173,7 +173,7 @@ test("backup refuses unsupported formats and restores normal queue formats with 
     .getByRole("button", { name: "Close", exact: true })
     .click();
   await back.click();
-  await page.getByRole("button", { name: /^Mogi Tier D · FFA/ }).click();
+  await page.getByRole("button", { name: /^Mogi Tier D\W*FFA/ }).click();
   const restored = unzipSync(readFileSync(await downloadBackup(page, info.outputPath("restored.zip"))));
   const state = JSON.parse(strFromU8(restored["manifest.json"])).state;
   expect(state.mogis.map((mogi: { format: string }) => mogi.format)).toEqual(["FFA", "2v2", "3v3"]);

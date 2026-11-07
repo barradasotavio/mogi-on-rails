@@ -31,7 +31,7 @@ test("regular reopens the last in-progress mogi without leaving an empty screen 
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Mogis", exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("main").getByRole("button", { name: /^Mogi Tier B · FFA/ })).toBeFocused();
+  await expect(page.getByRole("main").getByRole("button", { name: /^Mogi Tier B\W*FFA/ })).toBeFocused();
 });
 
 /** Sixteen mogis, R0 the oldest and so last in the list, restored in one public ZIP. */
@@ -43,7 +43,7 @@ async function restoreSixteen(page: Page) {
     })),
   );
   await restoreState(page, { ...state, activeMogiId: null });
-  await expect(page.getByRole("button", { name: /^Mogi Tier R\d+ · FFA/ }).filter({ visible: true })).toHaveCount(16);
+  await expect(page.getByRole("button", { name: /^Mogi Tier R\d+\W*FFA/ }).filter({ visible: true })).toHaveCount(16);
 }
 
 test("the URL preserves the mogi on reload and history restores scroll, focus and overview", async ({ page }) => {
@@ -51,7 +51,7 @@ test("the URL preserves the mogi on reload and history restores scroll, focus an
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   await restoreSixteen(page);
-  const row = page.getByRole("button", { name: /^Mogi Tier R0 · FFA/ });
+  const row = page.getByRole("button", { name: /^Mogi Tier R0\W*FFA/ });
   await row.scrollIntoViewIfNeeded();
   const main = page.getByRole("main");
   const scroll = await main.evaluate((element) => element.scrollTop);
@@ -135,5 +135,5 @@ test("the URL preserves the mogi on reload and history restores scroll, focus an
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText("Mogi not found", { exact: true })).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole("button", { name: /^Mogi Tier D · FFA/ })).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /^Mogi Tier D\W*FFA/ })).toHaveCount(1);
 });

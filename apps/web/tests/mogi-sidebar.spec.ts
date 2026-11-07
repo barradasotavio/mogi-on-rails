@@ -19,7 +19,7 @@ test("the regular bar traps and restores focus, closes on outside click and swit
   const first = sidebar.getByRole("button", { name: "App Settings", exact: true });
   await expect(first).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(sidebar.getByRole("button", { name: /^Mogi Tier A · FFA/ })).toBeFocused();
+  await expect(sidebar.getByRole("button", { name: /^Mogi Tier A\W*FFA/ })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(first).toBeFocused();
   await page.keyboard.press("Escape");
@@ -42,7 +42,7 @@ test("the regular bar traps and restores focus, closes on outside click and swit
   await expect(trigger).toBeFocused();
   await trigger.click();
   const length = await page.evaluate(() => history.length);
-  await sidebar.getByRole("button", { name: /^Mogi Tier A · FFA/ }).click();
+  await sidebar.getByRole("button", { name: /^Mogi Tier A\W*FFA/ }).click();
   await expect(sidebar).toBeHidden();
   await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier A", exact: true })).toBeVisible();
   await expect(trigger).toBeFocused();

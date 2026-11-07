@@ -196,10 +196,10 @@ test("going to another mogi or the list removes Undo", async ({ page }) => {
   await removeImage(page);
   const undo = page.getByRole("button", { name: "Undo", exact: true });
   await expect(undo).toBeVisible();
-  await sidebar.getByRole("button", { name: /^Mogi Tier B · FFA/ }).click();
+  await sidebar.getByRole("button", { name: /^Mogi Tier B\W*FFA/ }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mogi Tier B");
   await expect(undo).toHaveCount(0);
-  await sidebar.getByRole("button", { name: /^Mogi Tier A · FFA/ }).click();
+  await sidebar.getByRole("button", { name: /^Mogi Tier A\W*FFA/ }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mogi Tier A");
   await expect(undo).toHaveCount(0);
   await page.keyboard.press("Meta+z");
@@ -212,7 +212,7 @@ test("returning to the list in compact removes Undo", async ({ page }) => {
   const undo = page.getByRole("button", { name: "Undo", exact: true });
   await expect(undo).toBeVisible();
   await page.getByRole("button", { name: "Back", exact: true }).click();
-  await page.getByRole("button", { name: /^Mogi Tier A · FFA/ }).click();
+  await page.getByRole("button", { name: /^Mogi Tier A\W*FFA/ }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mogi Tier A");
   await expect(undo).toHaveCount(0);
 });
