@@ -7,11 +7,6 @@ export function initialRaceReview(race: Race): RaceReviewFields {
   return {
     placements: race.placements.filter((id) => !race.absentParticipantIds?.includes(id)),
     absentParticipantIds: race.absentParticipantIds ?? [],
-    rawOverrides: Object.fromEntries(
-      Object.entries(race.nativePoints ?? {})
-        .filter(([id]) => race.nativePointOrigins?.[id] !== "modeled")
-        .map(([id, points]) => [id, String(points)]),
-    ),
     reviewed: false,
   };
 }
@@ -28,27 +23,13 @@ export function reviewedRace(race: Race, fields: RaceReviewFields, participants:
     ids.some((id) => !people.has(id))
   )
     return null;
-  if (
-    fields.placements.some((id) => {
-      const value = fields.rawOverrides[id];
-      return (
-        value !== undefined &&
-        (value.trim() === "" || !Number.isInteger(Number(value)) || Number(value) < 0 || Number(value) > 15)
-      );
-    })
-  )
-    return null;
   const scale = nativePlacementPoints(fields.placements.length);
   return {
     ...race,
     placements: fields.placements,
     absentParticipantIds: fields.absentParticipantIds,
-    nativePoints: Object.fromEntries(
-      fields.placements.map((id, position) => [id, Number(fields.rawOverrides[id] ?? scale[position])]),
-    ),
-    nativePointOrigins: Object.fromEntries(
-      fields.placements.map((id) => [id, fields.rawOverrides[id] === undefined ? "modeled" : "manual"]),
-    ),
+    nativePoints: Object.fromEntries(fields.placements.map((id, position) => [id, scale[position]])),
+    nativePointOrigins: Object.fromEntries(fields.placements.map((id) => [id, "modeled" as const])),
   };
 }
 

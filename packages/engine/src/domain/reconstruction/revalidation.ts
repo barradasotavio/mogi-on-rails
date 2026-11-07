@@ -1,3 +1,4 @@
+import { withModeledNativePoints } from "../scoring/native-points.ts";
 import { roomExplanationSteps } from "../sequence/capture-explanation.ts";
 import { reconcileSequence } from "../sequence/sequence.ts";
 import type { Mogi } from "../types.ts";
@@ -50,7 +51,8 @@ export async function normalizeReconstructions<State extends { mogis: Mogi[] }>(
     state.mogis.map(async (mogi) => {
       if (previous.has(mogi)) return mogi;
       const original = mogi;
-      mogi = reconcileSequence(settleAssistedRaces(compactReconstructions(mogi)));
+      // Re-model native points first, so a proof that rested on a hand-entered value is revalidated below.
+      mogi = reconcileSequence(settleAssistedRaces(compactReconstructions(withModeledNativePoints(mogi))));
       if (mogi.sequence) {
         for (const target of mogi.races) {
           if (target.placements.length && target.origin !== "reconstructed") continue;

@@ -69,7 +69,6 @@ test("the six real captures applied one at a time match each checked cumulative 
     mogi = applyCaptureContext(mogi, source, {
       placements: [],
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
       nameAssociations: source.nameAssociations,
     });
@@ -234,14 +233,6 @@ test("cumulative deduction preserves discard, review, absence, identity and nati
       reason,
     );
   }
-});
-
-test("divergent native points on an already deduced race remain a conflict after revalidation", async () => {
-  const input = (await normalizeReconstructions({ mogis: [fixture("after-r6")] })).mogis[0];
-  const target = input.races.find((race) => race.number === 5)!;
-  target.nativePoints![target.placements[0]] = 14;
-  const mogi = reconcileSequence(input);
-  assert.equal(mogi.races.find((race) => race.id === target.id)!.status, "pending");
 });
 
 test("a proven prefix total determines the next race even while its earlier detail is pending", () => {
@@ -471,7 +462,7 @@ test("withdrawManualResult returns a race edited with a false absence, and the r
   const [absent, ...placements] = first.placements;
   const edit = reviewedRace(
     first,
-    { placements, absentParticipantIds: [absent], rawOverrides: {}, reviewed: false },
+    { placements, absentParticipantIds: [absent], reviewed: false },
     proven.participants,
   )!;
   const edited = (await normalizeReconstructions({ mogis: [applyReviewedRace(proven, edit)] })).mogis[0];

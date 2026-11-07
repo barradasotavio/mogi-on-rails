@@ -69,7 +69,6 @@ function ingest(mogi: Mogi, capture: Capture) {
     applyCaptureContext(mogi, capture, {
       placements: [],
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
       nameAssociations: capture.nameAssociations,
     }),
@@ -354,7 +353,6 @@ test("a name placed on an unread row saves with no spelling to learn", () => {
     {
       placements: [],
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
       nameAssociations: capture.nameAssociations,
     },

@@ -929,6 +929,13 @@ test("values on the inside edge of each representative bound are accepted", () =
           },
         ],
         [
+          "drafts without legacy in-game points",
+          (s) => {
+            delete draft(s).fields.rawOverrides;
+            delete cap(s, "c2").contextDraft.rawOverrides;
+          },
+        ],
+        [
           "empty edited points and accepted IGN spelling",
           (s) => {
             draft(s).fields.rawOverrides = { p0: "" };
@@ -2968,13 +2975,6 @@ test("validateCaptureRecognition: context, drafts, rows and numeric rows", () =>
       "Invalid context draft.",
     ],
     [
-      "context draft adjustments missing",
-      (s) => {
-        delete ctxDraft(s).rawOverrides;
-      },
-      "Context draft adjustments: missing or invalid object.",
-    ],
-    [
       "screenshot date negative",
       (s) => {
         cap(s, "c1").lastModified = -1;
@@ -4751,13 +4751,6 @@ test("validateRaceDraft, validateCaptureReview and validateOrderReview", () => {
         fields(s).nextTrackAnswer = "CC";
       },
       "Next track name has no screenshot source.",
-    ],
-    [
-      "draft points not an object",
-      (s) => {
-        delete fields(s).rawOverrides;
-      },
-      "Draft points: missing or invalid object.",
     ],
     [
       "draft points for thirteen keys",

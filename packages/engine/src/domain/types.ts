@@ -46,6 +46,7 @@ export interface Race {
   gameEvidence?: GameEvidence;
   gameEvidenceHistory?: { changedAt: string; evidence: GameEvidence }[];
   nativePoints?: Record<string, number>;
+  /** "manual" is legacy and read-only: current races are re-modeled on load (`withModeledNativePoints`). */
   nativePointOrigins?: Record<string, "modeled" | "manual">;
 }
 
@@ -399,6 +400,5 @@ export interface RaceReviewFields {
   nameAssociations?: NameAssociation[];
   placements: string[];
   absentParticipantIds: string[];
-  rawOverrides: Record<string, string>;
   reviewed: boolean;
 }

@@ -112,9 +112,10 @@ The app's workflows in the order of a mogi, and the landing page of someone with
 What changed in the app, so players see it is maintained and bugs get fixed without opening GitHub. Words in [copy.md](copy.md#reference-copy).
 
 - **Destination**: the row between Instructions and Tracks at the top of the mogi list and the sidebar, at `/?view=release-notes`. It opens like Tracks. The maintainer chose this place: next to Instructions, since both are about the app rather than a mogi; Settings holds only settings and actions. Nothing else announces it, in keeping with silence when everything is right.
-- **Page**: dates newest first; under each, one line per change a player can notice, marked New or Fixed. Lines say what changed for the player, with no PR numbers, internal names or engine terms.
+- **Page**: dates newest first; under each, one short line per change, marked New or Fixed. Lines say what changed for the player, with no PR numbers, internal names or engine terms.
+- **What goes in**: only critical fixes (wrong results, lost data or blocked use) and genuinely new features. Visual changes, copy trims, polish and internal changes stay out; related changes share one line.
 - **Source**: `apps/web/release-notes.json`, bundled at build time, so the page works offline. `lib/release-notes.test.ts` (app rules) checks its shape and that dates descend.
-- **Upkeep**: every PR with a user-visible change adds its line in the same PR, under its merge date (a new date goes on top).
+- **Upkeep**: a PR with a critical fix or a new feature adds its line in the same PR, under its merge date (a new date goes on top); a change that alters or removes a feature also edits the lines that name it.
 
 ## Regular navigation
 
@@ -196,7 +197,7 @@ Races come from captures; Edit Result corrects a race and creates one only for a
 - **A race without a screenshot** (a ghost race entered by hand, or a manual result): a race whose screenshot wasn't recognized shows that screenshot where the capture sits ("Screenshot of race N"). The app reads every image it has, so Edit Result attaches no reference-only photo. When every earlier race's totals are proven, a second column headed "Total" shows each player's total after this race, to compare with the game's totals. Saving counts the race as a manual result; later images that contradict it follow [reconstruction](reconstruction.md).
 - **Revert to Screenshots**: in the race sheet, under Edit Result, on a manual result of a race with a screenshot or an archived proof, and no edit in progress. Destructive, with confirmation; it removes the typed result and its absences, and the race counts again from what the screenshots prove. It is the only way back from Save Result: [Undo](#controls) covers image removal alone.
 - **Don't Count This Race**: the race sheet's last group, below Screenshots and Edit Result, for a race that took place but doesn't count for the Lounge. A plain command, not destructive: the result and screenshots stay, and Count Again, in the same place on the discarded race, undoes it. A bad screenshot comes out through Screenshots › instead.
-- More options holds what screenshots rarely need: Absent Players (at most two, 1 point each; a DC or an unread name is not an absence) and In-Game Points (only when the game's scale differs). The full absence rule lives in [Instructions](#instructions), under "Fix races and names".
+- More options holds what screenshots rarely need: Absent Players (at most two, 1 point each; a DC or an unread name is not an absence). In-game points have no field: the represented count fixes them ([native points](scoring.md#native-points)). The full absence rule lives in [Instructions](#instructions), under "Fix races and names".
 - **Save Result** floats in the footer. Saving is the review: there is no separate "I checked" step. The draft and Edit in progress work as in [Edits in progress](#edits-in-progress-and-refusals).
 
 ## Table and image

@@ -3,7 +3,6 @@
 import {
   individualStandings,
   initialRaceReview,
-  nativePlacementPoints,
   participationSlot,
   placementPoints,
   raceNumber,
@@ -18,25 +17,20 @@ import { CaptureImage } from "@/components/captures/capture-image";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { GlassButton } from "@/components/ui/glass-button";
-import { Input } from "@/components/ui/input";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import { useSheetPage } from "@/components/ui/sheet";
 import { ordinal } from "@/lib/format";
 import type { Mogi, Race, RaceReviewFields } from "@/lib/mogi/types";
 import { settled } from "@/lib/settled";
 
-type Page = { kind: "result" } | { kind: "place"; position: number } | { kind: "absent" } | { kind: "points" };
+type Page = { kind: "result" } | { kind: "place"; position: number } | { kind: "absent" };
 
 /** A trailing column of Finish order, as wide as its heading, so values line up under it. */
 const column = "w-12 text-right";
 
-const invalidPoints = (value: string | undefined) =>
-  value !== undefined &&
-  (value.trim() === "" || !Number.isInteger(Number(value)) || Number(value) < 0 || Number(value) > 15);
-
 /**
  * Edit Result, as pages of the race sheet: the finish order is a grouped list, each place opens a page
- * of players and choosing one swaps the two places. Absent players and in-game points sit under
+ * of players and choosing one swaps the two places. Absent players sit under
  * More options, always shown. Saving is the review: there is no separate "I checked" step.
  * Each place trails its points, under a Points heading; in a race no screenshot shows, with every earlier total
  * proven, a Total column adds the player's total after this race, so a result typed by hand can be checked
@@ -79,7 +73,7 @@ export function RaceEditor({
     ? undefined
     : mogi.captures?.find((c) => race.captureIds?.includes(c.id) && c.interpretation?.screen === "unknown");
   const [fields, setFields] = useState(() => initialFields ?? initialRaceReview(race));
-  const { placements, rawOverrides } = fields;
+  const { placements } = fields;
   const absent = fields.absentParticipantIds;
   const name = (id: string) => participants.find((person) => person.id === id)?.loungeName ?? "Unknown player";
   function change(next: RaceReviewFields) {
@@ -87,7 +81,6 @@ export function RaceEditor({
     onDraftChange?.(next);
   }
   const visiblePlacements = Array.from({ length: 12 - absent.length }, (_, index) => placements[index] ?? "");
-  const nativeScale = nativePlacementPoints(placements.length);
   const unreadable =
     capture?.unreadableRowNumbers ?? capture?.rows.flatMap((row, n) => (row.text.trim() ? [] : [n + 1])) ?? [];
   const suggestions = capture?.possibleAbsentParticipantIds ?? [];
@@ -103,9 +96,6 @@ export function RaceEditor({
     const previous = person && before.find((row) => row.id === participationSlot(person))?.points;
     return provenBefore && typeof previous === "number" ? previous + placementPoints[position] : undefined;
   };
-  const rawMismatch = placements.some(
-    (id, position) => rawOverrides[id] !== undefined && Number(rawOverrides[id]) !== nativeScale[position],
-  );
   const validatedRace = reviewedRace(race, fields, participants);
   // Draft writes don't make the editor busy, so Save Result guards its own write against a second tap.
   const [saving, setSaving] = useState(false);
@@ -116,9 +106,7 @@ export function RaceEditor({
       ? `${ordinal(page.position + 1)} Place`
       : page.kind === "absent"
         ? "Absent Players"
-        : page.kind === "points"
-          ? "In-Game Points"
-          : "Edit Result";
+        : "Edit Result";
   const footer = useSheetPage({
     page: page.kind === "place" ? `place-${page.position}` : page.kind,
     title,
@@ -200,55 +188,6 @@ export function RaceEditor({
         </ListGroup>
       </>
     );
-  if (page.kind === "points")
-    return (
-      <>
-        {rawMismatch && (
-          <Alert>
-            <AlertDescription>
-              These points differ from the usual in-game scale. Lounge points stay the same; check the screenshot.
-            </AlertDescription>
-          </Alert>
-        )}
-        <ListGroup note="Lounge points follow the finish order.">
-          <List dividers="row" aria-label="In-game points">
-            {placements.map((id, position) => {
-              const invalid = invalidPoints(rawOverrides[id]);
-              return (
-                <ListRow
-                  key={id}
-                  lead={position + 1}
-                  description={invalid ? "Enter a whole number from 0 to 15." : undefined}
-                  trail={
-                    <Input
-                      variant="inline"
-                      className="w-16 text-right"
-                      aria-label={`In-game points for ${ordinal(position + 1)} place`}
-                      aria-invalid={invalid}
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={2}
-                      disabled={busy}
-                      value={rawOverrides[id] ?? String(nativeScale[position] ?? 0)}
-                      onChange={(event) =>
-                        change({
-                          ...fields,
-                          rawOverrides: { ...rawOverrides, [id]: event.target.value },
-                          reviewed: false,
-                        })
-                      }
-                    />
-                  }
-                >
-                  {name(id)}
-                </ListRow>
-              );
-            })}
-          </List>
-        </ListGroup>
-      </>
-    );
-
   const reading = (position: number, id: string) => {
     if (!capture) return undefined;
     const text = capture.rows[position]?.text.trim();
@@ -352,14 +291,6 @@ export function RaceEditor({
             onSelect={() => setPage({ kind: "absent" })}
           >
             Absent Players
-          </ListRow>
-          <ListRow
-            accessory="chevron"
-            disabled={busy}
-            trail={Object.keys(rawOverrides).length ? "Edited" : undefined}
-            onSelect={() => setPage({ kind: "points" })}
-          >
-            In-Game Points
           </ListRow>
         </List>
       </ListGroup>

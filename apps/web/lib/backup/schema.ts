@@ -430,7 +430,8 @@ const recognition = {
       placements: refs("Context draft identities"),
       absentParticipantIds: refs("Context draft absences"),
       reviewed: v.boolean("Invalid context draft."),
-      rawOverrides: anyRecord("Context draft adjustments"),
+      // Legacy hand-entered in-game points: still accepted so old data opens, never read.
+      rawOverrides: v.optional(anyRecord("Context draft adjustments")),
     }),
   ),
   lastModified: v.optional(integer("Screenshot date", 0)),
@@ -999,6 +1000,7 @@ function race<I extends v.GenericSchema>({ label, id, historical, forbid, remove
           historical ? refs("Historical screenshots", "Historical screenshot") : refs("Race screenshots"),
         ),
         nativePoints: v.optional(dict("In-game points", integer("In-game points", 0, 15))),
+        // "manual" is legacy and read-only: current races are re-modeled on load.
         nativePointOrigins: v.optional(
           dict("In-game points origin", v.picklist(["modeled", "manual"], "Invalid in-game points origin.")),
         ),
@@ -1089,10 +1091,13 @@ const raceDraft = v.pipe(
           groupTotalAnswers: v.optional(groupTotalAnswers),
           numericAnswers: v.optional(numericAnswers),
           nextTrackAnswer: v.optional(nextTrackAnswer),
-          rawOverrides: v.pipe(
-            anyRecord("Draft points"),
-            v.check((raw) => Object.keys(raw).length <= 12, "Too many points in the draft."),
-            dict("Draft points", text("Edited points", true)),
+          // Legacy hand-entered in-game points: still accepted so old drafts open, never read.
+          rawOverrides: v.optional(
+            v.pipe(
+              anyRecord("Draft points"),
+              v.check((raw) => Object.keys(raw).length <= 12, "Too many points in the draft."),
+              dict("Draft points", text("Edited points", true)),
+            ),
           ),
         }),
       ),

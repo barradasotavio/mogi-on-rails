@@ -281,7 +281,6 @@ test("a capture draft may precede the race, but a manual edit requires an existi
   const fields = {
     placements: mogi.participants.map((person) => person.id),
     absentParticipantIds: [],
-    rawOverrides: {},
     reviewed: false,
   };
   item.draft = {

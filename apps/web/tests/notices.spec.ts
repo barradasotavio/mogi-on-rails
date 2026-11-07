@@ -142,7 +142,7 @@ async function openWithDraft(page: Page) {
     number: 2,
     baseSignature: "0".repeat(64),
     updatedAt: "2026-10-29T00:00:00Z",
-    fields: { placements: people, absentParticipantIds: [], rawOverrides: {}, reviewed: false },
+    fields: { placements: people, absentParticipantIds: [], reviewed: false },
   };
   await restoreState(page, state);
   await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier A", exact: true })).toBeVisible();

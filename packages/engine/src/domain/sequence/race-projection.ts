@@ -207,7 +207,6 @@ function followOccurrenceNumbers(
         race.participationReview !== sequenceConflictReview) ||
       !race.captureIds?.length ||
       race.captureIds.some((id) => !node.captures.some((capture) => capture.id === id)) ||
-      Object.values(race.nativePointOrigins ?? {}).includes("manual") ||
       input.assistance?.facts.some((fact) => fact.raceId === race.id) ||
       input.substitutions?.some((entry) => entry.fromRaceId === race.id)
     )
@@ -280,7 +279,6 @@ function associateSources<T extends Mogi>(
         const fields = {
           placements: [],
           absentParticipantIds: [],
-          rawOverrides: {},
           reviewed: false,
           nameAssociations: source.nameAssociations,
           numericAnswers: source.numericAnswers,
@@ -341,7 +339,6 @@ function acceptFinishOrders<T extends Mogi>(mogi: T, nodes: OccurrenceNode[], ro
             absentParticipantIds: participantsForRace(mogi, node.occurrence.number)
               .filter((person) => !placements.includes(person.id))
               .map((person) => person.id),
-            rawOverrides: {},
             reviewed: false,
           },
           mogi.races.some((race) => race.physicalNumber !== undefined)

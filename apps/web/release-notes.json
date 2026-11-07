@@ -4,75 +4,27 @@
     "changes": [
       {
         "kind": "new",
-        "text": "The race sheet says Don't Count This Race instead of Discard Race, as a plain command at the end. To drop a bad screenshot, use Screenshots and Remove Screenshot."
+        "text": "The race sheet lists that race's screenshots. Remove one to recount the race; Undo brings it back."
+      },
+      {
+        "kind": "new",
+        "text": "Watched folders can add new screenshots without asking: turn on Add Without Asking in Settings › Watched Folders."
       },
       {
         "kind": "fix",
-        "text": "In-Game Points fields sit inside their rows, Tracks titles its list by the measure like other lists, and a screenshot offers Numbers Read only when it has numbers to show."
-      },
-      {
-        "kind": "new",
-        "text": "The race sheet has a Screenshots row that lists that race's screenshots. Open one and use Remove Screenshot to drop it and recount the race; Undo brings it back."
-      },
-      {
-        "kind": "new",
-        "text": "Instructions › Keep your data says the browser may clear your mogis to free space, and that a backup keeps them. The question about where totals started is shorter."
-      },
-      {
-        "kind": "new",
-        "text": "The mogi list titles each mogi by its tier and starts its second line with the format. Before the first race, the list and the mogi header say No races yet."
-      },
-      {
-        "kind": "new",
-        "text": "Storage lists each mogi by name, date and size, and hides Before updates until there's a backup. Restore, Your Lounge Names and Watched Folders drop the notes that explained them."
-      },
-      {
-        "kind": "new",
-        "text": "Mogi Settings is one short list: Bot List, Screenshots with its count, and Export. Export shows the !submit text only when it's ready, and a short status until then."
-      },
-      {
-        "kind": "new",
-        "text": "Edit Result shows each place's points and total under Points and Total headings. The race sheet, In-Game Points, Absent Players and their confirmations drop the notes that explained them."
-      },
-      {
-        "kind": "new",
-        "text": "Questions and the Needs a Screenshot sheet are shorter: no notes that repeat the question, one caption when two screenshots share it, and the sheet is titled by its race."
-      },
-      {
-        "kind": "new",
-        "text": "Tracks names its measure once, above the numbers. The track sheet, New Mogi and the empty mogi list show less text."
-      },
-      {
-        "kind": "new",
-        "text": "Players reads faster: a team without a tag shows as Team N, and the player, team and sub pages drop notes that repeated their labels."
+        "text": "Unlinking a player in Players also forgets the in-game name it learned, so swapped teammates no longer mix their points."
       },
       {
         "kind": "fix",
-        "text": "When teams or players tie for first, the mogi header and the mogi list name every one of them, or say how many are tied."
+        "text": "When the room reopens mid-mogi, its first results screen starts the new room, even mid-animation, and saved mogis number their races correctly again."
       },
       {
         "kind": "fix",
-        "text": "Unlinking a player in Players now also forgets the in-game name it learned, so swapped teammates no longer mix their points in later races."
-      },
-      {
-        "kind": "new",
-        "text": "Watched folders can add new screenshots straight to the mogi. Turn on Add Without Asking in Settings › Watched Folders."
+        "text": "Answering “Which race is this?” moves the screenshot to that race instead of leaving it under both."
       },
       {
         "kind": "fix",
-        "text": "Answering “Which race is this?” moves the screenshot to that race. It no longer shows under its old race too."
-      },
-      {
-        "kind": "new",
-        "text": "Adding a screenshot that's already in another mogi now says which mogi holds it and how to free it."
-      },
-      {
-        "kind": "fix",
-        "text": "A mogi saved while a reopened room was misread numbers its races correctly again when you open it."
-      },
-      {
-        "kind": "fix",
-        "text": "When the room reopens mid-mogi, its first results screen starts the new room, even if it was taken mid-animation."
+        "text": "When players or teams tie for first, the mogi header and the mogi list name all of them."
       }
     ]
   }

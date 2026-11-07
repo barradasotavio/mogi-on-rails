@@ -124,22 +124,13 @@ export function cumulativeRaceDependsOnSource(mogi: Mogi, race: Race, source: Ca
 }
 
 export function withoutCumulativeRaceResult(race: Race): Race {
-  // Withdraw only the modeled values compatible with the previous finish order;
-  // independent or diverging numbers keep blocking a new deduction.
-  const scale = nativePlacementPoints(race.placements.length);
-  const retained = Object.entries(race.nativePoints ?? {}).filter(
-    ([id, value]) => race.nativePointOrigins?.[id] !== "modeled" || value !== scale[race.placements.indexOf(id)],
-  );
+  // A pending race has no placements, so it has no native values either.
   return {
     ...race,
     status: "pending",
     placements: [],
     absentParticipantIds: race.absentParticipantIds ?? [],
-    nativePoints: retained.length ? Object.fromEntries(retained) : undefined,
-    nativePointOrigins: retained.length
-      ? Object.fromEntries(
-          retained.flatMap(([id]) => (race.nativePointOrigins?.[id] ? [[id, race.nativePointOrigins[id]]] : [])),
-        )
-      : undefined,
+    nativePoints: undefined,
+    nativePointOrigins: undefined,
   };
 }

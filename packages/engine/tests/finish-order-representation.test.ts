@@ -121,7 +121,6 @@ test("row twelve with no name or numbers stays in the queue and never becomes an
     applyCaptureContext(initial, capture, {
       placements: [],
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
       nameAssociations: capture.nameAssociations,
     }),
@@ -217,7 +216,6 @@ function numberedRoomCaptures(entries: { capture: Capture; number: number }[], a
     mogi = applyCaptureContext(mogi, capture, {
       placements: [],
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
       nameAssociations,
     });

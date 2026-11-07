@@ -8,7 +8,7 @@ Represented players receive the Lounge scale of 12 at the observed placement and
 
 ## Native points
 
-`nativePoints` stores the native points; `nativePointOrigins` distinguishes `modeled` from `manual`. They are distinct from adjusted points and from cumulatives. Scales in `nativePlacementPoints` (`packages/engine/src/domain/scoring/native-points.ts`):
+`nativePoints` stores the native points, always modeled from the scale of the represented count; nobody types them. They are distinct from adjusted points and from cumulatives. Scales in `nativePlacementPoints` (`packages/engine/src/domain/scoring/native-points.ts`):
 
 | Represented | Native scale | Sum | Adjustment for those present |
 | --- | --- | --- | --- |
@@ -16,9 +16,9 @@ Represented players receive the Lounge scale of 12 at the observed placement and
 | 11 | 12, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 | 67 | +3/+2/+1 |
 | 10 | 11, 9, 8, 7, 6, 5, 4, 3, 2, 1 | 56 | +4/+3/+2 |
 
-The scales for 11 and 10 came from the user's rules, and the panel states that origin. The scale for 11 has visual corroboration on the game screen in the LT's `img/docs/5-edit-race.jpg` (commit pinned in `THIRD_PARTY_NOTICES.md`); the scale for 10 rests only on the user's rules, and tests with manual inputs verify the code without corroborating the scale.
+The scales for 11 and 10 came from the user's rules, and the panel states that origin. The scale for 11 has visual corroboration on the game screen in the LT's `img/docs/5-edit-race.jpg` (commit pinned in `THIRD_PARTY_NOTICES.md`); the scale for 10 rests only on the user's rules. If a real screen contradicts a scale, the fix is to change `nativePlacementPoints`, never a per-race value: once the count is known the scale is fixed, and a hand-typed value could only make it wrong and break the chaining of game totals. Lounge points follow the finish order, and absent players have no native value.
 
-An entered number that diverges from the model gets a warning and stays separate; Lounge points follow the model, and absent players have no native value.
+Saved data from older versions may carry `nativePointOrigins: "manual"`. Loading re-models those races from the scale (`withModeledNativePoints`, run first in `normalizeReconstructions`); history snapshots keep the old values as read-only history. Nothing changes silently: Lounge points never read native values, and a proof that depended on the old value fails its input signature and is revoked for review ([reconstruction](reconstruction.md)).
 
 ## `!submit` command
 

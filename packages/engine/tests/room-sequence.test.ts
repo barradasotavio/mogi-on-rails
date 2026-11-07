@@ -111,7 +111,6 @@ function ingest(mogi: Mogi, ...captures: Capture[]) {
     mogi = applyCaptureContext(mogi, capture, {
       placements: [],
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
       nameAssociations: capture.nameAssociations,
     });

@@ -119,7 +119,6 @@ test("a stale draft offers the action that discards it and opens the current rac
     fields: {
       placements: mogi.participants.map((person) => person.id),
       absentParticipantIds: [],
-      rawOverrides: {},
       reviewed: false,
     },
   };

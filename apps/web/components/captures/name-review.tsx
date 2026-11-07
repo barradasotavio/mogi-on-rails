@@ -102,7 +102,7 @@ export function NameReview({
   const attempted = useRef("");
   const acceptDetermined = useEffectEvent(() => {
     if (!automatic || !finishOrder || disabled || busy || pending || !validated) return;
-    const signature = JSON.stringify([race.number, associations, fields.rawOverrides, fields.numericAnswers]);
+    const signature = JSON.stringify([race.number, associations, fields.numericAnswers]);
     if (attempted.current === signature) return;
     attempted.current = signature;
     const revision = changed.current;
