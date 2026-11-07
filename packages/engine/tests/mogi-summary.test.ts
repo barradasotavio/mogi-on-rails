@@ -183,3 +183,51 @@ test("the original roster keeps pasted text and is rebuilt for old mogis without
     assert.ok(!text.includes("IGN"));
   }
 });
+
+/** The first `tied` teams (blocks of `size` players) take turns at the top, so after any multiple of `tied` races they share first. */
+function tiedMogi(format: Mogi["format"], size: number, tied: number, races: number): Mogi {
+  return {
+    ...fresh,
+    format,
+    participants: participants.map((person, index) => ({
+      ...person,
+      teamId: size > 1 ? `t${Math.floor(index / size)}` : undefined,
+    })),
+    teams:
+      size > 1
+        ? Array.from({ length: 12 / size }, (_, index) => ({ id: `t${index}`, name: `Team ${index + 1}` }))
+        : undefined,
+    races: Array.from({ length: races }, (_, race) => {
+      const blocks = Array.from({ length: 12 / size }, (_, block) =>
+        participants.slice(block * size, block * size + size).map(({ id }) => id),
+      );
+      const top = blocks.slice(0, tied);
+      const order = [...top.slice(race % tied), ...top.slice(0, race % tied), ...blocks.slice(tied)];
+      return { id: `r${race + 1}`, origin: "manual" as const, number: race + 1, placements: order.flat() };
+    }),
+  };
+}
+
+test("every leader tied for first is named, or counted when the names would not fit", () => {
+  for (const [format, size, unit, label, perCycle] of [
+    ["FFA", 1, "players", "Player", [27, 37, 46]],
+    ["2v2", 2, "teams", "Team", [46, 61, 72]],
+  ] as const) {
+    const names = (tied: number) => Array.from({ length: tied }, (_, index) => `${label} ${index + 1}`);
+    for (const [tied, who] of [
+      [2, names(2).join(" and ")],
+      [3, `${names(2).join(", ")} and ${label} 3`],
+      [4, `4 ${unit}`],
+    ] as const) {
+      const points = perCycle[tied - 2];
+      assert.deepEqual(mogiSummary(tiedMogi(format, size, tied, tied)), {
+        final: false,
+        text: `Race ${tied} of 12 · ${who} are tied at ${points}`,
+      });
+      assert.deepEqual(mogiSummary(tiedMogi(format, size, tied, 12)), {
+        final: true,
+        text: `${who} are tied · ${(points * 12) / tied}`,
+      });
+    }
+  }
+});

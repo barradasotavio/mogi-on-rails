@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "fix",
+        "text": "When teams or players tie for first, the mogi header and the mogi list name every one of them, or say how many are tied."
+      },
+      {
+        "kind": "fix",
         "text": "Unlinking a player in Players now also forgets the in-game name it learned, so swapped teammates no longer mix their points in later races."
       },
       {

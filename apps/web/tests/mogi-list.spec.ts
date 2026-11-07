@@ -146,3 +146,29 @@ test("the list and sidebar summarize teams and players in the right groups", asy
   await expect(main.getByText("Choose a mogi, or paste a bot list in New Mogi.", { exact: true })).toBeVisible();
   await expect(main.getByRole("heading", { name: "No Mogis Yet", exact: true })).toHaveCount(0);
 });
+
+test("a three-way tie names every leader in the header and the list", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  // Players 1 to 3 take turns winning, so after three races they share first with 37.
+  const state = mogiState({
+    roster: ffaRoster(),
+    races: (mogi) =>
+      Array.from({ length: 3 }, (_, race) => {
+        const ids = mogi.participants.map(({ id }) => id);
+        const top = ids.slice(0, 3);
+        return {
+          id: `r${race + 1}`,
+          origin: "manual" as const,
+          number: race + 1,
+          placements: [...top.slice(race), ...top.slice(0, race), ...ids.slice(3)],
+        };
+      }),
+  });
+  await restoreState(page, state);
+  const tied = "Player 1, Player 2 and Player 3 are tied";
+  await expect(page.getByRole("main").getByText(tied, { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(page.getByRole("main").getByRole("button", { name: /^Mogi Tier D · FFA/ })).toHaveText(
+    `Mogi Tier D · FFARace 3 of 12 · ${tied} at 37`,
+  );
+});

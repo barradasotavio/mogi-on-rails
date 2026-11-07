@@ -147,7 +147,7 @@ export {
   type MogiRacePosition,
 } from "./domain/mogi/mogi-overview.ts";
 export { raceNumbers, teamSizes } from "./domain/mogi/mogi-rules.ts";
-export { mogiSummary } from "./domain/mogi/mogi-summary.ts";
+export { mogiSummary, tiedLeaders } from "./domain/mogi/mogi-summary.ts";
 export { applyReviewedRace, initialRaceReview, reviewedRace, withdrawManualResult } from "./domain/mogi/race-review.ts";
 
 // Tracks
