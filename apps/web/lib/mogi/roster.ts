@@ -5,6 +5,22 @@ export function playersPerTeam(format: MogiFormat): number {
   return format === "FFA" ? 1 : Number(format[0]);
 }
 
+const moment = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+/** When a mogi was created, as its stored name and Storage show it ("Nov 7, 03:46"). */
+export function createdMoment(createdAt: Date | string) {
+  return moment.format(new Date(createdAt));
+}
+/** A mogi as the list shows it, with when it was created, since consecutive mogis often share a tier. */
+export function mogiPlace(mogi: Pick<Mogi, "submissionTier" | "createdAt">) {
+  return `Mogi Tier ${mogi.submissionTier?.trim() || "—"} from ${createdMoment(mogi.createdAt)}`;
+}
+
 /** Read the full bot list without mistaking room metadata or MMR for names. */
 export function readLoungeRoster(text: string) {
   const lines = text.split(/\r?\n/).map((line) => line.trim().replace(/^\*\*|\*\*$/g, ""));
@@ -48,7 +64,7 @@ export function newMogi(
   const teamCount = format === "FFA" ? 0 : 12 / teamSize;
   return {
     id,
-    name: `Mogi ${new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(createdAt)}`,
+    name: `Mogi ${createdMoment(createdAt)}`,
     format,
     submissionTier: tier,
     originalList: rosterText,

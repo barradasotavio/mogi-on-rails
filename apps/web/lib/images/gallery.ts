@@ -1,3 +1,4 @@
+import { mogiPlace } from "../mogi/roster.ts";
 import type { SharedReceipt, TrackerState } from "../mogi/types.ts";
 import { type CompressedImage, originalFingerprint } from "./compressed.ts";
 import { fingerprint } from "./fingerprint.ts";
@@ -10,7 +11,7 @@ export type KnownOriginal = CompressedImage & { original: Blob; fingerprint?: st
 
 /**
  * Every image a new one would repeat, seen from the mogi `mogiId`: captures of every mogi, and pending
- * images under review in one. `otherMogi` names the mogi when it isn't this one. An image held by Undo
+ * images under review in one. `otherMogi` names the mogi when it isn't this one (`mogiPlace`). An image held by Undo
  * was removed, so adding it again reads it afresh; Undo then finds the new capture and only releases.
  */
 export function knownOriginals(state: TrackerState, mogiId: string): KnownOriginal[] {
@@ -30,7 +31,7 @@ export function knownOriginals(state: TrackerState, mogiId: string): KnownOrigin
                 original: capture.original,
                 fingerprint: capture.fingerprint,
                 compressedFrom: capture.compressedFrom,
-                otherMogi: entry.id === mogiId ? undefined : entry.name,
+                otherMogi: entry.id === mogiId ? undefined : mogiPlace(entry),
               },
             ]
           : [],
@@ -39,7 +40,9 @@ export function knownOriginals(state: TrackerState, mogiId: string): KnownOrigin
     ...(state.sharedReceipts ?? []).flatMap((receipt) =>
       receipt.files.flatMap((file) => {
         const owner = owners.get(file.id);
-        return owner ? [{ original: file.original, otherMogi: owner.id === mogiId ? undefined : owner.name }] : [];
+        return owner
+          ? [{ original: file.original, otherMogi: owner.id === mogiId ? undefined : mogiPlace(owner) }]
+          : [];
       }),
     ),
   ];
@@ -136,11 +139,14 @@ export async function galleryReceipt(
   };
 }
 
-/** The toast for repeated images: where they already are (null is this mogi), in one short line. */
+/** The toast for repeated images: where they already are (null is this mogi). Images stay in the mogi they
+ * entered, so one in another mogi joins this one only once removed there. */
 export function duplicateImagesMessage(duplicates: (string | null)[]) {
   const places = new Set(duplicates);
-  const where = (place: string | null) => place ?? "this mogi";
-  if (duplicates.length === 1) return `Screenshot already in ${where(duplicates[0])}`;
-  if (places.size === 1) return `${duplicates.length} screenshots already in ${where(duplicates[0])}`;
-  return `${duplicates.length} screenshots were already added`;
+  const [place] = duplicates;
+  if (places.size > 1) return `${duplicates.length} screenshots were already added`;
+  const one = duplicates.length === 1;
+  const what = one ? "Screenshot" : `${duplicates.length} screenshots`;
+  if (place === null) return `${what} already in this mogi`;
+  return `${what} already in ${place}. Remove ${one ? "it" : "them"} there to add ${one ? "it" : "them"} here`;
 }
