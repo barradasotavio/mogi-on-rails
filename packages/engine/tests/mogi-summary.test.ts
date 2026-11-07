@@ -34,7 +34,7 @@ const racing: Mogi = {
 test("a new mogi describes its twelve players before any established race", () => {
   assert.deepEqual(mogiSummary(fresh), {
     final: false,
-    text: "12 players · no races yet",
+    text: "No races yet",
   });
 });
 

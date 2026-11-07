@@ -123,7 +123,7 @@ test("Save Backup generates the same ZIP while writes fail", async ({ page }) =>
   // Opening a mogi remembers it: that write fails, so saving is now broken while reads still work.
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", { name: /^Mogi Tier C · FFA/ }).click();
+  await page.getByRole("button", { name: /^Mogi Tier C\W*FFA/ }).click();
   // The alert leads to the same Storage page as Settings › Storage.
   await page
     .getByRole("alertdialog", { name: "This Device Is Out of Space", exact: true })

@@ -59,7 +59,9 @@ test("overview inspects, discards and reinstates races, answers names and preser
   await confirmation.getByRole("button", { name: "Discard", exact: true }).click();
   await expect(raceSheet).toBeHidden();
   await expect(page.getByRole("button", { name: "Race 1 · future", exact: true })).toBeFocused();
-  await expect(page.getByText("FFA · 12 players", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("main").getByRole("paragraph").getByText("FFA · No races yet", { exact: true }),
+  ).toBeVisible();
   await expect(players.getByRole("listitem").first()).toContainText("0");
   const discardedRow = page.getByRole("list", { name: "Discarded", exact: true }).getByRole("button");
   await discardedRow.click();

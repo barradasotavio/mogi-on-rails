@@ -116,23 +116,23 @@ test("the list and sidebar summarize teams and players in the right groups", asy
     "Instructions",
     "Release Notes",
     "Tracks",
-    "Mogi Tier D · 2v2Race 1 of 12 · XO leads with 27",
-    "Mogi Tier B · FFAPlayer 1 won · 180Oct 27",
-    "Mogi Tier A · 3v3KZ won · 444Oct 26",
+    "Mogi Tier D2v2 · Race 1 of 12 · XO leads with 27",
+    "Mogi Tier BFFA · Player 1 won · 180Oct 27",
+    "Mogi Tier A3v3 · KZ won · 444Oct 26",
   ]);
-  const currentRow = main.getByRole("button", { name: /^Mogi Tier D · 2v2/ });
+  const currentRow = main.getByRole("button", { name: /^Mogi Tier D\W*2v2/ });
   await expect(currentRow).toBeFocused();
   await expect(currentRow).toHaveAttribute("aria-current", "true");
   await page.setViewportSize({ width: 1280, height: 812 });
   const sidebar = page.getByRole("complementary");
-  await sidebar.getByRole("button", { name: /^Mogi Tier D · 2v2/ }).click();
+  await sidebar.getByRole("button", { name: /^Mogi Tier D\W*2v2/ }).click();
   await expect(sidebar.getByRole("heading", { level: 2 })).toHaveText(["Current mogis", "Previous mogis"]);
-  await expect(sidebar.getByRole("button", { name: /^Mogi Tier D · 2v2/ })).toHaveAttribute("aria-current", "true");
-  await expect(sidebar.getByText("Race 1 of 12 · XO leads with 27", { exact: true })).toBeVisible();
-  await expect(sidebar.getByText("Player 1 won · 180", { exact: true })).toBeVisible();
-  await sidebar.getByRole("button", { name: /^Mogi Tier B · FFA/ }).click();
+  await expect(sidebar.getByRole("button", { name: /^Mogi Tier D\W*2v2/ })).toHaveAttribute("aria-current", "true");
+  await expect(sidebar.getByText("2v2 · Race 1 of 12 · XO leads with 27", { exact: true })).toBeVisible();
+  await expect(sidebar.getByText("FFA · Player 1 won · 180", { exact: true })).toBeVisible();
+  await sidebar.getByRole("button", { name: /^Mogi Tier B\W*FFA/ }).click();
   await expect(page).toHaveURL(/mogi=previous-ffa/);
-  await expect(sidebar.getByRole("button", { name: /^Mogi Tier B · FFA/ })).toHaveAttribute("aria-current", "true");
+  await expect(sidebar.getByRole("button", { name: /^Mogi Tier B\W*FFA/ })).toHaveAttribute("aria-current", "true");
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier D", exact: true })).toBeVisible();
   await openMogiSettings(page);
@@ -164,7 +164,7 @@ test("a three-way tie names every leader in the header and the list", async ({ p
   const tied = "Player 1, Player 2 and Player 3 are tied";
   await expect(page.getByRole("main").getByText(tied, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Back", exact: true }).click();
-  await expect(page.getByRole("main").getByRole("button", { name: /^Mogi Tier D · FFA/ })).toHaveText(
-    `Mogi Tier D · FFARace 3 of 12 · ${tied} at 37`,
+  await expect(page.getByRole("main").getByRole("button", { name: /^Mogi Tier D\W*FFA/ })).toHaveText(
+    `Mogi Tier DFFA · Race 3 of 12 · ${tied} at 37`,
   );
 });

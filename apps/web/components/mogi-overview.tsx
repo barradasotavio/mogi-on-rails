@@ -36,9 +36,9 @@ import { playerInk, teamInk } from "./team-mark";
 import { TrackIcon } from "./track-icon";
 
 export const mogiTitle = (mogi: Mogi) => `Mogi Tier ${mogi.submissionTier?.trim() || "—"}`;
-/** Format and progress, under the title: "Race N of 12", the player count before the first race, or "Finished". */
+/** Format and progress, under the title: "Race N of 12", "No races yet" or "Finished". */
 export const mogiProgress = (mogi: Mogi, { finished, count }: { finished: boolean; count: number }) =>
-  `${mogi.format} · ${finished ? "Finished" : count ? `Race ${count} of 12` : "12 players"}`;
+  `${mogi.format} · ${finished ? "Finished" : count ? `Race ${count} of 12` : "No races yet"}`;
 
 export function MogiOverview({
   mogi,

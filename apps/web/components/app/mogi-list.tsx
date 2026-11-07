@@ -2,6 +2,7 @@ import { mogiSummary, resultCoverage } from "@mkw/engine";
 import { BookOpen, Route, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { mogiTitle } from "@/components/mogi-overview";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import type { RouteView } from "@/lib/mogi/route";
 import type { Mogi } from "@/lib/mogi/types";
@@ -34,7 +35,7 @@ function MogiListRow({
       buttonProps={buttonProps}
       onSelect={() => onSelect(mogi.id)}
       accessory={sidebar ? undefined : "chevron"}
-      description={<span className="block whitespace-normal">{summary.text}</span>}
+      description={<span className="block whitespace-normal">{`${mogi.format} · ${summary.text}`}</span>}
       trail={
         summary.final && (
           <time dateTime={mogi.createdAt} className="text-sm">
@@ -43,9 +44,7 @@ function MogiListRow({
         )
       }
     >
-      <span className="font-medium">
-        Mogi Tier {mogi.submissionTier?.trim() || "—"} · {mogi.format}
-      </span>
+      <span className="font-medium">{mogiTitle(mogi)}</span>
     </ListRow>
   );
 }

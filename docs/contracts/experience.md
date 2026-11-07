@@ -15,7 +15,7 @@ The mogi screen serves a 20-to-30-second **glance** between races: it answers "h
 
 Top to bottom (`components/mogi-overview.tsx`; grid states in `mogiOverview`, `packages/engine/src/domain/mogi/mogi-overview.ts`):
 
-- **Header** (both size classes): the mogi's title; under it, format and progress ("Race N of 12", or the player count before the first race, or "Finished") and, from the first counted race, who leads and by how much; on the right, the header action. The toolbar holds no title and no copy actions.
+- **Header** (both size classes): the mogi's title; under it, format and progress ("Race N of 12", "No races yet" before the first race, or "Finished") and, from the first counted race, who leads and by how much; on the right, the header action. The toolbar holds no title and no copy actions.
 - **Races**: the 12 race tiles under that section title. Available tiles open the race or the queue.
   - Portrait tiles (2:3). In a container narrower than 48rem, one row that scrolls sideways past the page gutters, 56px tiles, kept centred on the race being read or else the last counted one; from 48rem, 12 across filling the width, so a tile is never smaller than on a phone (`race-grid`, `app/globals.css`).
   - Tiles are content, so no glass: a soft fill with a light sheen from the top and larger continuous corners (`race-tile`), in the spirit of the Shortcuts tiles. Inside, a road in perspective that scales with the tile and fades toward the horizon. State colours keep their meaning below; each glyph keeps at least the contrast it had on a flat fill, in light and dark.
