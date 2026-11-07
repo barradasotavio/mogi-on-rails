@@ -60,12 +60,7 @@ for (const [width, height] of [[375, 812]]) {
     await restoreMogis(page);
     const storage = await openStorage(page);
 
-    await expect(storage.getByRole("heading", { level: 2 })).toHaveText([
-      "Storage",
-      "Usage",
-      "Backup",
-      "Mogis",
-    ]);
+    await expect(storage.getByRole("heading", { level: 2 })).toHaveText(["Storage", "Usage", "Backup", "Mogis"]);
     const usage = storage.getByRole("meter", { name: "Storage used", exact: true });
     await expect(usage).toBeVisible();
     await expect(storage.getByText(/^\d+(\.\d)? (KB|MB|GB) of \d+(\.\d)? (KB|MB|GB) used$/)).toBeVisible();

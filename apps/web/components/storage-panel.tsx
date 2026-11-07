@@ -18,11 +18,7 @@ interface StorageRow {
 const rows = new WeakMap<Mogi, StorageRow>();
 function storageRow(mogi: Mogi): StorageRow {
   let row = rows.get(mogi);
-  if (!row)
-    rows.set(
-      mogi,
-      (row = { size: mogiStorageSize(mogi), finished: mogiOverview(mogi).finished }),
-    );
+  if (!row) rows.set(mogi, (row = { size: mogiStorageSize(mogi), finished: mogiOverview(mogi).finished }));
   return row;
 }
 // The last reading shows at once on the next open while a fresh one is taken.

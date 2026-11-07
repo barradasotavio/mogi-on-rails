@@ -79,12 +79,7 @@ for (const width of [375])
     const rows = panel.getByRole("list", { name: "Mogis", exact: true });
     await expect(rows.getByRole("button")).toHaveCount(1);
     await expect(rows.getByRole("listitem").filter({ hasText: "Mogi Tier C" }).getByRole("button")).toHaveCount(0);
-    await expect(panel.getByRole("heading", { level: 2 })).toHaveText([
-      "Storage",
-      "Usage",
-      "Backup",
-      "Mogis",
-    ]);
+    await expect(panel.getByRole("heading", { level: 2 })).toHaveText(["Storage", "Usage", "Backup", "Mogis"]);
     await rows.getByRole("button").click();
     let detail = page.getByRole("dialog", { name: "Mogi Tier D", exact: true });
     const oldSize = await detail.getByRole("list", { name: "Size", exact: true }).innerText();
