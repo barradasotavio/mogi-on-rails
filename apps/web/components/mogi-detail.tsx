@@ -500,9 +500,7 @@ export function MogiDetail({
                     })
                   }
                 />
-                <p className="mt-3 px-4 text-sm text-muted-foreground">
-                  Tap a resolved race&apos;s number to choose its track.
-                </p>
+                <p className="mt-3 px-4 text-sm text-muted-foreground">Tap a race number to choose its track.</p>
               </>
             )}
           </Sheet>

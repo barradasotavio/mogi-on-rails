@@ -154,26 +154,14 @@ export function RaceSheet({
           ? trackPicker.content()
           : race && (
               <>
-                {capture ? (
+                {capture && (
                   <RaceCapture
                     original={capture.original}
                     number={discarded ? racePhysicalNumber(mogi, race) : number}
                     discarded={discarded}
                   />
-                ) : (
-                  <div className="flex aspect-video items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
-                    No screenshot
-                  </div>
                 )}
-                <ListGroup
-                  note={
-                    track?.source === "capture"
-                      ? "Read from the pre-race screenshot."
-                      : track
-                        ? undefined
-                        : "Filled in when there's a pre-race screenshot."
-                  }
-                >
+                <ListGroup>
                   <List dividers="row">
                     <ListRow
                       accessory="chevron"
@@ -248,7 +236,7 @@ export function RaceSheet({
                   open={reverting}
                   onOpenChange={setReverting}
                   title={`Revert Race ${number} to Screenshots?`}
-                  description="The result you entered, absences included, is removed. The race counts again from what the screenshots show."
+                  description="The result you entered is removed."
                   confirmLabel="Revert"
                   busy={busy || saving}
                   onConfirm={onRevert}
@@ -263,8 +251,8 @@ export function RaceSheet({
                   open={discarding}
                   onOpenChange={setDiscarding}
                   title="Discard Edit?"
-                  description="Only the draft is removed. Confirmed results and screenshots are kept."
-                  confirmLabel="Discard Draft"
+                  description="Saved results are kept."
+                  confirmLabel="Discard Edit"
                   busy={busy || saving}
                   onConfirm={onDiscardDraft}
                   // The discarded edit's rows give way to Edit Result, which takes the focus back.
@@ -305,7 +293,7 @@ export function RaceSheet({
                       </Button>
                     }
                     title={`Discard Race ${number}?`}
-                    description="Its points leave the totals and the following races move up one number. The screenshot stays in Discarded."
+                    description="Later races move up one number."
                     confirmLabel="Discard"
                     errorMessage="The change could not be saved. Your result was kept. Try again."
                     busy={busy || saving}

@@ -52,10 +52,13 @@ test(`"!" explains races that need images and Enter Result opens an empty order`
       .getByRole("button", { name: /^\d+, Choose player$/ }),
   ).toHaveCount(12);
   // Finish order, then More options, always shown: no photo to attach and nothing to expand.
-  await expect(editor.locator("h2[data-section-title]")).toHaveText(["Finish order", "More options"]);
+  await expect(editor.locator("h2[data-section-title], [data-section-title] > h2")).toHaveText([
+    "Finish order",
+    "More options",
+  ]);
   await expect(editor.getByRole("list", { name: "More options", exact: true }).getByRole("button")).toHaveText([
     "Absent Players",
-    "In-Game Points and Adjustments",
+    "In-Game Points",
   ]);
 });
 

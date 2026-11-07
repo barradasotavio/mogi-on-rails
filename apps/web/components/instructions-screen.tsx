@@ -143,7 +143,8 @@ export function InstructionsScreen({
               <ul aria-label="More features" className="section-stack">
                 <Feature Icon={Pencil} title="Fix races and names">
                   Missed a screenshot or got a wrong place? Open the race to add a screenshot or edit the result. Say
-                  who a name or sub is once in Players.
+                  who a name or sub is once in Players. A player missing from the results screen is absent and gets 1
+                  point; one who disconnected still finishes as the CPU, so isn&apos;t absent.
                 </Feature>
                 <Feature Icon={Route} title="Analyze your tracks">
                   See which tracks to vote for and which to practice, from your places across your last mogis.
