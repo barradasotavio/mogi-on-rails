@@ -80,7 +80,7 @@ test("the sheet draft and mogi survive resizing between floating and docked side
   await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier A", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Mogi Settings", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "Mogi Settings", exact: true });
-  await settings.getByRole("button", { name: "Screenshots (0)", exact: true }).click();
+  await settings.getByRole("button", { name: "Screenshots 0", exact: true }).click();
   const images = page.getByRole("dialog", { name: "Screenshots", exact: true });
   await page.setViewportSize({ width: 1280, height: 812 });
   await expect(images).toBeVisible();

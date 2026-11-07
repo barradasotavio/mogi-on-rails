@@ -215,7 +215,7 @@ test.describe("regular", () => {
 
       // Images: image detail opens the same viewer.
       await openMogiSettings(page);
-      await page.getByRole("button", { name: "Screenshots (2)", exact: true }).click();
+      await page.getByRole("button", { name: "Screenshots 2", exact: true }).click();
       await page
         .getByRole("button", { name: /^Race \d+ · after the race/ })
         .first()

@@ -66,7 +66,7 @@ test("the URL preserves the mogi on reload and history restores scroll, focus an
   await expect(page).toHaveURL(url);
   await expect(heading).toBeFocused();
   await openMogiActions(page);
-  await page.getByRole("button", { name: "Screenshots (0)", exact: true }).click();
+  await page.getByRole("button", { name: "Screenshots 0", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Screenshots", exact: true })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
@@ -93,9 +93,9 @@ test("the URL preserves the mogi on reload and history restores scroll, focus an
   await openMogiSettings(page);
   const mogiSettings = page.getByRole("dialog", { name: "Mogi Settings", exact: true });
   await expect(mogiSettings.getByRole("button", { name: "Close", exact: true })).toBeFocused();
-  await expect(mogiSettings.getByRole("listitem")).toHaveText(["Original List", "Screenshots (0)", "Export Results"]);
-  await mogiSettings.getByRole("button", { name: "Original List", exact: true }).click();
-  const original = page.getByRole("dialog", { name: "Original List", exact: true });
+  await expect(mogiSettings.getByRole("listitem")).toHaveText(["Bot List", "Screenshots0", "Export", "Delete Mogi"]);
+  await mogiSettings.getByRole("button", { name: "Bot List", exact: true }).click();
+  const original = page.getByRole("dialog", { name: "Bot List", exact: true });
   await expect(original.locator("pre")).toHaveText(roster);
   await original.getByRole("button", { name: "Back", exact: true }).click();
   await expect(mogiSettings.getByRole("button", { name: "Close", exact: true })).toBeFocused();
@@ -121,14 +121,12 @@ test("the URL preserves the mogi on reload and history restores scroll, focus an
   await expect(page).toHaveURL(replacement);
   await openMogiSettings(page);
   await page.getByRole("button", { name: "Delete Mogi", exact: true }).click();
-  const confirmation = page.getByRole("alertdialog", { name: "Delete This Mogi?", exact: true });
-  await expect(confirmation).toContainText(
-    "Its races, screenshots and answers are removed from this device. This can't be undone.",
-  );
+  const confirmation = page.getByRole("alertdialog", { name: /^Delete .+\?$/ });
+  await expect(confirmation).toHaveAccessibleDescription("This can't be undone.");
   await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.getByRole("button", { name: "Delete Mogi", exact: true })).toBeFocused();
   await page.getByRole("button", { name: "Delete Mogi", exact: true }).click();
-  await confirmation.getByRole("button", { name: "Delete", exact: true }).click();
+  await confirmation.getByRole("button", { name: "Delete Mogi", exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText("Mogi deleted", { exact: true })).toBeVisible();
   await expect(page.getByText("Mogi not found", { exact: true })).toHaveCount(0);

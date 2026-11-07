@@ -59,7 +59,7 @@ test("the partial image has an English title in light and dark themes", async ({
     .click();
   await race.getByRole("button", { name: "Close", exact: true }).click();
   await openMogiActions(page);
-  await page.getByRole("button", { name: "Export Results", exact: true }).click();
+  await page.getByRole("button", { name: "Export", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Export", exact: true });
   const image = panel.getByRole("img", { name: "Table preview", exact: true });
   for (const theme of ["light", "dark"] as const) {
@@ -132,7 +132,7 @@ test("the final image becomes partial when one of twelve races is discarded", as
   await expect(page.getByRole("button", { name: "Copy !submit", exact: true })).toBeVisible();
 
   await openMogiActions(page);
-  await page.getByRole("button", { name: "Export Results", exact: true }).click();
+  await page.getByRole("button", { name: "Export", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Export", exact: true });
   const image = panel.getByRole("img", { name: "Table preview", exact: true });
   await expect(image).toBeVisible();
@@ -187,7 +187,7 @@ test("the final image becomes partial when one of twelve races is discarded", as
   await expect(race).toBeHidden();
   await expect(page.getByRole("button", { name: "Copy Table", exact: true })).toHaveCount(1);
   await openMogiActions(page);
-  await page.getByRole("button", { name: "Export Results", exact: true }).click();
+  await page.getByRole("button", { name: "Export", exact: true }).click();
   await expect(image).toBeVisible();
   await image.evaluate((element) => (element as HTMLImageElement).decode());
   await expectImageTitle(image, "Table after race 11 of 12");
@@ -195,7 +195,7 @@ test("the final image becomes partial when one of twelve races is discarded", as
   await expect
     .poll(() => page.evaluate(() => navigator.clipboard.readText()))
     .toMatch(/^Mogi Tier D · 2v2\nTable after race 11 of 12\nPartial result · 11\/12 counted/);
-  await expect(panel.getByLabel("!submit", { exact: true })).toHaveValue("Waiting on race 12");
+  await expect(panel.getByRole("list", { name: "!submit", exact: true })).toHaveText("!submitWaiting on race 12");
   await expect(panel.getByRole("button", { name: "Copy Table", exact: true })).toBeEnabled();
 });
 

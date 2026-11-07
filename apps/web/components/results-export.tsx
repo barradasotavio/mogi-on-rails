@@ -207,6 +207,7 @@ export function useResultsExport({
     }
   }
   if (!submission) return { saveRef, footer: null, body: null };
+  const blocker = submission.available ? null : submissionBlockerText(resultMogi, submission.blockers);
   return {
     saveRef,
     footer: (
@@ -246,20 +247,29 @@ export function useResultsExport({
               onBlur={() => void saveTier()}
               aria-describedby={!tier.trim() ? "command-tier-help" : undefined}
             />
-            {!tier.trim() && <FieldDescription id="command-tier-help">Enter a tier to copy !submit.</FieldDescription>}
+            {!tier.trim() && <FieldDescription id="command-tier-help">Needed for !submit</FieldDescription>}
           </Field>
-          <Field>
-            <FieldLabel htmlFor="lounge-command">!submit</FieldLabel>
-            <Textarea
-              id="lounge-command"
-              variant="filled"
-              className="max-h-64"
-              rows={7}
-              readOnly
-              value={submission.available ? submission.text : submissionBlockerText(resultMogi, submission.blockers)}
-            />
-          </Field>
+          {submission.available && (
+            <Field>
+              <FieldLabel htmlFor="lounge-command">!submit</FieldLabel>
+              <Textarea
+                id="lounge-command"
+                variant="filled"
+                className="max-h-64"
+                rows={7}
+                readOnly
+                value={submission.text}
+              />
+            </Field>
+          )}
         </FieldGroup>
+        {blocker && (
+          <ListGroup>
+            <List aria-label="!submit">
+              <ListRow trail={blocker}>!submit</ListRow>
+            </List>
+          </ListGroup>
+        )}
         <ListGroup>
           <List>
             {submission.available && (

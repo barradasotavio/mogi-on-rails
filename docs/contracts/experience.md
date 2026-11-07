@@ -159,14 +159,14 @@ One row per person: Lounge name and distinct IGNs in muted, truncated to one lin
 
 ## Mogi Settings
 
-Groups, in this order: Bot list (Original List, the text pasted at creation, read-only), Images and races (Images), Export (Export Results, the Export page) and, last, Delete Mogi. These four groups are everything; images stay in the mogi they entered.
+Two untitled groups: Bot List › (the text pasted at creation, read-only), Screenshots › (trail: their count) and Export ›; then Delete Mogi alone, destructive, confirmed by "Delete <mogi name>?". That is everything; screenshots stay in the mogi they entered.
 
-**Images** lists every image, including those without a race: thumbnail, race label and moment, file name. The detail, in this order:
+**Screenshots** lists every screenshot, including those without a race: thumbnail, race label and moment, file name. The detail, in this order:
 
-1. Race ›, Moment, Screen (name from the [glossary](../../GLOSSARY.md) and the engine's `screens` catalog) and Pending names.
-2. "How this was counted": the race, order and repetition decisions of the engine's projection, each with its full reason and source (read, deduced, your answer). Tapping the race decision opens the Race › correction.
+1. Race ›, Moment and Screen (name from the [glossary](../../GLOSSARY.md) and the engine's `screens` catalog).
+2. "How this was counted": the engine projection's decisions, each titled by the decision with its source (Read, Deduced, Your answer) as the trail, and a reason below only when it says more than the source. Pending names are one "Not counted yet" row with its question count. Tapping the race decision opens the Race › correction.
 3. Numbers Read ›.
-4. Remove Image.
+4. Remove Screenshot.
 
 ## Capture viewer
 

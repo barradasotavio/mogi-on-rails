@@ -67,7 +67,7 @@ const points = (rule: CaptureExplanationStep["rule"], value = 52) => ({
 test("points.as-shown phrases the aggregate", () => {
   assert.deepEqual(rulePhrases["points.as-shown"](points("points.as-shown", 10)), {
     decision: "10 of 12 totals",
-    reason: "as shown",
+    reason: "",
   });
 });
 test("points.race1-permutation cites the placement of the row", () => {
@@ -130,7 +130,7 @@ test("name.as-shown phrases the exact name aggregate", () => {
       rule: "name.as-shown",
       evidence: { compared: 12 },
     }),
-    { decision: "8 of 12 names", reason: "as shown" },
+    { decision: "8 of 12 names", reason: "" },
   );
 });
 test("name.similar uses the Lounge name", () => {
@@ -170,10 +170,10 @@ test("name.spelling-group counts the other readings", () => {
     { decision: "KRAFunk is funk2006", reason: "same name read 3 ways" },
   );
 });
-test("name.answered explains the player's choice", () => {
+test("name.answered leaves the reason to its origin", () => {
   assert.deepEqual(rulePhrases["name.answered"](name("name.answered", "Funky", "ActuFunk")), {
     decision: "Funky is ActuFunk",
-    reason: "as you chose",
+    reason: "",
   });
 });
 test("pending.question phrases one or several answers", () => {

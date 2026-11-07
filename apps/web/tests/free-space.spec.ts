@@ -115,7 +115,7 @@ for (const width of [375])
     // Images keeps its title, and the image detail explains the missing bytes.
     if (width < 768) await page.getByRole("button", { name: "Menu", exact: true }).click();
     await page.getByRole("button", { name: "Mogi Settings", exact: true }).click();
-    await page.getByRole("button", { name: "Screenshots (1)", exact: true }).click();
+    await page.getByRole("button", { name: "Screenshots 1", exact: true }).click();
     await page.getByRole("button", { name: /Race 12 · after the race/ }).click();
     await expect(page.getByText("Screenshot deleted to free space.", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Enlarge screenshot", exact: true })).toBeVisible();

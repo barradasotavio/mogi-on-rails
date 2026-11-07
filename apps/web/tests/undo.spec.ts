@@ -78,7 +78,7 @@ function countedImage(mogi: Mogi, finished: boolean): { races: Race[]; captures:
 async function removeImage(page: Page) {
   await openMogiSettings(page);
   const settings = page.getByRole("dialog", { name: "Mogi Settings", exact: true });
-  await settings.getByRole("button", { name: "Screenshots (1)", exact: true }).click();
+  await settings.getByRole("button", { name: "Screenshots 1", exact: true }).click();
   await page
     .getByRole("dialog", { name: "Screenshots", exact: true })
     .getByRole("button", { name: /race-1\.jpeg/ })
@@ -126,7 +126,7 @@ async function expectRestored(page: Page) {
   await expect(
     page
       .getByRole("dialog", { name: "Mogi Settings", exact: true })
-      .getByRole("button", { name: "Screenshots (1)", exact: true }),
+      .getByRole("button", { name: "Screenshots 1", exact: true }),
   ).toBeVisible();
   await returnToStandings(page);
 }
@@ -231,7 +231,7 @@ test("a finished mogi reads an added image, and that image removed and added aga
   await openMogiSettings(page);
   await page
     .getByRole("dialog", { name: "Mogi Settings", exact: true })
-    .getByRole("button", { name: "Screenshots (2)", exact: true })
+    .getByRole("button", { name: "Screenshots 2", exact: true })
     .click();
   const images = page.getByRole("dialog", { name: "Screenshots", exact: true });
   await images.getByRole("button", { name: /pre-race-individual-656\.jpeg/ }).click();
