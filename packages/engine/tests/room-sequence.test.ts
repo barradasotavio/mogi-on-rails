@@ -1308,3 +1308,50 @@ test("a reopened room's first screen read mid-animation, every total an uncertai
     [1, 2, 3, 4, 5, 6],
   );
 });
+
+test("a saved reopened room an older analysis numbered from race 3 is numbered again on load, as a fresh import would", async () => {
+  const timed = (capture: Capture, minute: number) => ({
+    ...capture,
+    photoMoment: { at: minute * 60000, source: "exif" as const },
+  });
+  const zeros = source("reopened-1", 0, "finishOrderAdding");
+  zeros.numericRows = zeros.numericRows!.map((row) => ({ ...row, right: { ...reading(0), confidence: 71 } }));
+  let fresh = ingest(
+    prefix(0),
+    timed(source("room-1", 0, "finishOrderAdding"), 0),
+    timed(source("room-2", 1, "finishOrderAdding"), 4),
+    timed(zeros, 16),
+    ...[1, 2, 3].map((n) => timed(source(`reopened-${n + 1}`, n, "finishOrderAdding"), 16 + 4 * n)),
+  );
+  fresh = (await normalizeReconstructions({ mogis: [fresh] })).mogis[0];
+  const question = mogiQuestions(fresh)[0];
+  const answered = (mogi: Mogi) => answerMogiQuestion(mogi, question.id, { kind: "race", value: 3 });
+  const counted = async (mogi: Mogi) =>
+    (await normalizeReconstructions({ mogis: [mogi] })).mogis[0].races.map((race) => [
+      race.number,
+      race.status,
+      race.captureIds?.join(),
+      race.participationReview,
+    ]);
+  const saved = (await normalizeReconstructions({ mogis: [await answered(fresh)] })).mogis[0];
+  const expected = await counted(saved);
+  // An older analysis left the zero screen as context and numbered the room's later screens 3 to 5.
+  const older: Mogi = {
+    ...saved,
+    captures: saved.captures!.map((capture) =>
+      capture.id === "reopened-1" ? { ...capture, stage: "context", context: { phase: "after" } } : capture,
+    ),
+    races: saved.races
+      .filter((race) => race.number !== 3)
+      .map((race) => (race.number! > 3 ? { ...race, number: race.number! - 1 } : race)),
+    sequence: { ...fresh.sequence!, projectedRaceIds: saved.races.map((race) => race.id) },
+  };
+  const loaded = (await normalizeReconstructions({ mogis: [older] })).mogis[0];
+  assert.deepEqual(await counted(loaded), await counted(fresh));
+  assert.deepEqual(
+    mogiQuestions(loaded).map((entry) => entry.captureId),
+    ["reopened-1"],
+  );
+  assert.equal(expected.length, 6);
+  assert.deepEqual(await counted(await answered(loaded)), expected);
+});
