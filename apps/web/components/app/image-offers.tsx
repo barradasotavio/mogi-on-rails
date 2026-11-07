@@ -13,7 +13,8 @@ import { useFolderWatch, type useWatchedFolders } from "./watched-folders";
 
 /**
  * Images offered to the open mogi from outside the picker: pasted screenshots and new images in the
- * watched folders. Nothing is stored before Add to Mogi in the confirmation sheet.
+ * watched folders. Nothing is stored before Add to Mogi in the confirmation sheet, unless the player chose to
+ * add the folders' new screenshots without asking; a paste always asks.
  */
 export function ImageOffers({
   mogi,
@@ -97,7 +98,15 @@ export function ImageOffers({
         knownOriginals(current(), mogi.id),
       );
       // Only images already stored: nothing to add, so nothing to ask.
-      if (offer.shots.every((shot) => shot.repeated !== undefined)) return closeFolderOffer(images);
+      const fresh = offer.shots.filter((shot) => shot.repeated === undefined).map((shot) => shot.file);
+      if (!fresh.length) return closeFolderOffer(images);
+      if (watched.autoAdd) {
+        // Intake still saving the last batch: the next check offers these again.
+        if (busy) return;
+        void closeFolderOffer(images);
+        onAdd(fresh);
+        return;
+      }
       folderOffer.current = images;
       pasteTrigger.current = document.activeElement as HTMLElement | null;
       setPaste(offer);

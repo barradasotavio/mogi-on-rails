@@ -130,7 +130,12 @@ export function SettingsSheet({
       )}
       {settingsPages.page === "appearance" && <AppearanceSettings preference={appearance} />}
       {settingsPages.page === "watchedFolders" && (
-        <WatchedFoldersSettings folders={watched.folders} onChange={watched.setFolders} />
+        <WatchedFoldersSettings
+          folders={watched.folders}
+          onChange={watched.setFolders}
+          autoAdd={watched.autoAdd}
+          onAutoAddChange={watched.setAutoAdd}
+        />
       )}
       {settingsPages.page === "storage" && (
         <StoragePanel

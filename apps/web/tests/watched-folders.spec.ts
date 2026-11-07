@@ -6,7 +6,7 @@ import { strFromU8, unzipSync } from "fflate";
 import { downloadBackup } from "./backup-navigation";
 import { createMogi } from "./mogi-creation";
 import { ffaRoster } from "./mogi-state";
-import { openSettings } from "./settings-navigation";
+import { openCurrentMogi, openSettings } from "./settings-navigation";
 
 const roster = ffaRoster();
 
@@ -52,7 +52,9 @@ async function save(page: Page, name: string, color?: string) {
   );
 }
 
-test("a watched folder offers its new images only during a mogi, and once", async ({ page }, info) => {
+test("a watched folder offers its new images only during a mogi, and once, or adds them without asking", async ({
+  page,
+}, info) => {
   await stubFolderPicker(page);
   // Intake is the subject, not recognition: the PNG skips OCR.
   await page.context().route("**/ocr/paddle-worker.js", (route) => route.abort());
@@ -61,12 +63,7 @@ test("a watched folder offers its new images only during a mogi, and once", asyn
   await page.goto("/");
   await save(page, "before-start.png", "#c00000");
   await save(page, "notes.txt");
-  await openSettings(page);
-  await page
-    .getByRole("dialog", { name: "Settings", exact: true })
-    .getByRole("button", { name: "Watched Folders", exact: true })
-    .click();
-  const settings = page.getByRole("dialog", { name: "Watched Folders", exact: true });
+  const settings = await openWatchedFolders(page);
   // A browser that refuses before showing a picker, as an embedding app can, says so instead of doing nothing.
   await page.evaluate(() => {
     const folders = window as unknown as { showDirectoryPicker: () => Promise<unknown>; picker?: unknown };
@@ -107,6 +104,18 @@ test("a watched folder offers its new images only during a mogi, and once", asyn
   await offer.getByRole("button", { name: "Add to Mogi", exact: true }).click();
   await expect(offer).toBeHidden();
   await expect(page.getByRole("button", { name: /^Reading/ })).toHaveCount(0, { timeout: 30000 });
+
+  // Add Without Asking takes the next image straight to the mogi, with no sheet.
+  const autoAdd = await openWatchedFolders(page);
+  await autoAdd.getByRole("switch", { name: "Add Without Asking", exact: true }).click();
+  await expect(autoAdd.getByRole("switch", { name: "Add Without Asking", exact: true })).toBeChecked();
+  await page.keyboard.press("Escape");
+  await expect(autoAdd).toBeHidden();
+  await openCurrentMogi(page);
+  await save(page, "third.png", "#a0a000");
+  await page.clock.runFor(6000);
+  await expect(page.getByRole("button", { name: /^Reading/ })).toHaveCount(0, { timeout: 30000 });
+  await expect(offer).toBeHidden();
   const state = JSON.parse(
     strFromU8(unzipSync(readFileSync(await downloadBackup(page, info.outputPath("added.zip"))))["manifest.json"]),
   ).state;
@@ -114,15 +123,34 @@ test("a watched folder offers its new images only during a mogi, and once", asyn
     ...state.mogis.flatMap((mogi: { captures?: { name?: string }[] }) => mogi.captures ?? []),
     ...(state.sharedReceipts ?? []).flatMap((receipt: { files: unknown[] }) => receipt.files),
   ];
-  expect(images).toHaveLength(1);
+  expect(images).toHaveLength(2);
 
-  // The folder stays watched after a reload.
+  // The folder and the choice stay after a reload.
   await page.reload();
   await openSettings(page);
   await expect(
     page.getByRole("dialog", { name: "Settings", exact: true }).getByRole("button", { name: /^Watched Folders/ }),
   ).toContainText("Album");
+  await page
+    .getByRole("dialog", { name: "Settings", exact: true })
+    .getByRole("button", { name: /^Watched Folders/ })
+    .click();
+  await expect(
+    page
+      .getByRole("dialog", { name: "Watched Folders", exact: true })
+      .getByRole("switch", { name: "Add Without Asking", exact: true }),
+  ).toBeChecked();
 });
+
+/** Opens Settings › Watched Folders and returns its page. */
+async function openWatchedFolders(page: Page) {
+  await openSettings(page);
+  await page
+    .getByRole("dialog", { name: "Settings", exact: true })
+    .getByRole("button", { name: /^Watched Folders/ })
+    .click();
+  return page.getByRole("dialog", { name: "Watched Folders", exact: true });
+}
 
 test("without a folder picker, Settings has no Watched Folders", async ({ page }) => {
   await page.addInitScript(() => {
