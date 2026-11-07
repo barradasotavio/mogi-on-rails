@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "new",
+        "text": "Mogi Settings is one short list: Bot List, Screenshots with its count, and Export. Export shows the !submit text only when it's ready, and a short status until then."
+      },
+      {
+        "kind": "new",
         "text": "Edit Result shows each place's points and total under Points and Total headings. The race sheet, In-Game Points, Absent Players and their confirmations drop the notes that explained them."
       },
       {
