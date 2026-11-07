@@ -189,7 +189,7 @@ test("unlinking a real deduced name retracts its explanation and returns its que
 test("an explicit correction can also unlink an exact recognized name without accepting it again", async () => {
   const mogi = await ingestReal(emptyRealMogi(), [0]);
   const person = mogi.participants.find((p) => p.loungeName === "Tavo")!;
-  const unlinked = reconcileSequence(unlinkSynonym(mogi, person.id, "Tavo", true));
+  const unlinked = reconcileSequence(unlinkSynonym(mogi, person.id, "Tavo"));
   assert.equal(unlinked.captures![0].nameAssociations![6].participantId, null);
   assert.equal(
     captureExplanation(unlinked, raw.captures[0].id).some((step) => step.kind === "name" && step.value === person.id),

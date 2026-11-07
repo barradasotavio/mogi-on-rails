@@ -3,6 +3,10 @@
     "date": "2026-11-07",
     "changes": [
       {
+        "kind": "fix",
+        "text": "Unlinking a name in Players now removes it from every race."
+      },
+      {
         "kind": "new",
         "text": "The race sheet lists that race's screenshots. Remove one to recount the race; Undo brings it back."
       },
