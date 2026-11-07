@@ -527,9 +527,6 @@ export function CaptureIntake({
       {rejectionNotice}
       {reviewError}
       <Sheet kind="detail" title="Screenshots" open={open} onOpenChange={onOpenChange}>
-        <p className="text-sm text-muted-foreground">
-          Readings are saved on this device. Answer pending questions from the mogi header.
-        </p>
         {items
           .filter((item) => item.status !== "saved")
           .map((item) => (
@@ -565,9 +562,7 @@ export function CaptureIntake({
               {renderPendingActions?.(item.id, item.file.name)}
             </div>
           ))}
-        {!items.some((item) => item.status !== "saved") && (
-          <p>All screenshots have been read. Originals and corrections are available in Mogi settings.</p>
-        )}
+        {!items.some((item) => item.status !== "saved") && <p>All screenshots read</p>}
         {!working && items.some((item) => !item.capture && item.status !== "saved") && (
           <Button
             disabled={busy}

@@ -5,9 +5,10 @@ import { ImagePlus } from "lucide-react";
 import { GlassButton } from "@/components/ui/glass-button";
 import { Sheet } from "@/components/ui/sheet";
 
-const reasons: Record<MogiNeedsImagesReason, string> = {
-  "fewer-players": "This race had fewer than 12 players, so its points can't be worked out from later totals.",
-  "no-later-totals": "No screenshot shows enough of this race to work out its points.",
+// Without a screenshot of the race, the buttons say enough; fewer players also rule out later totals.
+const reasons: Record<MogiNeedsImagesReason, string | null> = {
+  "fewer-players": "It had fewer than 12 players, so later totals can't count it.",
+  "no-later-totals": null,
 };
 
 /**
@@ -36,7 +37,8 @@ export function NeedsImagesSheet({
       height="fit"
       open={!!position}
       onOpenChange={onOpenChange}
-      title={position ? `Race ${position.number} Needs a Screenshot` : ""}
+      title={position ? `Race ${position.number}` : ""}
+      subtitle="Needs screenshots"
       onCloseAutoFocus={onCloseAutoFocus}
       footer={
         <div className="flex flex-col gap-2">
@@ -57,7 +59,7 @@ export function NeedsImagesSheet({
         </div>
       }
     >
-      <p className="pb-4 text-center text-muted-foreground">{reasons[reason]}</p>
+      {reasons[reason] && <p className="pb-4 text-center text-muted-foreground">{reasons[reason]}</p>}
     </Sheet>
   );
 }

@@ -155,9 +155,7 @@ export function NameReview({
         capture.numericRows?.some((row) => row.right.uncertain) && (
           <Card role="region" aria-label="Uncertain numbers">
             <CardContent>
-              <p className="text-sm">
-                The screenshot can be saved without these numbers. Confirm only what you can read on it.
-              </p>
+              <p className="text-sm">Confirm only numbers you can read.</p>
               {capture.numericRows
                 .filter((row) => row.right.uncertain)
                 .map((row) => {
@@ -216,9 +214,6 @@ export function NameReview({
                 </Field>
                 {numericRow && (
                   <>
-                    <p className="text-xs text-muted-foreground">
-                      The original reading is kept. This answer corrects only the chosen game total.
-                    </p>
                     <NumericQuestion
                       key={numericRow}
                       row={Number(numericRow)}
@@ -256,21 +251,12 @@ export function NameReview({
         busy={busy}
         onChange={(next) => change({ ...next, nameAssociations: next.nameAssociations ?? associations })}
       />
-      {pending > 0 && <p className="text-sm text-muted-foreground">Answer name questions from the mogi header.</p>}
       {pending === 0 && !notFinishOrder && (
         <Card>
           <CardContent>
-            {preserveResult && (
-              <p className="text-sm">
-                This race's result was edited by hand. Saving the screenshot corrections keeps those places. To change
-                the result, use Edit Full Result.
-              </p>
-            )}
+            {preserveResult && <p className="text-sm">Places edited by hand are kept.</p>}
             {!finishOrder && (
               <>
-                <p className="text-sm">
-                  Check the screen type. The rows must be this race's finish order, before the game sorts them by total.
-                </p>
                 <Field orientation="horizontal">
                   <Checkbox
                     id={`finish-order-${capture.id}`}
