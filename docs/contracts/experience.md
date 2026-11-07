@@ -9,6 +9,7 @@ The mogi screen serves a 20-to-30-second **glance** between races: it answers "h
 3. **One question at a time**, in the [question queue](#question-queue) ([ADR 0004](../adr/0004-single-question-queue.md)), with the most likely suggestion preselected when there is evidence. Doubts appear only in the queue.
 4. **The layout holds still.** New content enters a reserved place: 12 slots in the grid and 12 player rows from creation; reading progress takes the place of the header action. Arrangements come only from CSS and container queries, from first paint.
 5. **Controls in glass, content opaque.** Detail, task and menu are sheets over the mogi ([ADR 0005](../adr/0005-adaptive-surfaces.md)); the mogi screen stays underneath.
+6. **Self-explanatory.** Options and data explain themselves through labels, trailing values and column headings, with no footers ([copy](copy.md#self-explanatory)). Rules players need live in [Instructions](#instructions).
 
 ## Structure
 

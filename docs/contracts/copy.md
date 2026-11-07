@@ -2,6 +2,16 @@
 
 Reference copy for the [mogi experience](experience.md), in English ([ADR 0002](../adr/0002-english-interface-and-documentation.md)). Read before writing or changing any text, title, button or accessible name. Tone: short, in the vocabulary players use in the Lounge.
 
+## Self-explanatory
+
+Fewer words: labels, values and layout say what something is, and text says only what they can't ([HIG Writing](https://developer.apple.com/design/human-interface-guidelines/writing), [Offering help](https://developer.apple.com/design/human-interface-guidelines/offering-help)). When a screen seems to need a footer, change the control or the data layout instead. Rules players still need live in [Instructions](experience.md#instructions).
+
+- **Rows**: a label with a trailing value. A measure is named once, in a column heading, the section title or the Sort label, never in every row.
+- **Titles name** the thing; data such as format, counts and dates goes in the subtitle or the trail. Sheet and toolbar titles stay under about 15 characters.
+- **Notes**: at most one per group, one short sentence stating a fact the controls can't show. A note never explains a standard control or describes a setting's off state.
+- **Placeholders** are format hints, not instructions.
+- **Alerts**: a short title; a message only when it adds what the title doesn't; verbs on the buttons.
+
 ## Capitalization
 
 HIG **Title Case** for commands: buttons, toolbar and menu items, list rows that act or navigate, titles of sheets, pages and alerts, segmented control labels. Articles, coordinating conjunctions and prepositions of up to four letters stay lowercase except in first and last position ("Restore from Backup", "Add the Tier to Submit"). Proper names and literals stay as they are ("Copy !submit", "Mogi on Rails", "FFA", "IGN"). Derived titles go through `titleCase` (`lib/format.ts`).
