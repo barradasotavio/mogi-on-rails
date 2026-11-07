@@ -168,7 +168,7 @@ Two untitled groups: Bot List › (the text pasted at creation, read-only), Scre
 3. Numbers Read ›, only when the capture has numbers read.
 4. Remove Screenshot.
 
-**From a race**: the race sheet's Screenshots › (trail: their count; shown while the race has any, a discarded race included) lists that race's screenshots alone (`captureRace`, `lib/mogi/capture-label.ts`), pre-race and repeats included, so one that hurts recognition comes out without searching the whole mogi. It hands the race sheet over to Mogi Settings, titled Screenshots and subtitled with the race, with no Back; each row opens the same detail. Removing recounts the mogi exactly as from the full list, with [Undo](#controls); closing returns focus to the race's tile.
+**From a race**: the race sheet's Screenshots › (trail: their count; shown while the race has any, a discarded race included) lists that race's screenshots alone (`captureRace`, `lib/mogi/capture-label.ts`), pre-race and repeats included, so one that hurts recognition comes out without searching the whole mogi. It is a page of the race sheet, as the Track row's picker is: titled Screenshots, with Back to the race, and each row opens the same detail as a further page of that sheet. Removing recounts the mogi exactly as from the full list, with [Undo](#controls), and returns to the race's list; closing returns focus to the race's tile.
 
 ## Capture viewer
 
@@ -183,7 +183,7 @@ Every screenshot or crop opens on tap in the same `CaptureViewer` (`components/u
 
 A sheet opened from a list of races pages among that list's siblings without closing; a nested task pages nothing, as Photos pages while browsing but not inside Edit. Siblings come from `raceSiblings` (`components/mogi-overview.tsx`); controls and gestures from the [design system](design-system.md#surfaces).
 
-- **Race sheet**: pages among the races whose tile opens a race sheet (counted, pending, or with an edit in progress), in race order; a discarded race pages among the discarded. Only the race page pages: Edit Result and the Track page inside it don't. Closing returns focus to the tile of the race on screen.
+- **Race sheet**: pages among the races whose tile opens a race sheet (counted, pending, or with an edit in progress), in race order; a discarded race pages among the discarded. Only the race page pages: Edit Result, the Track page and the Screenshots pages inside it don't. Closing returns focus to the tile of the race on screen.
 - **Track picker from the Tracks list or the wide table's column** (the Track sheet), **or from a Table sheet column** (its picker page): pages among the resolved races' pickers, each starting with an empty search. Back from the Table sheet's picker returns to the column of the race on screen.
 - **Track picker from the race sheet's Track row**: no paging. It is a pick-and-return task; Back returns to that race, which pages itself.
 

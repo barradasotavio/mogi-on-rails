@@ -1,28 +1,16 @@
 "use client";
 
-import { mogiOriginalList, raceNumber, screens, type SequenceAnswer, sequenceInputSignature } from "@mkw/engine";
+import { mogiOriginalList, type SequenceAnswer } from "@mkw/engine";
 import { type ComponentProps, useRef, useState } from "react";
 
-import { CaptureImage, CaptureThumbnail } from "@/components/captures/capture-image";
-import { CountingExplanation } from "@/components/captures/counting-explanation";
-import { NameCorrection } from "@/components/name-correction";
+import { captureEntries, type CapturePage, capturePages } from "@/components/captures/capture-pages";
 import { useResultsExport } from "@/components/results-export";
-import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import { Sheet, usePageStack } from "@/components/ui/sheet";
-import { captureRace, imageLabel, imageMoment, imageRace } from "@/lib/mogi/capture-label";
 import type { Mogi, SharedFile } from "@/lib/mogi/types";
 
-type Page =
-  | "settings"
-  | "images"
-  | "original"
-  | "export"
-  | { kind: "image" | "race" | "numbers"; id: string }
-  /** One race's screenshots, opened from its race sheet; `id` is the race. */
-  | { kind: "race-images"; id: string }
-  | { kind: "name"; id: string; row: number };
+type Page = "settings" | "original" | "export" | CapturePage;
 
 export function MogiSettings({
   mogi,
@@ -33,7 +21,6 @@ export function MogiSettings({
   onOpenChange,
   onCloseAutoFocus,
   initialCaptureId,
-  raceId,
   onUpdate,
   onRemoveSource,
   onRemovePendingSource,
@@ -47,8 +34,6 @@ export function MogiSettings({
   busy: boolean;
   open: boolean;
   initialCaptureId?: string;
-  /** Opens on this race's screenshots instead of the settings. */
-  raceId?: string;
   onOpenChange: (open: boolean) => void;
   onCloseAutoFocus: ComponentProps<typeof Sheet>["onCloseAutoFocus"];
   onUpdate: (mogi: Mogi) => Promise<boolean>;
@@ -65,71 +50,33 @@ export function MogiSettings({
   const deleteTrigger = useRef<HTMLButtonElement>(null);
   if (wasOpen !== open) {
     setWasOpen(open);
-    if (open) pages.reset(raceId ? { kind: "race-images", id: raceId } : "settings");
+    if (open) pages.reset("settings");
   }
-  const entries = [
-    ...(mogi.captures ?? []).map((capture) => ({
-      id: capture.id,
-      capture,
-      itemId: undefined as string | undefined,
-      fileName: capture.fileName,
-      original: capture.original,
-      number: imageRace(mogi, capture),
-      failed: false,
-    })),
-    ...(mogi.captureReview?.items ?? []).flatMap((item) => {
-      const file = pendingFiles.find((file) => file.id === item.source.fileId);
-      return file && item.status !== "saved"
-        ? [
-            {
-              id: item.id,
-              capture: undefined,
-              itemId: item.id,
-              fileName: file.name,
-              original: file.original,
-              number: item.numberKnown === false ? undefined : item.number,
-              failed: item.status === "failed",
-            },
-          ]
-        : [];
-    }),
-  ];
   const page = pages.page;
-  const raceImages = typeof page === "object" && page.kind === "race-images";
-  // A removal can renumber or drop the race; the list then follows the race id, or empties.
-  const shownRace = raceImages ? mogi.races.find((race) => race.id === page.id) : undefined;
-  const listed = raceImages
-    ? entries.filter((entry) => entry.capture && captureRace(mogi, entry.capture)?.id === page.id)
-    : entries;
   const exported = useResultsExport({ mogi, resultMogi, onUpdate, saving: busy, open: open && page === "export" });
-  const image = typeof page === "object" ? entries.find((entry) => entry.id === page.id) : undefined;
-  const capture = image?.capture;
-  const title =
-    typeof page === "string"
-      ? page === "images"
-        ? "Screenshots"
-        : page === "original"
-          ? "Bot List"
-          : page === "export"
-            ? "Export"
-            : "Mogi Settings"
-      : page.kind === "race-images"
-        ? "Screenshots"
-        : page.kind === "name"
-          ? (mogi.participants.find((p) => p.id === capture?.nameAssociations?.[page.row - 1]?.participantId)
-              ?.loungeName ?? "Name")
-          : page.kind === "numbers"
-            ? "Numbers Read"
-            : page.kind === "race"
-              ? "Race"
-              : `Screenshot ${entries.findIndex((entry) => entry.id === page.id) + 1}`;
-  async function assign(number: number | null) {
-    if (
-      capture &&
-      (await onSequenceAnswer({ kind: "number", captureId: capture.id, value: number }, sequenceInputSignature(mogi)))
-    )
-      pages.back();
-  }
+  const captures =
+    typeof page === "object"
+      ? capturePages({
+          mogi,
+          pendingFiles,
+          page,
+          busy,
+          push: pages.push,
+          back: pages.back,
+          onUpdate,
+          onRemoveSource,
+          onRemovePendingSource,
+          onSequenceAnswer,
+          onQuestion,
+        })
+      : undefined;
+  const title = captures
+    ? captures.title
+    : page === "original"
+      ? "Bot List"
+      : page === "export"
+        ? "Export"
+        : "Mogi Settings";
   return (
     <>
       <Sheet
@@ -139,14 +86,7 @@ export function MogiSettings({
         onOpenChange={onOpenChange}
         onCloseAutoFocus={onCloseAutoFocus}
         title={title}
-        subtitle={
-          shownRace
-            ? shownRace.status === "discarded"
-              ? "Discarded race"
-              : `Race ${raceNumber(mogi, shownRace)}`
-            : undefined
-        }
-        page={typeof page === "string" ? page : `${page.kind}-${page.id}`}
+        page={typeof page === "string" ? page : captures?.key}
         onBack={pages.depth > 1 ? pages.back : undefined}
         footer={page === "export" ? exported.footer : undefined}
       >
@@ -157,7 +97,11 @@ export function MogiSettings({
                 <ListRow onSelect={() => pages.push("original")} accessory="chevron">
                   Bot List
                 </ListRow>
-                <ListRow onSelect={() => pages.push("images")} accessory="chevron" trail={entries.length}>
+                <ListRow
+                  onSelect={() => pages.push({ kind: "list" })}
+                  accessory="chevron"
+                  trail={captureEntries(mogi, pendingFiles).length}
+                >
                   Screenshots
                 </ListRow>
                 <ListRow disabled={busy} onSelect={() => pages.push("export")} accessory="chevron">
@@ -186,111 +130,9 @@ export function MogiSettings({
               {mogiOriginalList(mogi)}
             </pre>
           </ListGroup>
-        ) : page === "images" || raceImages ? (
-          <List aria-label={raceImages ? "Race screenshots" : "Mogi screenshots"}>
-            {listed.map((entry) => (
-              <ListRow
-                key={entry.id}
-                media={<CaptureThumbnail original={entry.original} />}
-                description={entry.fileName}
-                accessory="chevron"
-                onSelect={() => pages.push({ kind: "image", id: entry.id })}
-              >
-                {imageLabel(entry.number, entry.capture)}
-              </ListRow>
-            ))}
-          </List>
-        ) : image && typeof page === "object" ? (
-          page.kind === "image" ? (
-            <>
-              <CaptureImage original={image.original} alt={image.fileName} label={imageLabel(image.number, capture)} />
-              {image.failed && <p className="text-sm text-muted-foreground">Reading failed</p>}
-              <List dividers="row">
-                <ListRow
-                  disabled={!capture || busy}
-                  accessory="chevron"
-                  trail={image.number ?? "Not Assigned"}
-                  onSelect={() => pages.push({ kind: "race", id: image.id })}
-                >
-                  Race
-                </ListRow>
-                <ListRow trail={imageMoment(capture).replace(/^./, (letter) => letter.toUpperCase())}>Moment</ListRow>
-                <ListRow trail={capture?.interpretation ? screens[capture.interpretation.screen].name : "Not read"}>
-                  Screen
-                </ListRow>
-              </List>
-              {capture && (
-                <CountingExplanation
-                  mogi={mogi}
-                  captureId={capture.id}
-                  busy={busy}
-                  onRace={() => pages.push({ kind: "race", id: image.id })}
-                  onName={(row) => pages.push({ kind: "name", id: image.id, row })}
-                  onQuestion={onQuestion}
-                />
-              )}
-              {/* A pending or older capture may have no numbers read, and an empty page is not offered. */}
-              {!!capture?.numericRows?.length && (
-                <List dividers="row">
-                  <ListRow accessory="chevron" onSelect={() => pages.push({ kind: "numbers", id: image.id })}>
-                    Numbers Read
-                  </ListRow>
-                </List>
-              )}
-              <Button
-                variant="destructive-ghost"
-                className="w-full"
-                disabled={busy}
-                onClick={async () => {
-                  const removed = image.itemId
-                    ? await onRemovePendingSource?.(image.itemId)
-                    : await onRemoveSource(image.id);
-                  if (removed) pages.back();
-                }}
-              >
-                Remove Screenshot
-              </Button>
-            </>
-          ) : page.kind === "name" ? (
-            <NameCorrection
-              key={`${image.id}-${page.row}`}
-              mogi={mogi}
-              captureId={image.id}
-              row={page.row}
-              busy={busy}
-              onUpdate={onUpdate}
-              onDone={pages.back}
-            />
-          ) : page.kind === "race" ? (
-            <List aria-label="Race number">
-              {Array.from({ length: 12 }, (_, i) => (
-                <ListRow
-                  key={i}
-                  disabled={busy}
-                  accessory={image.number === i + 1 ? "check" : undefined}
-                  onSelect={() => void assign(i + 1)}
-                >
-                  Race {i + 1}
-                </ListRow>
-              ))}
-              <ListRow disabled={busy} onSelect={() => void assign(null)}>
-                Not Assigned
-              </ListRow>
-            </List>
-          ) : (
-            <List aria-label="Numbers read">
-              {capture?.numericRows?.map((row) => (
-                <ListRow
-                  key={row.row}
-                  description={capture.rows[row.row - 1]?.text}
-                  trail={[row.right.text || "—", row.addition.text].filter(Boolean).join(" · ")}
-                >
-                  Row {row.row}
-                </ListRow>
-              ))}
-            </List>
-          )
-        ) : null}
+        ) : (
+          captures?.content
+        )}
       </Sheet>
       <ConfirmationDialog
         open={confirm}
