@@ -12,6 +12,10 @@
       },
       {
         "kind": "fix",
+        "text": "On a laptop trackpad, swiping again turns to the next race without moving the pointer first."
+      },
+      {
+        "kind": "fix",
         "text": "Unlinking a name in Players removes it from every race and forgets the in-game name it learned, so swapped teammates no longer mix their points."
       },
       {
