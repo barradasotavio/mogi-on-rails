@@ -229,11 +229,14 @@ export function MogiSettings({
                   onQuestion={onQuestion}
                 />
               )}
-              <List dividers="row">
-                <ListRow accessory="chevron" onSelect={() => pages.push({ kind: "numbers", id: image.id })}>
-                  Numbers Read
-                </ListRow>
-              </List>
+              {/* A pending or older capture may have no numbers read, and an empty page is not offered. */}
+              {!!capture?.numericRows?.length && (
+                <List dividers="row">
+                  <ListRow accessory="chevron" onSelect={() => pages.push({ kind: "numbers", id: image.id })}>
+                    Numbers Read
+                  </ListRow>
+                </List>
+              )}
               <Button
                 variant="destructive-ghost"
                 className="w-full"

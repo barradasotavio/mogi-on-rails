@@ -3,6 +3,10 @@
     "date": "2026-11-07",
     "changes": [
       {
+        "kind": "fix",
+        "text": "In-Game Points fields sit inside their rows, Tracks titles its list by the measure like other lists, and a screenshot offers Numbers Read only when it has numbers to show."
+      },
+      {
         "kind": "new",
         "text": "The race sheet has a Screenshots row that lists that race's screenshots. Open one and use Remove Screenshot to drop it and recount the race; Undo brings it back."
       },

@@ -71,8 +71,12 @@ export default ts.config(
     ["drawer", "^DrawerContent$", ["app-sheet"]],
     ["item", "^Item(Title|Description)$", ["line-clamp-none"]],
     ["native-select", "^NativeSelect$", ["[&_select]:text-base", "md:[&_select]:text-sm"]],
-    // `filled`: the muted field of sheets.
-    ["input", "^Input$", ["rounded-xl", "border-transparent", "bg-muted", "px-3", "shadow-none", "dark:bg-muted"]],
+    // `filled`: the muted field of sheets; `inline`: the shorter one in a list row's trail.
+    [
+      "input",
+      "^Input$",
+      ["rounded-xl", "rounded-lg", "border-transparent", "bg-muted", "px-3", "shadow-none", "dark:bg-muted"],
+    ],
     ["textarea", "^Textarea$", ["rounded-xl", "border-transparent", "bg-muted", "p-3", "shadow-none", "dark:bg-muted"]],
   ].map(([file, pattern, allow]) => ({
     files: [`components/ui/${file}.tsx`],
