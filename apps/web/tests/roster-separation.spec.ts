@@ -122,7 +122,11 @@ test("consecutive mogis with the same roster receive the capture and identify re
   await openCurrentMogi(page);
   await createMogi(page, truth.bot);
   await upload(page);
+  // Named as the list shows it, with its date: both mogis have the same tier.
+  const place = `Mogi Tier ${mogi.submissionTier} from ${mogi.name.replace(/^Mogi /, "")}`;
   await expect(
-    page.locator("[aria-live=polite]").filter({ hasText: `Screenshot already in ${mogi.name}` }),
+    page
+      .locator("[aria-live=polite]")
+      .filter({ hasText: `Screenshot already in ${place}. Remove it there to add it here` }),
   ).toBeVisible();
 });
