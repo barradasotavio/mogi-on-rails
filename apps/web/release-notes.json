@@ -3,6 +3,10 @@
     "date": "2026-11-07",
     "changes": [
       {
+        "kind": "new",
+        "text": "Players reads faster: a team without a tag shows as Team N, and the player, team and sub pages drop notes that repeated their labels."
+      },
+      {
         "kind": "fix",
         "text": "When teams or players tie for first, the mogi header and the mogi list name every one of them, or say how many are tied."
       },
