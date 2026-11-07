@@ -53,10 +53,10 @@ test("overview inspects, discards and reinstates races, answers names and preser
     trackPage.getByRole("button", { name: "rMMM Moo Moo Meadows rMMM Selected", exact: true }),
   ).toBeVisible();
   await trackPage.getByRole("button", { name: "Back", exact: true }).click();
-  await raceSheet.getByRole("button", { name: "Discard Race", exact: true }).click();
-  const confirmation = page.getByRole("alertdialog", { name: "Discard Race 1?", exact: true });
-  await expect(confirmation).toContainText("Later races move up one number.");
-  await confirmation.getByRole("button", { name: "Discard", exact: true }).click();
+  await raceSheet.getByRole("button", { name: "Don't Count This Race", exact: true }).click();
+  const confirmation = page.getByRole("alertdialog", { name: "Don't Count Race 1?", exact: true });
+  await expect(confirmation).toContainText("Its points leave the totals. Later races move up one number.");
+  await confirmation.getByRole("button", { name: "Don't Count", exact: true }).click();
   await expect(raceSheet).toBeHidden();
   await expect(page.getByRole("button", { name: "Race 1 · future", exact: true })).toBeFocused();
   await expect(

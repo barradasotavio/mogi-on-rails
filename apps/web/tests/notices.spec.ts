@@ -172,19 +172,14 @@ test("an edit in progress is a pencil on the race, with Resume and Discard in th
   const inline = first.getByRole("alert");
   await expect(inline).toHaveText(refusal);
   await expect(page.locator("[data-toast]")).toHaveCount(0);
-  const [editBox, inlineBox, discardBox] = [
+  const [editBox, inlineBox, uncountBox] = [
     await edit.boundingBox(),
     await inline.boundingBox(),
-    await first.getByRole("button", { name: "Discard Race", exact: true }).boundingBox(),
+    await first.getByRole("button", { name: "Don't Count This Race", exact: true }).boundingBox(),
   ];
   expect(inlineBox!.y).toBeGreaterThanOrEqual(editBox!.y + editBox!.height);
   expect(inlineBox!.y - (editBox!.y + editBox!.height)).toBeLessThan(16);
-  expect(inlineBox!.y).toBeLessThan(discardBox!.y);
-  expect(await inline.evaluate((element) => getComputedStyle(element).color)).toBe(
-    await first
-      .getByRole("button", { name: "Discard Race", exact: true })
-      .evaluate((element) => getComputedStyle(element).color),
-  );
+  expect(inlineBox!.y).toBeLessThan(uncountBox!.y);
   // The next attempt clears it, and a repeated refusal shows it again.
   await first.getByRole("button", { name: /^Track/ }).click();
   const tracks = page.getByRole("dialog", { name: "Track", exact: true });

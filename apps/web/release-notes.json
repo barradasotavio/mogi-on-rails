@@ -3,6 +3,10 @@
     "date": "2026-11-07",
     "changes": [
       {
+        "kind": "new",
+        "text": "The race sheet says Don't Count This Race instead of Discard Race, as a plain command at the end. To drop a bad screenshot, use Screenshots and Remove Screenshot."
+      },
+      {
         "kind": "fix",
         "text": "In-Game Points fields sit inside their rows, Tracks titles its list by the measure like other lists, and a screenshot offers Numbers Read only when it has numbers to show."
       },

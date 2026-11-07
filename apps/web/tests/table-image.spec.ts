@@ -179,10 +179,10 @@ test("the final image becomes partial when one of twelve races is discarded", as
   await expect(panel).toBeHidden();
 
   const race = await consultRace(page, 12);
-  await race.getByRole("button", { name: "Discard Race", exact: true }).click();
+  await race.getByRole("button", { name: "Don't Count This Race", exact: true }).click();
   await page
-    .getByRole("alertdialog", { name: "Discard Race 12?", exact: true })
-    .getByRole("button", { name: "Discard", exact: true })
+    .getByRole("alertdialog", { name: "Don't Count Race 12?", exact: true })
+    .getByRole("button", { name: "Don't Count", exact: true })
     .click();
   await expect(race).toBeHidden();
   await expect(page.getByRole("button", { name: "Copy Table", exact: true })).toHaveCount(1);

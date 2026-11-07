@@ -7,7 +7,6 @@ import { TrackIcon } from "@/components/track-icon";
 import { useTrackPicker } from "@/components/track-picker";
 import { ActionScope } from "@/components/ui/action-error";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import { Sheet, type SheetPager } from "@/components/ui/sheet";
@@ -83,7 +82,9 @@ export function RaceSheet({
   const [error, setError] = useState("");
   const [discarding, setDiscarding] = useState(false);
   const [reverting, setReverting] = useState(false);
+  const [uncounting, setUncounting] = useState(false);
   const editRow = useRef<HTMLButtonElement>(null);
+  const countRow = useRef<HTMLButtonElement>(null);
   const [picker, setPicker] = useState({ raceId: race?.id, open, shown: false });
   const trackPicker = useTrackPicker({
     mogi,
@@ -285,40 +286,54 @@ export function RaceSheet({
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-                {discarded ? (
-                  <ListGroup note={full ? "12 races already count. Discard another one first." : undefined}>
-                    <Button
-                      variant="secondary"
-                      className="w-full"
-                      disabled={busy || saving || full}
-                      onClick={() => {
-                        void changeValidity(false)
-                          .then((success) => {
-                            if (!success) setError("The change could not be saved. Your result was kept. Try again.");
-                          })
-                          .catch(() => setError("The change could not be saved. Your result was kept. Try again."));
-                      }}
-                    >
-                      Count Again
-                    </Button>
-                  </ListGroup>
-                ) : (
+                {/* Not counting is an ordinary command, not destructive: the result and screenshots stay, and Count Again undoes it. */}
+                <ListGroup note={discarded && full ? "12 races already count. Stop counting one first." : undefined}>
+                  <List dividers="row">
+                    {discarded ? (
+                      <ListRow
+                        action="primary"
+                        disabled={busy || saving || full}
+                        onSelect={() => {
+                          void changeValidity(false)
+                            .then((success) => {
+                              if (!success) setError("The change could not be saved. Your result was kept. Try again.");
+                            })
+                            .catch(() => setError("The change could not be saved. Your result was kept. Try again."));
+                        }}
+                      >
+                        Count Again
+                      </ListRow>
+                    ) : (
+                      <ListRow
+                        action="primary"
+                        disabled={busy || saving}
+                        buttonProps={{ ref: countRow }}
+                        onSelect={() => {
+                          changed.current = false;
+                          setUncounting(true);
+                        }}
+                      >
+                        Don't Count This Race
+                      </ListRow>
+                    )}
+                  </List>
+                </ListGroup>
+                {!discarded && (
                   <ConfirmationDialog
-                    trigger={
-                      <Button variant="destructive-ghost" className="w-full" disabled={busy || saving}>
-                        Discard Race
-                      </Button>
-                    }
-                    title={`Discard Race ${number}?`}
-                    description="Later races move up one number."
-                    confirmLabel="Discard"
+                    open={uncounting}
+                    onOpenChange={setUncounting}
+                    title={`Don't Count Race ${number}?`}
+                    description="Its points leave the totals. Later races move up one number."
+                    confirmLabel="Don't Count"
                     errorMessage="The change could not be saved. Your result was kept. Try again."
                     busy={busy || saving}
-                    onOpenChange={(next) => {
-                      if (next) changed.current = false;
-                    }}
+                    // A counted change closes the sheet, which returns focus to the tile; Cancel returns it to the row.
                     onCloseAutoFocus={(event) => {
                       if (changed.current) onCloseAutoFocus(event);
+                      else if (countRow.current) {
+                        event.preventDefault();
+                        countRow.current.focus();
+                      }
                     }}
                     onConfirm={() => changeValidity(true)}
                   />
