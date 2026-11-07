@@ -1,7 +1,8 @@
 /**
  * Watched Folders: folders on this computer whose new screenshots the app offers during a mogi. The folder
- * handles stay in their own database on this device; they never join the tracker state or the backup,
- * because a handle only means something to the browser that granted it. Access is read-only.
+ * handles, and whether new screenshots skip the confirmation, stay in their own database on this device; they
+ * never join the tracker state or the backup, because a handle only means something to the browser that
+ * granted it. Access is read-only.
  */
 
 type Permission = "granted" | "denied" | "prompt";
@@ -44,17 +45,26 @@ const offerLimit = 32;
 
 function database() {
   return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("mkw-watched-folders", 1);
-    request.onupgradeneeded = () => request.result.createObjectStore("folders", { keyPath: "id", autoIncrement: true });
+    const request = indexedDB.open("mkw-watched-folders", 2);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains("folders"))
+        db.createObjectStore("folders", { keyPath: "id", autoIncrement: true });
+      if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings");
+    };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 }
-async function transact<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+async function transact<T>(
+  mode: IDBTransactionMode,
+  run: (store: IDBObjectStore) => IDBRequest<T>,
+  storeName: "folders" | "settings" = "folders",
+): Promise<T> {
   const db = await database();
   try {
     return await new Promise<T>((resolve, reject) => {
-      const request = run(db.transaction("folders", mode).objectStore("folders"));
+      const request = run(db.transaction(storeName, mode).objectStore(storeName));
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -75,6 +85,13 @@ export async function addWatchedFolder(handle: FileSystemDirectoryHandle): Promi
 export async function removeWatchedFolder(id: number): Promise<WatchedFolder[]> {
   await transact("readwrite", (store) => store.delete(id));
   return readWatchedFolders();
+}
+
+/** Whether new screenshots go straight to the mogi, without the confirmation sheet: one choice for every folder. */
+export const readAutoAdd = async () =>
+  (await transact<unknown>("readonly", (store) => store.get("autoAdd"), "settings")) === true;
+export async function saveAutoAdd(on: boolean) {
+  await transact("readwrite", (store) => store.put(on, "autoAdd"), "settings");
 }
 
 export async function folderAccess(folder: WatchedFolder): Promise<Permission> {

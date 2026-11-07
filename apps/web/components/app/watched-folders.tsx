@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { IconButton } from "@/components/ui/icon-button";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
+import { Switch } from "@/components/ui/switch";
 import {
   addWatchedFolder,
   allowFolder,
@@ -13,8 +14,10 @@ import {
   folderAccess,
   type FolderImage,
   newFolderImages,
+  readAutoAdd,
   readWatchedFolders,
   removeWatchedFolder,
+  saveAutoAdd,
   type WatchedFolder,
 } from "@/lib/images/watched-folders";
 
@@ -28,10 +31,14 @@ declare global {
   }
 }
 
-/** The watched folders on this device, and whether this browser can watch any (no row at all where it can't). */
+/**
+ * The watched folders on this device, whether this browser can watch any (no row at all where it can't), and
+ * whether their new screenshots go straight to the mogi.
+ */
 export function useWatchedFolders() {
   const [supported, setSupported] = useState(false);
   const [folders, setFolders] = useState<WatchedFolder[]>([]);
+  const [autoAdd, setAutoAdd] = useState(false);
   useEffect(() => {
     if (!canWatchFolders()) return;
     void readWatchedFolders().then(
@@ -41,8 +48,9 @@ export function useWatchedFolders() {
       },
       () => setSupported(true),
     );
+    void readAutoAdd().then(setAutoAdd, () => {});
   }, []);
-  return { supported, folders, setFolders };
+  return { supported, folders, setFolders, autoAdd, setAutoAdd };
 }
 
 /** The Settings row's trail: the one folder, or how many. */
@@ -116,9 +124,13 @@ const refusal = (cause: unknown, what: string) =>
 export function WatchedFoldersSettings({
   folders,
   onChange,
+  autoAdd,
+  onAutoAddChange,
 }: {
   folders: WatchedFolder[];
   onChange: (folders: WatchedFolder[]) => void;
+  autoAdd: boolean;
+  onAutoAddChange: (on: boolean) => void;
 }) {
   const [blocked, setBlocked] = useState<number[]>([]);
   const [error, setError] = useState("");
@@ -164,6 +176,13 @@ export function WatchedFoldersSettings({
     }
     onChange([...folders]);
   }
+  function changeAutoAdd(on: boolean) {
+    setError("");
+    void saveAutoAdd(on).then(
+      () => onAutoAddChange(on),
+      (cause: unknown) => setError(refusal(cause, "Couldn't save this setting.")),
+    );
+  }
   function remove(folder: WatchedFolder) {
     setError("");
     void removeWatchedFolder(folder.id).then(onChange, (cause: unknown) =>
@@ -188,6 +207,23 @@ export function WatchedFoldersSettings({
                 {folder.name}
               </ListRow>
             ))}
+          </List>
+        </ListGroup>
+      )}
+      {folders.length > 0 && (
+        <ListGroup note="New screenshots go straight to the mogi, without the New Screenshot sheet. A paste still asks.">
+          <List>
+            <ListRow
+              trail={
+                <Switch
+                  aria-labelledby="watched-folders-auto-add"
+                  checked={autoAdd}
+                  onCheckedChange={(on) => changeAutoAdd(on)}
+                />
+              }
+            >
+              <span id="watched-folders-auto-add">Add Without Asking</span>
+            </ListRow>
           </List>
         </ListGroup>
       )}
