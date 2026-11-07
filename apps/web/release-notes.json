@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "new",
+        "text": "Questions and the Needs a Screenshot sheet are shorter: no notes that repeat the question, one caption when two screenshots share it, and the sheet is titled by its race."
+      },
+      {
+        "kind": "new",
         "text": "Tracks names its measure once, above the numbers. The track sheet, New Mogi and the empty mogi list show less text."
       },
       {

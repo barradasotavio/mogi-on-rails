@@ -24,12 +24,10 @@ test(`"!" explains races that need images and Enter Result opens an empty order`
   ).toBeVisible();
 
   await tile.click();
-  const sheet = page.getByRole("dialog", { name: "Race 7 Needs a Screenshot", exact: true });
+  const sheet = page.getByRole("dialog", { name: "Race 7", exact: true });
   await expect(sheet).toBeVisible();
   await expect(
-    sheet.getByText("This race had fewer than 12 players, so its points can't be worked out from later totals.", {
-      exact: true,
-    }),
+    sheet.getByText("It had fewer than 12 players, so later totals can't count it.", { exact: true }),
   ).toBeVisible();
   await expect(sheet.getByRole("radio")).toHaveCount(0);
   await expect(sheet.getByRole("combobox")).toHaveCount(0);
@@ -83,7 +81,7 @@ test("a numbered screenshot that wasn't recognized needs images and is the refer
     .getByRole("button", { name: "Race 2 · Needs screenshots", exact: true });
   await tile.click();
   await page
-    .getByRole("dialog", { name: "Race 2 Needs a Screenshot", exact: true })
+    .getByRole("dialog", { name: "Race 2", exact: true })
     .getByRole("button", { name: "Enter Result", exact: true })
     .click();
   const editor = page.getByRole("dialog", { name: "Edit Result", exact: true });

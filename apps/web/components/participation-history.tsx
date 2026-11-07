@@ -14,7 +14,7 @@ export function ParticipationHistory({ mogi, race }: { mogi: Mogi; race: Race })
           <Alert>
             <AlertDescription>
               <p>{race.participationReview}</p>
-              <p>Previous result kept: {race.placements.map(name).join(", ")}</p>
+              <p>Kept · {race.placements.map(name).join(", ")}</p>
             </AlertDescription>
           </Alert>
         )}
@@ -26,14 +26,14 @@ export function ParticipationHistory({ mogi, race }: { mogi: Mogi; race: Race })
                   <li>
                     <ItemContent>
                       <ItemTitle wrap>
-                        Earlier result of race {snapshot.result.number ?? "?"} · {snapshot.reason}
+                        Race {snapshot.result.number ?? "?"} · {snapshot.reason}
                       </ItemTitle>
                       <ItemDescription wrap>
-                        Placements: {snapshot.result.placements.map(name).join(", ")}
+                        Placements · {snapshot.result.placements.map(name).join(", ")}
                       </ItemDescription>
                       {!!snapshot.result.absentParticipantIds?.length && (
                         <ItemDescription wrap>
-                          Earlier absences: {snapshot.result.absentParticipantIds.map(name).join(", ")}
+                          Absent · {snapshot.result.absentParticipantIds.map(name).join(", ")}
                         </ItemDescription>
                       )}
                       <ul className="space-y-1">
@@ -42,8 +42,8 @@ export function ParticipationHistory({ mogi, race }: { mogi: Mogi; race: Race })
                             <li>
                               <ItemContent>
                                 <ItemDescription wrap>
-                                  {name(id)} · in-game points: {points} (
-                                  {snapshot.result.nativePointOrigins?.[id] ?? "earlier screenshot"})
+                                  {name(id)} · {points} in-game points ·{" "}
+                                  {snapshot.result.nativePointOrigins?.[id] ?? "earlier screenshot"}
                                 </ItemDescription>
                               </ItemContent>
                             </li>

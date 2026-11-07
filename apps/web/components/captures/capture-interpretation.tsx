@@ -1,10 +1,21 @@
 import { captureNumericQuestions, screenProperties } from "@mkw/engine";
+import type { ReactNode } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Disclosure } from "@/components/ui/disclosure";
 import type { Capture } from "@/lib/mogi/types";
 
 import { TeamCaptureSummary } from "./team-evidence";
+
+/** A label with its trailing value. */
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex justify-between gap-4">
+      <dt>{label}</dt>
+      <dd className="text-end text-muted-foreground">{children}</dd>
+    </div>
+  );
+}
 
 export function CaptureInterpretationSummary({ capture }: { capture: Capture }) {
   const reading = capture.interpretation;
@@ -14,45 +25,35 @@ export function CaptureInterpretationSummary({ capture }: { capture: Capture }) 
     <Card role="region" aria-label="Screenshot reading">
       <CardContent>
         <p className="font-semibold">{screenProperties(reading.screen).name}</p>
-        <p>
-          {screenProperties(reading.screen).moment === "before"
-            ? "Game totals before the race"
-            : screenProperties(reading.screen).cumulative === "final"
-              ? "Final game totals"
-              : "Game totals not yet proven final"}
-        </p>
-        {capture.rows.length < 12 && (
-          <p>Partial screenshot: {capture.rows.length} rows. Missing rows don't make anyone absent.</p>
-        )}
-        {capture.nextTrackAnswer ? (
-          <p>Next track: {capture.nextTrackAnswer} · for the following race</p>
-        ) : (
-          reading.nextTrack && (
-            <p>
-              Next track: {reading.nextTrack.text || "not read"}
-              {reading.nextTrack.uncertain ? " · uncertain reading" : ""} · for the following race
-            </p>
-          )
-        )}
-        {capture.context && (
-          <p>
-            {capture.nameAssociations?.filter((answer) => !answer.participantId).length ??
-              capture.rows.filter((row) => row.uncertain).length}{" "}
-            pending names. Saving the screenshot doesn't answer them.
-          </p>
-        )}
-        {pending > 0 && (
-          <p>
-            {pending} {pending === 1 ? "game total" : "game totals"} not read. Another screenshot or your answer can
-            settle {pending === 1 ? "it" : "them"}.
-          </p>
-        )}
+        <dl>
+          <Row label="Game totals">
+            {screenProperties(reading.screen).moment === "before"
+              ? "Before the race"
+              : screenProperties(reading.screen).cumulative === "final"
+                ? "Final"
+                : "Not yet final"}
+          </Row>
+          {capture.rows.length < 12 && <Row label="Rows">{capture.rows.length} of 12</Row>}
+          {(capture.nextTrackAnswer || reading.nextTrack) && (
+            <Row label="Next track">
+              {capture.nextTrackAnswer ??
+                `${reading.nextTrack?.text || "Not read"}${reading.nextTrack?.uncertain ? " · uncertain" : ""}`}
+            </Row>
+          )}
+          {capture.context && (
+            <Row label="Pending names">
+              {capture.nameAssociations?.filter((answer) => !answer.participantId).length ??
+                capture.rows.filter((row) => row.uncertain).length}
+            </Row>
+          )}
+          {pending > 0 && <Row label="Game totals not read">{pending}</Row>}
+          {capture.numericAnswers?.map((answer) => (
+            <Row key={answer.row} label={`Row ${answer.row}`}>
+              {answer.value} entered
+            </Row>
+          ))}
+        </dl>
         <TeamCaptureSummary capture={capture} />
-        {capture.numericAnswers?.map((answer) => (
-          <p key={answer.row}>
-            Row {answer.row} · game total entered: {answer.value}
-          </p>
-        ))}
         <Disclosure title="Show Readings">
           <ol>
             {capture.numericRows?.map((row) => (

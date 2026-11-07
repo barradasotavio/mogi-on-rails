@@ -21,7 +21,7 @@ export function TeamCaptureSummary({ capture }: { capture: Capture }) {
   if (!before && !screenProperties(capture.interpretation?.screen)?.teamTotals) return null;
   return (
     <section aria-label={before ? "Groups before the race" : "Teams on the screenshot"} className="space-y-3 text-sm">
-      <p>{before ? "Groups before the race · no finish order" : "Groups and game totals · no finish order"}</p>
+      <p>{before ? "Groups before the race" : "Groups and game totals"}</p>
       {capture.interpretation?.groups?.map((group, index) => (
         <div key={index} className="space-y-1">
           <p className="font-semibold">
@@ -59,11 +59,6 @@ export function TeamCaptureSummary({ capture }: { capture: Capture }) {
           </ul>
         </div>
       ))}
-      <p>
-        {before
-          ? "The game's colors don't change the Lounge teams or points."
-          : "The game's colors and totals don't change the Lounge teams or points."}
-      </p>
     </section>
   );
 }
@@ -146,7 +141,7 @@ export function TeamEvidenceReview({
             <AlertDescription>{question.message}</AlertDescription>
           </Alert>
         ))}
-        {!questions.length && <p>The group totals match the players' game totals and the Lounge teams.</p>}
+        {!questions.length && <p>Group totals match</p>}
         {capture.interpretation?.groups?.map((group, index) => (
           <Collapsible
             key={index}
@@ -177,7 +172,6 @@ export function TeamEvidenceReview({
                     setEditingMember(null);
                   }}
                 />
-                <p>If the total is readable, check a player's game total.</p>
                 {group.rows
                   .filter((row) => !capture.numericRows?.find((reading) => reading.row === row)?.right.uncertain)
                   .map((row) => (

@@ -305,7 +305,10 @@ function QuestionPage({
             <div className="flex flex-col gap-3">
               {shots.map((shot, index) => (
                 <figure key={shot.capture.id} className="flex flex-col gap-1.5">
-                  {shot.label && <figcaption className="text-sm text-muted-foreground">{shot.label}</figcaption>}
+                  {/* Two screenshots with the same caption share the first one's. */}
+                  {shot.label && shot.label !== shots[index - 1]?.label && (
+                    <figcaption className="text-sm text-muted-foreground">{shot.label}</figcaption>
+                  )}
                   <CaptureViewerTrigger index={index} label={shot.label ? `Enlarge ${shot.label}` : undefined}>
                     <CaptureRowCrop capture={shot.capture} row={shot.row} whole={whole} />
                   </CaptureViewerTrigger>
@@ -321,12 +324,6 @@ function QuestionPage({
           )}
           {question.kind === "name" && question.occurrences.length > 0 && (
             <p className="text-sm text-muted-foreground">{nameOccurrenceNote(question)}</p>
-          )}
-          {question.kind === "name" && (
-            <p className="text-sm text-muted-foreground">The answer applies to every race in this mogi.</p>
-          )}
-          {question.kind === "points" && (
-            <p className="text-sm text-muted-foreground">Enter the game total shown on this row.</p>
           )}
         </div>
         {question.kind === "points" ? (
