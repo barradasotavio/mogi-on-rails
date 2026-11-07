@@ -64,9 +64,7 @@ for (const [width, height] of [[375, 812]]) {
       "Storage",
       "Usage",
       "Backup",
-      "Before updates",
       "Mogis",
-      "Persistent storage",
     ]);
     const usage = storage.getByRole("meter", { name: "Storage used", exact: true });
     await expect(usage).toBeVisible();
@@ -75,14 +73,13 @@ for (const [width, height] of [[375, 812]]) {
     // Tier D carries two captures of 453,526 bytes each; Tier C only its record.
     const mogis = storage.getByRole("list", { name: "Mogis", exact: true }).getByRole("listitem");
     await expect(mogis).toHaveCount(2);
-    await expect(mogis.nth(0)).toContainText("Mogi Tier D · FFA");
+    await expect(mogis.nth(0)).toContainText("Mogi Tier D");
     // The two images alone are 885.8 KB; the record adds a few KB more.
     const captured = Number(/(\d+\.\d) KB$/.exec(await mogis.nth(0).innerText())?.[1]);
     expect(captured).toBeGreaterThan(885.8);
     expect(captured).toBeLessThan(950);
-    await expect(mogis.nth(1)).toContainText("Mogi Tier C · FFA");
-    await expect(mogis.nth(1)).toContainText("12 players · no races yet");
-    await expect(mogis.nth(1)).toContainText(/(?<!\d)\d{1,2}\.\d KB$/);
+    // Title, then the creation moment, then the size.
+    await expect(mogis.nth(1)).toHaveText(/^Mogi Tier C[A-Z][a-z]{2} \d{1,2}, \d{2}:\d{2}\d{1,2}\.\d KB$/);
     await expect(mogis.getByRole("button")).toHaveCount(0);
 
     // One way to save the ZIP: Save Backup hands it to the browser, with no second Save or Share.
@@ -90,15 +87,13 @@ for (const [width, height] of [[375, 812]]) {
       "Save Backup",
       "Restore from File…",
     ]);
-    await expect(storage.getByRole("list", { name: "Before updates", exact: true }).getByRole("listitem")).toHaveText([
-      "None yet",
-    ]);
+    // With no automatic backup yet, the group is hidden.
+    await expect(storage.getByRole("list", { name: "Before updates", exact: true })).toHaveCount(0);
     // persist() was requested on open; the page shows the granted state.
     expect(await persistCalls(page)).toBe(1);
-    await expect(storage.getByRole("list", { name: "Persistent storage", exact: true })).toContainText("On");
-    await expect(
-      storage.getByText("When it's off, the browser may clear your mogis to free space.", { exact: true }),
-    ).toBeVisible();
+    await expect(storage.getByRole("list", { name: "Persistent storage", exact: true })).toHaveText(
+      "Persistent storageOn",
+    );
     await expect(storage).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 
@@ -106,7 +101,7 @@ for (const [width, height] of [[375, 812]]) {
       await page.emulateMedia({ colorScheme });
       await print(page, `storage-${width}-${colorScheme}`);
       if (width < 768) {
-        await storage.getByText("Status", { exact: true }).scrollIntoViewIfNeeded();
+        await storage.getByText("Persistent storage", { exact: true }).scrollIntoViewIfNeeded();
         await print(page, `storage-${width}-${colorScheme}-end`);
         await storage.locator(".edge-mask").evaluate((element) => {
           element.scrollTop = 0;
@@ -167,7 +162,7 @@ test("without an estimate, Storage says usage is unavailable and still lists mog
   await expect(storage.getByText("Usage isn't available in this browser.", { exact: true })).toBeVisible();
   await expect(storage.getByRole("meter")).toHaveCount(0);
   await expect(storage.getByRole("list", { name: "Mogis", exact: true }).getByRole("listitem")).toContainText([
-    "Mogi Tier D · FFA",
+    "Mogi Tier D",
   ]);
   await expect(storage.getByRole("list", { name: "Persistent storage", exact: true })).toContainText("On");
   expect(await persistCalls(page)).toBe(0);

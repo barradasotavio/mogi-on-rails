@@ -8,15 +8,11 @@ import { type AutomaticBackup, backupDate, backupSize, listAutomaticBackups } fr
 export function AutomaticBackups({ onSelect }: { onSelect: (entry: AutomaticBackup) => void }) {
   const [entries, setEntries] = useState<AutomaticBackup[]>([]);
   const [problem, setProblem] = useState(false);
-  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     let cancelled = false;
     void listAutomaticBackups().then(
       (backups) => {
-        if (!cancelled) {
-          setEntries(backups);
-          setLoaded(true);
-        }
+        if (!cancelled) setEntries(backups);
       },
       () => {
         if (!cancelled) setProblem(true);
@@ -26,30 +22,30 @@ export function AutomaticBackups({ onSelect }: { onSelect: (entry: AutomaticBack
       cancelled = true;
     };
   }, []);
-  return (
-    <ListGroup title="Before updates" note="Saved on this device before each update. The latest 3 are kept.">
-      {problem ? (
+  if (problem)
+    return (
+      <ListGroup title="Before updates">
         <Alert variant="destructive">
           <AlertDescription>Couldn't open automatic backups. Try reopening Settings.</AlertDescription>
         </Alert>
-      ) : entries.length ? (
-        <List aria-label="Before updates">
-          {entries.map((entry) => (
-            <ListRow
-              key={entry.id}
-              accessory="chevron"
-              onSelect={() => onSelect(entry)}
-              description={`${entry.mogiCount} ${entry.mogiCount === 1 ? "mogi" : "mogis"} · ${backupSize(entry.size)}`}
-            >
-              {backupDate(entry.createdAt)}
-            </ListRow>
-          ))}
-        </List>
-      ) : (
-        <List aria-label="Before updates" tone="muted">
-          <ListRow>{loaded ? "None yet" : "Loading backups…"}</ListRow>
-        </List>
-      )}
+      </ListGroup>
+    );
+  // Hidden while empty: the group appears with the first backup an update saves.
+  if (!entries.length) return null;
+  return (
+    <ListGroup title="Before updates">
+      <List aria-label="Before updates">
+        {entries.map((entry) => (
+          <ListRow
+            key={entry.id}
+            accessory="chevron"
+            onSelect={() => onSelect(entry)}
+            description={`${entry.mogiCount} ${entry.mogiCount === 1 ? "mogi" : "mogis"} · ${backupSize(entry.size)}`}
+          >
+            {backupDate(entry.createdAt)}
+          </ListRow>
+        ))}
+      </List>
     </ListGroup>
   );
 }

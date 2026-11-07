@@ -192,7 +192,7 @@ export function WatchedFoldersSettings({
   return (
     <div className="section-stack">
       {folders.length > 0 && (
-        <ListGroup note="New screenshots in these folders are offered while a mogi is in progress.">
+        <ListGroup>
           <List aria-label="Watched folders">
             {folders.map((folder) => (
               <ListRow
@@ -211,7 +211,7 @@ export function WatchedFoldersSettings({
         </ListGroup>
       )}
       {folders.length > 0 && (
-        <ListGroup note="New screenshots go straight to the mogi, without the New Screenshot sheet. A paste still asks.">
+        <ListGroup>
           <List>
             <ListRow
               trail={
@@ -228,7 +228,7 @@ export function WatchedFoldersSettings({
         </ListGroup>
       )}
       {blocked.length > 0 && (
-        <ListGroup note="The browser stopped allowing the app to read these folders.">
+        <ListGroup>
           <List>
             <ListRow action="primary" onSelect={() => void allow()}>
               Allow Access
@@ -236,7 +236,7 @@ export function WatchedFoldersSettings({
           </List>
         </ListGroup>
       )}
-      <ListGroup note="Chrome can't watch Downloads, Desktop or Documents themselves, but it can watch a folder inside them.">
+      <ListGroup>
         <List>
           <ListRow action="primary" onSelect={() => void add()}>
             Add Folder

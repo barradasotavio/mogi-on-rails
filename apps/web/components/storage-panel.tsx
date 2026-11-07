@@ -1,15 +1,16 @@
 "use client";
-import { mogiOverview, mogiSummary } from "@mkw/engine";
+import { mogiOverview } from "@mkw/engine";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
+import { mogiTitle } from "@/components/mogi-overview";
 import { List, ListGroup, ListRow } from "@/components/ui/list";
 import { Meter } from "@/components/ui/meter";
+import { createdMoment } from "@/lib/mogi/roster";
 import type { Mogi } from "@/lib/mogi/types";
 import { formatBytes, mogiStorageSize, storageEstimate, storagePersisted } from "@/lib/storage/usage";
 
 interface StorageRow {
   size: number;
-  summary: string;
   finished: boolean;
 }
 // Saves replace only the mogis they change, so an unchanged mogi keeps its row when Storage opens again, such as
@@ -20,7 +21,7 @@ function storageRow(mogi: Mogi): StorageRow {
   if (!row)
     rows.set(
       mogi,
-      (row = { size: mogiStorageSize(mogi), summary: mogiSummary(mogi).text, finished: mogiOverview(mogi).finished }),
+      (row = { size: mogiStorageSize(mogi), finished: mogiOverview(mogi).finished }),
     );
   return row;
 }
@@ -83,15 +84,15 @@ export function StoragePanel({
       <ListGroup title="Mogis">
         {sized.length ? (
           <List aria-label="Mogis">
-            {sized.map(({ mogi, size, summary, finished }) => (
+            {sized.map(({ mogi, size, finished }) => (
               <ListRow
                 key={mogi.id}
-                description={summary}
+                description={createdMoment(mogi.createdAt)}
                 trail={formatBytes(size)}
                 accessory={finished ? "chevron" : undefined}
                 onSelect={finished ? () => onOpenMogi(mogi.id) : undefined}
               >
-                Mogi Tier {mogi.submissionTier?.trim() || "—"} · {mogi.format}
+                {mogiTitle(mogi)}
               </ListRow>
             ))}
           </List>
@@ -101,9 +102,9 @@ export function StoragePanel({
           </List>
         )}
       </ListGroup>
-      <ListGroup title="Persistent storage" note="When it's off, the browser may clear your mogis to free space.">
+      <ListGroup>
         <List aria-label="Persistent storage">
-          <ListRow trail={persisted === undefined ? "…" : persisted ? "On" : "Off"}>Status</ListRow>
+          <ListRow trail={persisted === undefined ? "…" : persisted ? "On" : "Off"}>Persistent storage</ListRow>
         </List>
       </ListGroup>
     </div>

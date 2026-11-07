@@ -71,9 +71,7 @@ export function useOfflinePanel({
           } catch {
             const failed = decideUpdate({ ...conditions, backup: "failed" });
             if (failed === "backup-failed")
-              setUpdateStatus(
-                "Couldn't save the backup. Free up space or use Save Backup in Storage, then try Restart Now.",
-              );
+              setUpdateStatus("Couldn't save a backup first. Free up space and try again.");
             return;
           }
           if (

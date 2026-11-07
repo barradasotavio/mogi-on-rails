@@ -82,7 +82,7 @@ test("recovery restores a backup without loading existing data", async ({ page, 
   await recovery.getByLabel("Restore from file", { exact: true }).setInputFiles(backup);
   await recovery.getByRole("button", { name: "Replace All Data", exact: true }).click();
   await recovery
-    .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+    .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
     .getByRole("button", { name: "Replace", exact: true })
     .click();
   await expectRestored(recovery);
@@ -296,13 +296,16 @@ test("ZIP restores data and original bytes; altered files and cancellation prese
   const restore = page.getByRole("dialog", { name: "Restore", exact: true });
   await expect(restore.getByRole("button", { name: "Back", exact: true })).toBeFocused();
   await expect(restore.getByRole("list", { name: "Summary", exact: true }).getByRole("listitem")).toHaveText([
-    "Mogis1",
     "Races1",
     /^Screenshots\d+$/,
   ]);
+  // Each mogi carries the title it has everywhere else.
+  await expect(restore.getByRole("list", { name: "Mogis", exact: true }).getByRole("listitem")).toHaveText([
+    /^Mogi Tier D/,
+  ]);
   await expect(restore.getByRole("checkbox")).toHaveCount(0);
   await restore.getByRole("button", { name: "Replace All Data", exact: true }).click();
-  const replacing = page.getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true });
+  const replacing = page.getByRole("alertdialog", { name: "Replace All Data?", exact: true });
   await expect(replacing).toContainText("Your current mogis will be replaced by the 1 in this backup.");
   await replacing.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(restore.getByRole("button", { name: "Replace All Data", exact: true })).toBeFocused();
@@ -378,7 +381,7 @@ test("ZIP restores data and original bytes; altered files and cancellation prese
     await expect(page.getByRole("heading", { name: "Restore", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Replace All Data", exact: true }).click();
     await page
-      .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+      .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
       .getByRole("button", { name: "Replace", exact: true })
       .click();
     await openCurrentMogi(page);
@@ -571,7 +574,7 @@ test("finished mogi compresses older JPEG backups without changing results or or
     .setInputFiles({ name: "compressed.zip", mimeType: "application/zip", buffer: Buffer.from(zipSync(exported)) });
   await page.getByRole("button", { name: "Replace All Data", exact: true }).click();
   await page
-    .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+    .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
     .getByRole("button", { name: "Replace", exact: true })
     .click();
   await expectRestored(page);

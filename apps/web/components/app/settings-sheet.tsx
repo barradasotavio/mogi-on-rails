@@ -4,6 +4,7 @@ import { FolderOpen, HardDrive, SunMoon, UserRound } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { useBackupPanel } from "@/components/backup-panel";
+import { mogiTitle } from "@/components/mogi-overview";
 import { StorageMogi } from "@/components/storage-mogi";
 import { StoragePanel } from "@/components/storage-panel";
 import { List, ListRow } from "@/components/ui/list";
@@ -82,7 +83,7 @@ export function SettingsSheet({
       }}
       title={
         settingsPages.page === "storageMogi" && storageMogi
-          ? storageMogi.name
+          ? mogiTitle(storageMogi)
           : settingsPages.page === "backupDetail" && automaticBackup
             ? backupDate(automaticBackup.createdAt)
             : settingsTitles[settingsPages.page]

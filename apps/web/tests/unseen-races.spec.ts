@@ -39,7 +39,7 @@ for (const [width, colorScheme] of [[375, "light"]] as const) {
       await page.getByLabel("Restore from file").setInputFiles(saved);
       await page.getByRole("button", { name: "Replace All Data", exact: true }).click();
       await page
-        .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+        .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
         .getByRole("button", { name: "Replace", exact: true })
         .click();
       await expectRestored(page);

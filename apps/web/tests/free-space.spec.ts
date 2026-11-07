@@ -83,16 +83,14 @@ for (const width of [375])
       "Storage",
       "Usage",
       "Backup",
-      "Before updates",
       "Mogis",
-      "Persistent storage",
     ]);
     await rows.getByRole("button").click();
-    let detail = page.getByRole("dialog", { name: finished.name, exact: true });
+    let detail = page.getByRole("dialog", { name: "Mogi Tier D", exact: true });
     const oldSize = await detail.getByRole("list", { name: "Size", exact: true }).innerText();
     await detail.getByRole("button", { name: "Delete Screenshots", exact: true }).click();
-    let alert = page.getByRole("alertdialog", { name: `Delete Screenshots of ${finished.name}?`, exact: true });
-    await expect(alert).toContainText("Results and the table are kept. The screenshots can't be recovered.");
+    let alert = page.getByRole("alertdialog", { name: "Delete Screenshots of Mogi Tier D?", exact: true });
+    await expect(alert).toContainText("Results and the table are kept.");
     await alert.getByRole("button", { name: "Cancel", exact: true }).click();
     await detail.getByRole("button", { name: "Delete Screenshots", exact: true }).click();
     await page.getByRole("alertdialog").getByRole("button", { name: "Delete Screenshots", exact: true }).click();
@@ -128,11 +126,11 @@ for (const width of [375])
 
     panel = await storage(page);
     await panel.getByRole("list", { name: "Mogis", exact: true }).getByRole("button").click();
-    detail = page.getByRole("dialog", { name: finished.name, exact: true });
+    detail = page.getByRole("dialog", { name: "Mogi Tier D", exact: true });
     await expect(detail.getByRole("button", { name: "Delete Screenshots", exact: true })).toHaveCount(0);
     await detail.getByRole("button", { name: "Delete Mogi", exact: true }).click();
-    alert = page.getByRole("alertdialog", { name: `Delete ${finished.name}?`, exact: true });
-    await expect(alert).toContainText("This mogi and its screenshots can't be recovered.");
+    alert = page.getByRole("alertdialog", { name: "Delete Mogi Tier D?", exact: true });
+    await expect(alert).toContainText("This can't be undone.");
     await alert.getByRole("button", { name: "Delete Mogi", exact: true }).click();
     await expect(panel).toBeVisible();
     await expect(page).not.toHaveURL(/[?&]mogi=finished(?:&|$)/);

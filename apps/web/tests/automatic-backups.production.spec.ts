@@ -84,7 +84,7 @@ test("replacement failure opens the save alert, keeps data and Try Again complet
     };
   });
   await page
-    .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+    .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
     .getByRole("button", { name: "Replace", exact: true })
     .click();
   // The aborted write is a storage failure: the blocking alert, with Restore kept behind it.
@@ -239,7 +239,7 @@ test("a hidden page updates at the same URL; a fourth backup retains the latest 
     await expect(page.getByRole("dialog", { name: "Restore", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Replace All Data", exact: true }).click();
     await page
-      .getByRole("alertdialog", { name: "Replace All Data on This Device?", exact: true })
+      .getByRole("alertdialog", { name: "Replace All Data?", exact: true })
       .getByRole("button", { name: "Replace", exact: true })
       .click();
     await expectRestored(page);
@@ -281,7 +281,8 @@ test("an open question and two windows defer updates; the next trigger retries; 
     await page.keyboard.press("Escape");
     // Closing a question on a visible page does not trigger an update.
     await openBackup(page);
-    await expect(page.getByText("None yet", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Backup", exact: true })).toBeVisible();
+    await expect(page.getByRole("list", { name: "Before updates", exact: true })).toHaveCount(0);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     const other = await context.newPage();
@@ -352,7 +353,7 @@ test("a write error prevents activation and Settings explains how to retry", asy
       };
     });
     await hidden(page);
-    await expect(page.getByText("Couldn't save the backup.", { exact: false })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Couldn't save a backup first.", { exact: false })).toBeVisible({ timeout: 15000 });
     await visible(page);
     await expect(page.getByText("Update ready", { exact: true })).toBeVisible();
     await waitForBuild(page, before);
