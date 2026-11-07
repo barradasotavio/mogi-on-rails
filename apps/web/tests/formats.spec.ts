@@ -43,16 +43,12 @@ test("removed lists are refused and Players records a substitution from the firs
   await expect(untagged.getByRole("listitem")).toHaveCount(6);
   // Under the untagged teams, the roster opens its own section.
   await expect(players.locator("xpath=..").getByRole("heading", { name: "Players", exact: true })).toBeVisible();
-  await expect(untagged.getByRole("listitem").first()).toContainText("Another team also seems to use Play");
-  await untagged.getByRole("button", { name: /Player 1, Player 2/ }).click();
+  await untagged.getByRole("button", { name: "Team 1", exact: true }).click();
   const team = page.getByRole("dialog", { name: "Team 1", exact: true });
-  await expect(
-    team.getByText("Another team also seems to use Play. Pick a tag for this one, or leave it empty.", { exact: true }),
-  ).toBeVisible();
+  await expect(team.getByText("5 other teams also use Play.", { exact: true })).toBeVisible();
   await team.getByLabel("Tag", { exact: true }).fill("XO");
   await team.getByLabel("Tag", { exact: true }).blur();
   const tagged = page.getByRole("dialog", { name: "XO", exact: true });
-  await expect(tagged.getByText("The in-game names suggest Play.", { exact: true })).toBeVisible();
   await expect(tagged.getByRole("button", { name: "Use Play", exact: true })).toBeVisible();
   await tagged.getByRole("button", { name: "Player 2", exact: true }).click();
   await page

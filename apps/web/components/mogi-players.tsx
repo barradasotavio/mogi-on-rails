@@ -77,9 +77,7 @@ export function MogiPlayers({
           const incoming = mogi.substitutions?.find((entry) => entry.incomingParticipantId === person.id);
           const from = incoming?.fromRace ?? 1;
           const through = outgoing ? outgoing.fromRace - 1 : 12;
-          const igns = [...new Set([person.ign, ...participantSynonyms(mogi, person.id)])].filter(
-            (name) => name && name !== person.loungeName,
-          );
+          const igns = distinctIgns(mogi, person);
           return (
             <ListRow
               key={person.id}
@@ -166,18 +164,11 @@ export function MogiPlayers({
                   <ListRow
                     key={team.teamId}
                     lead={<TeamMark mogi={mogi} id={team.teamId} />}
-                    trail="Set"
                     accessory="chevron"
-                    description={
-                      team.inferred
-                        ? `Another team also seems to use ${team.inferred}`
-                        : "Their in-game names share no tag"
-                    }
+                    buttonProps={{ "aria-label": teamLabel(mogi, team.teamId) }}
                     onSelect={() => pages.push({ kind: "team", id: team.teamId })}
                   >
-                    {members(team.teamId)
-                      .map((person) => person.loungeName)
-                      .join(", ")}
+                    {teamLabel(mogi, team.teamId)}
                   </ListRow>
                 ))}
               </List>
@@ -256,7 +247,7 @@ function Person({
   }
   return (
     <>
-      <ListGroup title="In-game name" note="The name recognition looks for in the screenshots.">
+      <ListGroup title="In-game name">
         <Input
           variant="filled"
           aria-label="In-game name"
@@ -338,6 +329,13 @@ function Person({
   );
 }
 
+/** In-game names that differ from the Lounge name: the IGN and every linked spelling, once each. */
+function distinctIgns(mogi: Mogi, person: Participant) {
+  return [...new Set([person.ign, ...participantSynonyms(mogi, person.id)])].filter(
+    (name) => name && name !== person.loungeName,
+  );
+}
+
 /** Team: fixed members (bot list); only the displayed tag can change, and a chosen tag always wins. */
 function TeamPage({
   mogi,
@@ -377,15 +375,17 @@ function TeamPage({
       setError("Couldn't save the tag. Try again.");
     }
   }
-  const note = team.chosen
-    ? team.inferred
-      ? `The in-game names suggest ${team.inferred}.`
-      : "The in-game names don't suggest a tag."
-    : team.tag
-      ? "Read from the in-game names. Change it if it's wrong."
-      : team.inferred
-        ? `Another team also seems to use ${team.inferred}. Pick a tag for this one, or leave it empty.`
-        : "The in-game names don't suggest a tag. Without one, the team shows its number.";
+  // The one fact the field can't show: why the suggested tag isn't used.
+  const sharing =
+    !team.chosen && !team.tag && team.inferred
+      ? inferTeamTags(mogi).filter((other) => other.teamId !== team.teamId && other.inferred === team.inferred)
+      : [];
+  const note =
+    sharing.length === 1
+      ? `Team ${sharing[0].number} also uses ${team.inferred}.`
+      : sharing.length > 1
+        ? `${sharing.length} other teams also use ${team.inferred}.`
+        : undefined;
   return (
     <>
       <ListGroup title="Tag" note={note}>
@@ -418,19 +418,24 @@ function TeamPage({
       )}
       <ListGroup title="Members">
         <List aria-label="Members">
-          {members.map((person) => (
-            <ListRow
-              key={person.id}
-              accessory="chevron"
-              buttonProps={{ "aria-label": person.loungeName }}
-              onSelect={() => onOpen(person.id)}
-            >
-              <span className="flex min-w-0 items-center gap-2">
-                <span className="shrink-0">{person.loungeName}</span>
-                <span className="truncate text-sm text-muted-foreground">{person.ign}</span>
-              </span>
-            </ListRow>
-          ))}
+          {members.map((person) => {
+            const igns = distinctIgns(mogi, person);
+            return (
+              <ListRow
+                key={person.id}
+                accessory="chevron"
+                buttonProps={{ "aria-label": person.loungeName }}
+                onSelect={() => onOpen(person.id)}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate">
+                    {person.loungeName}
+                    {igns.length > 0 && <span className="text-sm text-muted-foreground"> {igns.join(" · ")}</span>}
+                  </span>
+                </span>
+              </ListRow>
+            );
+          })}
         </List>
       </ListGroup>
     </>
@@ -477,11 +482,10 @@ function SubstitutionForm({
   }
   return (
     <form onSubmit={(event) => void submit(event)} className="section-stack">
-      <ListGroup title="Who comes in" note="As shown on the Lounge.">
+      <ListGroup title="Sub's Lounge name">
         <Input
           variant="filled"
           aria-label="Sub's Lounge name"
-          placeholder="Sub's Lounge name"
           value={name}
           maxLength={80}
           disabled={busy}
