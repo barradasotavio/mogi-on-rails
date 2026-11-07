@@ -51,10 +51,10 @@ export function projectOccurrencesIntoRaces<T extends Mogi>(
   let mogi = input;
   if (!conflict) {
     const races = [...input.races];
-    const released = followOccurrenceNumbers(input, nodes, races, priorProjected, manualTargets);
+    const { released, followed } = followOccurrenceNumbers(input, nodes, races, priorProjected, manualTargets);
     conflict = occurrenceRaces(input, original, detached, nodes, gaps, races, priorProjected, manualTargets, projected);
     if (!conflict) {
-      pendingRacesThrough(nodes, races, detached, priorProjected, manualTargets, projected);
+      pendingRacesThrough(nodes, races, detached, followed, priorProjected, manualTargets, projected);
       mogi = {
         ...input,
         captures: input.captures?.map((capture) =>
@@ -179,15 +179,16 @@ function occurrenceRaces(
 /** A projected race whose result was read only from its own screens follows its occurrence as a fresh import of the
  * same screens would: it takes the occurrence's current number, or, when the occurrence has none, it is withdrawn and
  * its screens go back to context. An older analysis may have numbered it differently, or left it marked by a sequence
- * conflict that this numbering no longer has. Returns the released screens. */
+ * conflict that this numbering no longer has. Returns the released screens and the races that followed. */
 function followOccurrenceNumbers(
   input: Mogi,
   nodes: OccurrenceNode[],
   races: Race[],
   priorProjected: Set<string>,
   manualTargets: Set<string>,
-): Set<string> {
+): { released: Set<string>; followed: Set<string> } {
   const released = new Set<string>();
+  const followed = new Set<string>();
   for (const node of nodes) {
     const number = node.occurrence.number;
     const at = races.findIndex((race) => race.id === node.occurrence.id);
@@ -211,6 +212,7 @@ function followOccurrenceNumbers(
       input.substitutions?.some((entry) => entry.fromRaceId === race.id)
     )
       continue;
+    followed.add(race.id);
     if (number === undefined) {
       races.splice(at, 1);
       for (const id of race.captureIds) released.add(id);
@@ -222,13 +224,16 @@ function followOccurrenceNumbers(
         participationReview: undefined,
       };
   }
-  return released;
+  return { released, followed };
 }
 
+/** Fill every number up to the last numbered occurrence with a pending race, reusing a detached one that is not
+ * already placed and did not follow its occurrence elsewhere. */
 function pendingRacesThrough(
   nodes: OccurrenceNode[],
   races: Race[],
   detached: Mogi,
+  followed: Set<string>,
   priorProjected: Set<string>,
   manualTargets: Set<string>,
   projected: Set<string>,
@@ -247,7 +252,9 @@ function pendingRacesThrough(
         (race) => race.number === number && (race.status !== "discarded" || race.physicalNumber !== undefined),
       )
     ) {
-      const previous = detached.races.find((race) => race.number === number);
+      const previous = detached.races.find(
+        (race) => race.number === number && !followed.has(race.id) && !races.some((placed) => placed.id === race.id),
+      );
       const pending = previous ?? {
         id: crypto.randomUUID(),
         origin: "observed" as const,
