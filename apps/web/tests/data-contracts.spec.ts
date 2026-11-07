@@ -139,9 +139,7 @@ test("a restored track survives result editing, and discarding makes the final r
   await discardedRow.click();
   const discarded = page.getByRole("dialog", { name: "Discarded Race", exact: true });
   await expect(discarded.getByRole("button", { name: "Count Again", exact: true })).toBeDisabled();
-  await expect(
-    discarded.getByText("12 races already count. Discard another one first.", { exact: true }),
-  ).toBeVisible();
+  await expect(discarded.getByText("12 races already count. Stop counting one first.", { exact: true })).toBeVisible();
   await discarded.getByRole("button", { name: "Close", exact: true }).click();
   await expect(discardedRow).toBeFocused();
   const tile = page.getByRole("button", { name: "Race 1 · counted", exact: true });
@@ -166,12 +164,12 @@ test("a restored track survives result editing, and discarding makes the final r
   await race.getByRole("button", { name: "Close", exact: true }).click();
   await expect(tile).toBeFocused();
   await tile.click();
-  await race.getByRole("button", { name: "Discard Race", exact: true }).click();
-  const confirmation = page.getByRole("alertdialog", { name: "Discard Race 1?", exact: true });
+  await race.getByRole("button", { name: "Don't Count This Race", exact: true }).click();
+  const confirmation = page.getByRole("alertdialog", { name: "Don't Count Race 1?", exact: true });
   await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(race.getByRole("button", { name: "Discard Race", exact: true })).toBeFocused();
-  await race.getByRole("button", { name: "Discard Race", exact: true }).click();
-  await confirmation.getByRole("button", { name: "Discard", exact: true }).click();
+  await expect(race.getByRole("button", { name: "Don't Count This Race", exact: true })).toBeFocused();
+  await race.getByRole("button", { name: "Don't Count This Race", exact: true }).click();
+  await confirmation.getByRole("button", { name: "Don't Count", exact: true }).click();
   await expect(race).toBeHidden();
   await expect(tile).toBeFocused();
   const following = await consultRace(page, 1);
@@ -586,10 +584,10 @@ test("finished mogi compresses older JPEG backups without changing results or or
   });
   await page.keyboard.press("Escape");
   const race = await consultRace(page, 1);
-  await race.getByRole("button", { name: "Discard Race", exact: true }).click();
+  await race.getByRole("button", { name: "Don't Count This Race", exact: true }).click();
   await page
-    .getByRole("alertdialog", { name: "Discard Race 1?", exact: true })
-    .getByRole("button", { name: "Discard", exact: true })
+    .getByRole("alertdialog", { name: "Don't Count Race 1?", exact: true })
+    .getByRole("button", { name: "Don't Count", exact: true })
     .click();
   await expect(page.getByText("FFA · Race 11 of 12", { exact: true })).toBeVisible();
   await addScreenshots(page, { name: "synthetic-original.jpeg", mimeType: "image/jpeg", buffer: jpeg });

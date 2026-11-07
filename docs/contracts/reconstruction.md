@@ -28,7 +28,7 @@ Restoring a ZIP validates shape and references and recomputes the evidence from 
 
 ## Physical identity and valid numbering
 
-`Race.id` is the physical identity: changing validity (Discard/Count Again) keeps captures, position facts, historical people, credit and native observations on the same race. `Race.physicalNumber` is an internal coordinate of a numbered timeline, relative to the earlier unknown gaps; `Race.number` is the current valid Lounge number, held only by counted races. The adapter reconciles in physical coordinates and then projects valid numbers; an inferred placeholder's coordinate is a projection, distinct from a manual fact.
+`Race.id` is the physical identity: changing validity (Don't Count This Race / Count Again) keeps captures, position facts, historical people, credit and native observations on the same race. `Race.physicalNumber` is an internal coordinate of a numbered timeline, relative to the earlier unknown gaps; `Race.number` is the current valid Lounge number, held only by counted races. The adapter reconciles in physical coordinates and then projects valid numbers; an inferred placeholder's coordinate is a projection, distinct from a manual fact.
 
 - Number answers store the given number apart from the physical referent. `Substitution.fromRaceId` ties the entry to the physical race; `fromPhysicalNumber` and the legacy `fromRace` remain accepted.
 - Compressing the valid numbering preserves the historical occupant; correcting an entry asks for participation review only where eligibility changed.

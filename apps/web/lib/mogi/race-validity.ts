@@ -44,7 +44,7 @@ export function changeRaceValidity(mogi: Mogi, raceId: string, discarded: boolea
   const prepared = establishPhysicalNumbers(mogi);
   if (!prepared.races.some((race) => race.id === raceId)) throw new Error("This race changed. Reopen it.");
   if (!discarded && prepared.races.filter((race) => race.status !== "discarded").length >= 12)
-    throw new Error("12 races already count. Discard another one first.");
+    throw new Error("12 races already count. Stop counting one first.");
   const races = prepared.races.map((race): Race =>
     race.id !== raceId
       ? race
