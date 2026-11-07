@@ -28,7 +28,7 @@ export function updateIdle(activity: {
     !activity.editingRace &&
     !activity.editingName &&
     activity.sheet !== "create" &&
-    ["dashboard", "tracks", "instructions", "list"].includes(activity.screen)
+    ["dashboard", "tracks", "instructions", "release-notes", "list"].includes(activity.screen)
   );
 }
 

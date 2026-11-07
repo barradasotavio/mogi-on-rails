@@ -3,9 +3,9 @@ import { resultCoverage } from "@mkw/engine";
 import type { TrackerState } from "./types.ts";
 
 export type RouteOperation = { type: "replace" | "push"; url: string; pushed: boolean } | { type: "back" };
-/** A destination beside the mogis that holds no mogi: the Instructions page or the Tracks screen. */
-export type RouteView = "instructions" | "tracks";
-const views: RouteView[] = ["instructions", "tracks"];
+/** A destination beside the mogis that holds no mogi: the Instructions page, Release Notes or the Tracks screen. */
+export type RouteView = "instructions" | "release-notes" | "tracks";
+const views: RouteView[] = ["instructions", "release-notes", "tracks"];
 export type RouteDecision = { mogiId: string | null; view?: RouteView; operations: RouteOperation[]; toast?: string };
 export type RouteAction =
   | { type: "load"; sizeClass: "compact" | "regular" }

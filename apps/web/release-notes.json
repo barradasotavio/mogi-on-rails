@@ -1,0 +1,31 @@
+[
+  {
+    "date": "2026-11-07",
+    "changes": [
+      {
+        "kind": "fix",
+        "text": "Unlinking a player in Players now also forgets the in-game name it learned, so swapped teammates no longer mix their points in later races."
+      },
+      {
+        "kind": "new",
+        "text": "Watched folders can add new screenshots straight to the mogi. Turn on Add Without Asking in Settings › Watched Folders."
+      },
+      {
+        "kind": "fix",
+        "text": "Answering “Which race is this?” moves the screenshot to that race. It no longer shows under its old race too."
+      },
+      {
+        "kind": "new",
+        "text": "Adding a screenshot that's already in another mogi now says which mogi holds it and how to free it."
+      },
+      {
+        "kind": "fix",
+        "text": "A mogi saved while a reopened room was misread numbers its races correctly again when you open it."
+      },
+      {
+        "kind": "fix",
+        "text": "When the room reopens mid-mogi, its first results screen starts the new room, even if it was taken mid-animation."
+      }
+    ]
+  }
+]
