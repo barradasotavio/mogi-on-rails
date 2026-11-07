@@ -1,7 +1,7 @@
 "use client";
 import { type ComponentProps, type FormEvent, useState } from "react";
 
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { GlassButton } from "@/components/ui/glass-button";
 import { Sheet } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,15 +65,12 @@ function MogiSetupForm({ onCreate, busy }: { onCreate: (mogi: Mogi) => Promise<v
           maxLength={10000}
           value={rosterText}
           onChange={(e) => setRosterText(e.target.value)}
-          placeholder="Paste the full list with groups and tier"
+          placeholder="Tier, format and 12 players"
           rows={8}
-          aria-describedby={error ? "lounge-list-help lounge-list-error" : "lounge-list-help"}
+          aria-describedby={error ? "lounge-list-error" : undefined}
           aria-invalid={!!error}
           disabled={busy}
         />
-        <FieldDescription id="lounge-list-help">
-          Paste the bot's full list. The 12 players, format and tier are read when you create the mogi.
-        </FieldDescription>
         {error && <FieldError id="lounge-list-error">{error}</FieldError>}
       </Field>
     </form>

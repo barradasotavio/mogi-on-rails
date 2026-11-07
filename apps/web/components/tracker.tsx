@@ -158,7 +158,7 @@ export function Tracker() {
     <ContentUnavailable
       icon={<Flag />}
       title="No Mogis Yet"
-      description="Paste the bot list to start. Add screenshots after each race, then copy the table."
+      description="Paste a bot list to start."
       actions={
         <>
           <GlassButton tint disabled={busy} onClick={() => sheets.open("create")}>

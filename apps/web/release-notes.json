@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "new",
+        "text": "Tracks names its measure once, above the numbers. The track sheet, New Mogi and the empty mogi list show less text."
+      },
+      {
+        "kind": "new",
         "text": "Players reads faster: a team without a tag shows as Team N, and the player, team and sub pages drop notes that repeated their labels."
       },
       {
