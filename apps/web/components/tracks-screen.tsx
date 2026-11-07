@@ -33,7 +33,7 @@ const counts: { value: Count; label: string; short: string }[] = [
   { value: "plus", label: "Plus Only", short: "Plus" },
   { value: "minus", label: "Minus Only", short: "Minus" },
 ];
-/** The list's measure, named once above its numbers: "Typical +/−", "Total Minus", "Races". */
+/** The list's measure, named once as its section title: "Typical +/−", "Total Minus", "Races". */
 const measureName = (by: SortBy, count: Count) =>
   by === "races"
     ? "Races"
@@ -271,13 +271,10 @@ function TrackList({
       a.value === null ? (b.value === null ? 0 : 1) : b.value === null ? -1 : direction * (a.value - b.value),
     );
   const measure = measureName(sortBy, count);
-  // The measure's name heads the column of numbers, as a table's column heading: the numbers end where the
-  // chevron's 16px and the trail's 16px gap begin, so the heading ends there too.
+  // The measure's name titles the list, leading like every section title, as iOS Settings › Battery titles its
+  // list by app over trailing percentages; each value keeps the name for screen readers.
   return (
-    <ListGroup inset>
-      <h2 data-section-title className="section-title pr-8 text-right text-sm/4 font-medium text-muted-foreground">
-        {measure}
-      </h2>
+    <ListGroup inset title={measure}>
       <List aria-label="Tracks">
         {ordered.map(({ standing, value }) => (
           <TrackRow
@@ -366,7 +363,7 @@ function TrackRow({
   );
 }
 
-/** A row's main number, its measure named to screen readers only: the column heading names it on screen. */
+/** A row's main number, its measure named to screen readers only: the section title names it on screen. */
 function Measure({ value, name, ink = "text-foreground" }: { value: string; name: string; ink?: string }) {
   return (
     <span className="min-w-13 text-right">

@@ -221,7 +221,7 @@ export function RaceEditor({
                   description={invalid ? "Enter a whole number from 0 to 15." : undefined}
                   trail={
                     <Input
-                      variant="filled"
+                      variant="inline"
                       className="w-16 text-right"
                       aria-label={`In-game points for ${ordinal(position + 1)} place`}
                       aria-invalid={invalid}

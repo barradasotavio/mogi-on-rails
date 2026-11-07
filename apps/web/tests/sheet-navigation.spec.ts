@@ -64,12 +64,8 @@ test("Mogi Settings groups actions and includes images without a race in Images"
   await expect(image.getByRole("button", { name: "Not counted yet, 3 questions", exact: true })).toBeVisible();
   await expect(image.getByRole("button", { name: "Move to another mogi", exact: true })).toHaveCount(0);
   await expect(image.getByRole("button", { name: "Remove Screenshot", exact: true })).toHaveClass(/text-destructive/);
-  await image.getByRole("button", { name: "Numbers Read", exact: true }).click();
-  await expect(page.getByRole("dialog", { name: "Numbers Read", exact: true })).toBeVisible();
-  await page
-    .getByRole("dialog", { name: "Numbers Read", exact: true })
-    .getByRole("button", { name: "Back", exact: true })
-    .click();
+  // This capture has no numbers read, so no empty page is offered.
+  await expect(image.getByRole("button", { name: "Numbers Read", exact: true })).toHaveCount(0);
   await image.getByRole("button", { name: "Race Not Assigned", exact: true }).click();
   await page
     .getByRole("dialog", { name: "Race", exact: true })
