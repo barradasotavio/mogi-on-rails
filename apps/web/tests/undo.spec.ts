@@ -195,13 +195,14 @@ test("the race sheet opens its race's screenshots, and removing one there recoun
 }) => {
   await setUp(page, 375);
   await page.getByRole("button", { name: "Race 1 · counted", exact: true }).click();
-  await page
+  const screenshots = page
     .getByRole("dialog", { name: "Race 1", exact: true })
-    .getByRole("button", { name: "Screenshots 1", exact: true })
-    .click();
+    .getByRole("button", { name: "Screenshots 1", exact: true });
+  await screenshots.click();
+  // A page of the race sheet: Back returns to the race.
   const images = page.getByRole("dialog", { name: "Screenshots", exact: true });
-  await expect(images).toContainText("Race 1");
-  await expect(images.getByRole("button", { name: "Back", exact: true })).toHaveCount(0);
+  await images.getByRole("button", { name: "Back", exact: true }).click();
+  await screenshots.click();
   await images.getByRole("button", { name: /race-1\.jpeg/ }).click();
   await page
     .getByRole("dialog", { name: /^Screenshot \d+$/ })
