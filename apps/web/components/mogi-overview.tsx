@@ -12,6 +12,7 @@ import {
   resultCoverage,
   teamLabel,
   teamStandings,
+  tiedLeaders,
 } from "@mkw/engine";
 import { ArrowDown, ArrowUp, CircleHelp, Crown, Loader2, Minus, SquareTerminal } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
@@ -454,13 +455,17 @@ function mogiGlance(mogi: Mogi) {
   const entries = teams.length
     ? teams.map((team) => ({ name: teamLabel(mogi, team.id), points: team.points }))
     : individualStandings(mogi).map((person) => ({ name: person.loungeName, points: person.points }));
-  const [first, second] = [...entries].sort((a, b) => (b.points ?? -1) - (a.points ?? -1));
+  const sorted = [...entries].sort((a, b) => (b.points ?? -1) - (a.points ?? -1));
+  const [first, second] = sorted;
   if (first?.points === null || first?.points === undefined) return null;
   const margin = first.points - (second?.points ?? 0);
   return {
     lead:
       margin === 0 && second
-        ? `${first.name} and ${second.name} are tied`
+        ? tiedLeaders(
+            sorted.filter((entry) => entry.points === first.points).map((entry) => entry.name),
+            teams.length ? "teams" : "players",
+          )
         : `${first.name} ${through === 12 ? "won" : "leads"} by ${margin}`,
   };
 }
