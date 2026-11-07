@@ -50,7 +50,8 @@ export function epochByPhotoTime(
   return steps.includes(1) && !steps.includes(0) ? epoch : epoch + 1;
 }
 
-/** A few legible zeros corroborate a local room start against a totals drop; its mogi number stays open. */
+/** Read zeros, uncertain ones included (a screen mid-animation), corroborate a local room start against a totals drop;
+ * its mogi number stays open. */
 export function zeroRoomBoundary(
   mogi: Mogi,
   source: Capture,
@@ -65,12 +66,7 @@ export function zeroRoomBoundary(
       reopeningByTotals(previous.values, candidate.values) &&
       candidate.keys.some((key, row) => {
         const right = source.numericRows?.find((reading) => reading.row === row + 1)?.right;
-        return (
-          right?.value === 0 &&
-          !right.uncertain &&
-          previous.values.has(key) &&
-          candidate.values.get(key)! < previous.values.get(key)!
-        );
+        return right?.value === 0 && previous.values.has(key) && candidate.values.get(key)! < previous.values.get(key)!;
       }),
   );
   if (drops) return { ...candidate, needsNumber: true };
