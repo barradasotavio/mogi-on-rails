@@ -209,15 +209,15 @@ function Person({
     ) ?? [];
   const count = resultCoverage(mogi).included.length;
   const synonyms = participantSynonyms(mogi, person.id);
-  // Reuses the existing label to tell an inference from the user's answer.
+  // Reuses the existing label to tell an inference or a certain recognition from the user's answer.
   const suggested = (synonym: string) =>
     mogi.captures?.some((capture) =>
-      capture.nameAssociations?.some(
-        (answer, index) =>
-          answer.participantId === person.id &&
-          answer.origin === "deduced" &&
-          (answer.ign ?? capture.rows[index]?.text)?.trim() === synonym,
-      ),
+      capture.rows.some((row, index) => {
+        const answer = capture.nameAssociations?.[index];
+        const recognized = row.uncertain === false && row.suggestedParticipantId === person.id;
+        const linked = answer?.participantId ? answer.participantId === person.id : !answer?.unlinked && recognized;
+        return linked && (answer?.origin === "deduced" || recognized) && (answer?.ign ?? row.text).trim() === synonym;
+      }),
     );
   const slot = participationSlot(person);
   const credited =

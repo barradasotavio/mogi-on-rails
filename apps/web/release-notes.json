@@ -7,6 +7,10 @@
         "text": "On a laptop trackpad, swiping again turns to the next race without moving the pointer first."
       },
       {
+        "kind": "fix",
+        "text": "Unlinking a name in Players now removes it from every race."
+      },
+      {
         "kind": "new",
         "text": "The race sheet says Don't Count This Race instead of Discard Race, as a plain command at the end. To drop a bad screenshot, use Screenshots and Remove Screenshot."
       },
