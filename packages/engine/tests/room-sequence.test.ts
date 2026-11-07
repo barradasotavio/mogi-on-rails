@@ -5,6 +5,7 @@ import {
   answerMogiQuestion,
   applyCaptureContext,
   applyReviewedRace,
+  applySequenceAnswer,
   type Capture,
   countedRaces,
   individualStandings,
@@ -14,6 +15,7 @@ import {
   mogiSummary,
   normalizeReconstructions,
   reconcileSequence,
+  sequenceInputSignature,
   setAssistanceAnalysis,
   sourcePairSignature,
 } from "@mkw/engine";
@@ -1354,4 +1356,36 @@ test("a saved reopened room an older analysis numbered from race 3 is numbered a
   );
   assert.equal(expected.length, 6);
   assert.deepEqual(await counted(await answered(loaded)), expected);
+});
+
+test("answering a later race for a counted room's screen moves its races without reviving them at their old numbers", async () => {
+  const screens = () =>
+    [1, 2].map((n) => ({ ...source(`room-${n}`, n), photoMoment: { at: n * 60000, source: "exif" as const } }));
+  const answered = async (mogi: Mogi) =>
+    (
+      await normalizeReconstructions({
+        mogis: [
+          reconcileSequence(
+            applySequenceAnswer(mogi, { kind: "number", captureId: "room-1", value: 5 }, sequenceInputSignature(mogi)),
+          ),
+        ],
+      })
+    ).mogis[0];
+  const counted = (mogi: Mogi) => mogi.races.map((race) => [race.number, race.status, race.captureIds?.join() ?? ""]);
+  const before = (await normalizeReconstructions({ mogis: [ingest(prefix(0), ...screens())] })).mogis[0];
+  assert.deepEqual(
+    before.races.map((race) => [race.number, race.captureIds?.join()]),
+    [
+      [1, "room-1"],
+      [2, "room-2"],
+    ],
+  );
+  const moved = await answered(before);
+  const ids = moved.races.map((race) => race.id);
+  assert.deepEqual(ids, [...new Set(ids)]);
+  assert.deepEqual(
+    moved.races.filter((race) => race.captureIds?.length).map((race) => race.number),
+    [5, 6],
+  );
+  assert.deepEqual(counted(moved), counted(await answered(ingest(prefix(0), ...screens()))));
 });
