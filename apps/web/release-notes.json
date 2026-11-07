@@ -3,10 +3,6 @@
     "date": "2026-11-07",
     "changes": [
       {
-        "kind": "fix",
-        "text": "Unlinking a name in Players now removes it from every race."
-      },
-      {
         "kind": "new",
         "text": "The race sheet lists that race's screenshots. Remove one to recount the race; Undo brings it back."
       },
@@ -16,7 +12,7 @@
       },
       {
         "kind": "fix",
-        "text": "Unlinking a player in Players also forgets the in-game name it learned, so swapped teammates no longer mix their points."
+        "text": "Unlinking a name in Players removes it from every race and forgets the in-game name it learned, so swapped teammates no longer mix their points."
       },
       {
         "kind": "fix",
