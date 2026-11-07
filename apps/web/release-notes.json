@@ -3,6 +3,10 @@
     "date": "2026-11-07",
     "changes": [
       {
+        "kind": "fix",
+        "text": "Unlinking a player in Players now also forgets the in-game name it learned, so swapped teammates no longer mix their points in later races."
+      },
+      {
         "kind": "new",
         "text": "Watched folders can add new screenshots straight to the mogi. Turn on Add Without Asking in Settings › Watched Folders."
       },

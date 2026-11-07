@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import type { Mogi } from "@/lib/mogi/types";
+import { releaseDate, releaseNotes } from "@/lib/release-notes";
 
 import { openMogiSettings } from "./mogi-navigation";
 import { ffaRoster, mogiState, restoreState } from "./mogi-state";
@@ -50,10 +51,16 @@ test("Release Notes opens from the list, newest date first, each line labeled", 
   await main.getByRole("button", { name: "Release Notes", exact: true }).click();
   await expect(page).toHaveURL(/view=release-notes/);
   await expect(main.getByRole("heading", { level: 1, name: "Release Notes", exact: true })).toBeVisible();
-  await expect(main.getByRole("heading", { level: 2 }).first()).toHaveText("November 7, 2026");
+  // The newest entry, whatever it is, so adding a note never edits this test.
+  const [{ date, changes }] = releaseNotes;
+  await expect(main.getByRole("heading", { level: 2 }).first()).toHaveText(releaseDate(date));
+  const [first] = changes;
   await expect(
-    main.getByRole("list", { name: "November 7, 2026", exact: true }).getByRole("listitem").first(),
-  ).toHaveText(/^New\s*Watched folders can add new screenshots straight to the mogi\./);
+    main
+      .getByRole("list", { name: releaseDate(date), exact: true })
+      .getByRole("listitem")
+      .first(),
+  ).toHaveText(`${first.kind === "new" ? "New" : "Fixed"}${first.text}`);
 });
 
 test("the empty regular start lands on Instructions, with New Mogi in the bar", async ({ page }) => {
