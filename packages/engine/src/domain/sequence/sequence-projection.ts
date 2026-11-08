@@ -32,3 +32,24 @@ export function withoutSequenceAssociations<T extends Mogi>(mogi: T): T {
     }),
   };
 }
+
+/** A confirmed observed race shows the screenshots its occurrence holds. Older versions, and finish order screens
+ * accepted before the race had a link, left `captureIds` empty although the occurrence still maps the race to its
+ * screen; a screenshot already linked to another race stays there. Only the link changes, never the result. */
+export function withOccurrenceScreenshots<T extends Mogi>(mogi: T): T {
+  const present = new Set(mogi.captures?.map((capture) => capture.id));
+  const linked = new Set(mogi.races.flatMap((race) => race.captureIds ?? []));
+  let changed = false;
+  const races = mogi.races.map((race) => {
+    if (race.origin !== "observed" || race.status !== "confirmed") return race;
+    const missing = (mogi.sequence?.occurrences ?? [])
+      .filter((occurrence) => occurrence.raceId === race.id)
+      .flatMap((occurrence) => occurrence.captureIds)
+      .filter((id) => present.has(id) && !linked.has(id));
+    if (!missing.length) return race;
+    changed = true;
+    for (const id of missing) linked.add(id);
+    return { ...race, captureIds: [...(race.captureIds ?? []), ...new Set(missing)] };
+  });
+  return changed ? { ...mogi, races } : mogi;
+}

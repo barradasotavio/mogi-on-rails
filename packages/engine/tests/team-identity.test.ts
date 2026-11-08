@@ -405,3 +405,18 @@ test("unlinking every reading Players lists under swapped teammates repairs all 
     checkTotals(mogi, 12);
   }
 });
+
+test("a saved confirmed race whose finish order screen lost its link shows that screenshot again on load, result unchanged", async () => {
+  // The #31 repair left most races with empty `captureIds`; their occurrences still held their screens.
+  const replayed = (await replayReal([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]])).mogi;
+  const saved = structuredClone(replayed);
+  for (const race of saved.races) if (race.origin === "observed") race.captureIds = [];
+  const loaded = (await normalizeReconstructions({ mogis: [saved] }, { revalidateBoundaryProofs: true })).mogis[0];
+  for (const race of replayed.races)
+    assert.deepEqual(
+      loaded.races.find((entry) => entry.id === race.id)!.captureIds,
+      race.captureIds,
+      `race ${race.number}`,
+    );
+  checkTotals(loaded, 12);
+});
