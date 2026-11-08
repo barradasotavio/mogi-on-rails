@@ -1,21 +1,26 @@
 /**
  * Sideways paging shared by the sheets that page among siblings and by the capture viewer: a two-finger
- * horizontal swipe on a trackpad, and ← / → on the keyboard. Both are shortcuts for visible controls.
+ * horizontal swipe on a trackpad or a mouse's horizontal wheel, and ← / → on the keyboard. All are shortcuts for
+ * visible controls.
  */
 
-/** Least travel of one trackpad swipe, in pixels, before it turns the page; wider pagers ask for a fifth of their width. */
+/** Least travel of one wheel gesture, in pixels, before it turns the page; wider pagers ask for a fifth of their width. */
 const WHEEL_THRESHOLD = 60;
-/** A pause this long means the fingers lifted: the drag is released. */
-const WHEEL_RELEASE_MS = 70;
-/** A pause this long ends the swipe and its momentum. */
+/** A pause this long ends the gesture and its momentum. */
 const WHEEL_SETTLE_MS = 180;
-/** Deltas falling this many events in a row, under this share of the swipe's peak, are momentum: the fingers lifted. */
-const WHEEL_DECAY_EVENTS = 3;
-const WHEEL_DECAY_SHARE = 0.6;
-/** Momentum only decays: a delta past twice its lowest since it began falling, plus this jitter, is a new swipe. */
+/** A new swipe stops the momentum, as the fingers touch the trackpad: a pause (below), or the pace down to this many
+ * pixels a frame, then rising again past twice its lowest plus this jitter. Before that, a rise is the fingers still
+ * speeding up, or late events merged while the page turns. */
+const WHEEL_REST_PX = 4;
 const WHEEL_RISE_PX = 4;
-/** Momentum is compared per frame of a 120 Hz trackpad: a busy page gets late events merged into one bigger delta. */
+/** Fingers touching the trackpad cut the momentum at once: its events, one a frame, pause this long, and the next
+ * delta is the new swipe's, under half the travel the momentum would have covered meanwhile. A busy page pauses them
+ * too, but then delivers that travel merged into one big delta. */
+const WHEEL_TOUCH_MS = 30;
+/** Momentum is compared as the travel of the last few frames of a 120 Hz trackpad, per frame: a busy page gets late
+ * events merged into one bigger delta, or one frame's travel split in two events. */
 const WHEEL_FRAME_MS = 8;
+const WHEEL_PACE_MS = 3 * WHEEL_FRAME_MS;
 
 /** A released drag settles where it would be this long later at its speed, as in UIScrollView. */
 const PROJECTION_MS = 200;
@@ -95,46 +100,43 @@ function ownsWheel(element: HTMLElement, target: EventTarget | null) {
 }
 
 export type TrackpadPaging = {
-  /** Without `onRelease`: turns one page (1 forward, -1 back) once the swipe passes the threshold. */
-  onStep?: (step: 1 | -1) => void;
-  /** The swipe's travel so far, in pixels (positive toward the next page), so the page can follow the fingers. */
-  onTrack?: (travel: number) => void;
-  /** The fingers lifted, with the swipe's travel and speed (px/ms): the page settles one way or the other. */
-  onRelease?: (travel: number, velocity: number) => void;
+  /** Turns one page, 1 forward or -1 back. */
+  onStep: (step: 1 | -1) => void;
   /** Whether the pager takes the gesture at all, such as at 1× in the viewer. */
   canPage?: () => boolean;
 };
 
 /**
- * Follows a horizontal trackpad swipe, as Safari and Photos do. The listener is on the window and not passive: it
- * takes every horizontal wheel event it owns, so the browser's own back/forward swipe never starts.
- * Wheel events have no phases on the web, so the fingers lift when the deltas start decaying or pause, and the swipe
- * ends with a longer pause or deltas that rise again: its momentum turns no second page, and the next swipe pages
- * even while that momentum still flows.
+ * Turns one page per sideways wheel gesture: a two-finger trackpad swipe, or a mouse's horizontal wheel. The gesture is
+ * a command, as ← and → are: the page turns with their slide once the travel passes the threshold, and doesn't follow
+ * the fingers. Wheel events on the web never say when the fingers lift, so following them would mean guessing where
+ * the fingers end and the momentum begins.
+ * The listener is on the window and not passive: it takes every sideways wheel event it owns, so the browser's own
+ * back/forward swipe never starts. The gesture's momentum turns no second page, and the next swipe pages even while
+ * that momentum still flows. A vertical event cancels a gesture that hasn't paged yet, so a scroll never pages.
  */
-export function listenForTrackpadPaging(
-  element: HTMLElement,
-  { onStep, onTrack, onRelease, canPage = () => true }: TrackpadPaging,
-) {
-  let phase: "idle" | "drag" | "momentum" = "idle",
+export function listenForTrackpadPaging(element: HTMLElement, { onStep, canPage = () => true }: TrackpadPaging) {
+  let phase: "idle" | "travel" | "momentum" = "idle",
     travel = 0,
-    peak = 0,
-    falls = 0,
-    last = 0,
     trough = Infinity,
-    lastTime = 0,
-    timer = 0,
-    samples: { time: number; travel: number }[] = [];
+    recent: { time: number; size: number }[] = [],
+    pace = 0,
+    lastTime = -Infinity,
+    timer = 0;
   const end = () => {
     phase = "idle";
   };
-  const release = (now: number) => {
-    phase = "momentum";
-    trough = last;
-    onRelease?.(travel, dragVelocity(samples, now));
-  };
   const wheel = (event: WheelEvent) => {
-    if (event.ctrlKey || Math.abs(event.deltaX) <= Math.abs(event.deltaY) || !canPage()) return;
+    if (event.ctrlKey || !canPage()) return;
+    if (Math.abs(event.deltaY) >= Math.abs(event.deltaX)) {
+      // A scroll cancels a swipe that hasn't paged; a swipe's momentum that curves vertical still holds the next one.
+      if (phase === "travel" && event.deltaY) phase = "idle";
+      if (phase === "momentum") {
+        clearTimeout(timer);
+        timer = window.setTimeout(end, WHEEL_SETTLE_MS);
+      }
+      return;
+    }
     if (!ownsWheel(element, event.target)) return;
     if (element.contains(event.target as Node) && scrollsSideways(event.target, element, event.deltaX)) return;
     event.preventDefault();
@@ -145,47 +147,30 @@ export function listenForTrackpadPaging(
           ? element.clientWidth
           : 1;
     const delta = event.deltaX * unit,
-      size = Math.abs(delta),
-      frames = Math.max(1, Math.round((event.timeStamp - lastTime) / WHEEL_FRAME_MS));
+      gap = event.timeStamp - lastTime,
+      touched = gap >= WHEEL_TOUCH_MS && Math.abs(delta) < (pace * gap) / WHEEL_FRAME_MS / 2;
     lastTime = event.timeStamp;
+    recent = [
+      ...recent.filter(({ time }) => time > event.timeStamp - WHEEL_PACE_MS),
+      { time: event.timeStamp, size: Math.abs(delta) },
+    ];
+    pace = recent.reduce((sum, { size }) => sum + size, 0) / (WHEEL_PACE_MS / WHEEL_FRAME_MS);
     clearTimeout(timer);
+    timer = window.setTimeout(end, WHEEL_SETTLE_MS);
     if (phase === "momentum") {
-      const pace = size / frames;
-      if (pace < 2 * trough + WHEEL_RISE_PX) {
-        if (pace < last) trough = Math.min(trough, pace);
-        last = pace;
-        timer = window.setTimeout(end, WHEEL_SETTLE_MS);
-        return;
-      }
+      if (pace <= WHEEL_REST_PX) trough = Math.min(trough, pace);
+      if (!touched && pace < 2 * trough + WHEEL_RISE_PX) return;
       phase = "idle";
     }
     if (phase === "idle") {
-      phase = "drag";
-      travel = peak = falls = last = 0;
-      samples = [];
+      phase = "travel";
+      travel = 0;
     }
     travel += delta;
-    samples = [...samples.slice(-7), { time: event.timeStamp, travel }];
-    falls = size < last ? falls + 1 : 0;
-    last = size;
-    peak = Math.max(peak, size);
-    if (!onRelease) {
-      timer = window.setTimeout(end, WHEEL_SETTLE_MS);
-      if (Math.abs(travel) < Math.max(WHEEL_THRESHOLD, element.clientWidth / 5)) return onTrack?.(travel);
-      phase = "momentum";
-      trough = Infinity;
-      onStep?.(travel > 0 ? 1 : -1);
-      return;
-    }
-    onTrack?.(travel);
-    if (falls >= WHEEL_DECAY_EVENTS && size < peak * WHEEL_DECAY_SHARE) {
-      release(event.timeStamp);
-      timer = window.setTimeout(end, WHEEL_SETTLE_MS);
-    } else
-      timer = window.setTimeout(() => {
-        release(performance.now());
-        timer = window.setTimeout(end, WHEEL_SETTLE_MS - WHEEL_RELEASE_MS);
-      }, WHEEL_RELEASE_MS);
+    if (Math.abs(travel) < Math.max(WHEEL_THRESHOLD, element.clientWidth / 5)) return;
+    phase = "momentum";
+    trough = Infinity;
+    onStep(travel > 0 ? 1 : -1);
   };
   window.addEventListener("wheel", wheel, { passive: false });
   return () => {

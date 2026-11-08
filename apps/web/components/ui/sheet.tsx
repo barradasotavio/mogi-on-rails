@@ -587,17 +587,14 @@ function SheetPages({
     d.settle = { animations, done };
   };
   const paging = !!pager;
-  const gesture = useRef({ dragTo, release });
+  const gesture = useRef({ dragTo, release, turn });
   useLayoutEffect(() => {
-    gesture.current = { dragTo, release };
+    gesture.current = { dragTo, release, turn };
   });
-  // Two fingers on a trackpad move the pages as one finger does on a phone: they follow, then settle.
+  // A two-finger trackpad swipe or a mouse's horizontal wheel turns one page, as the arrows do.
   useEffect(() => {
     if (!paging || !surface) return;
-    return listenForTrackpadPaging(surface, {
-      onTrack: (travel) => gesture.current.dragTo(-travel),
-      onRelease: (_, velocity) => gesture.current.release(-velocity),
-    });
+    return listenForTrackpadPaging(surface, { onStep: (step) => gesture.current.turn(step) });
   }, [paging, surface]);
   // A finger dragging sideways moves the pages with it.
   const swipe = useRef<{
