@@ -170,8 +170,9 @@ test("a trackpad turns one race per swipe: consecutive swipes turn consecutive r
       },
       { deltas, x: box.x + box.width / 2, y: box.y + box.height / 2 },
     );
-  // Two swipes, the second while the first's momentum still flows: two races.
-  await stream([...swipe(0.9).slice(0, 14), ...swipe(0.9)]);
+  // Two swipes, the second while the first's momentum still flows: two races. The fingers touching the trackpad stop
+  // that momentum, as macOS does, once it has slowed to a few pixels a frame.
+  await stream([...swipe(0.9).slice(0, 22), ...swipe(0.9)]);
   await expect(sheet).toHaveAccessibleName("Race 3");
   // One swipe whose momentum lasts over a second: one race.
   await stream(swipe(0.97));
