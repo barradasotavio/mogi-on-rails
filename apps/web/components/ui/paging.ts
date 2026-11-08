@@ -21,8 +21,8 @@ const PROJECTION_MS = 200;
 const FLICK_SPEED = 0.5;
 /** Speed is measured over the last samples of this span. */
 const VELOCITY_MS = 64;
-const STIFFNESS = 300;
-const DAMPING = 30;
+/** A settle is a critically damped spring, as iOS paging and SwiftUI's `.smooth`: no bounce, about this long. */
+const RESPONSE_MS = 400;
 
 /** Speed of a drag in px/ms at `now`, from its samples of time and travel, oldest first. */
 export function dragVelocity(samples: { time: number; travel: number }[], now: number) {
@@ -45,18 +45,22 @@ export function rubberBand(offset: number, width: number) {
 }
 
 /**
- * A spring from `from` to `to` that starts at the release's `velocity` (px/ms), so the motion carries on from the
- * gesture: one offset a frame, for linear keyframes, and their duration in ms.
+ * A critically damped spring from `from` to `to` that starts at the release's `velocity` (px/ms), so the motion
+ * carries on from the gesture: one offset a frame, for linear keyframes, and their duration in ms.
+ * It never passes `to`: a release toward it faster than the spring would cross stiffens the spring instead, so the
+ * page keeps the flick's speed and decays into place. A release away from it slows, then returns.
  */
 export function springFrames(from: number, to: number, velocity: number) {
-  const frames = [from];
-  let offset = from - to,
-    speed = velocity * 1000;
-  while (frames.length < 60 && (Math.abs(offset) > 0.5 || Math.abs(speed) > 20)) {
-    for (let ms = 0; ms < 16; ms++) {
-      speed += (-STIFFNESS * offset - DAMPING * speed) / 1000;
-      offset += speed / 1000;
-    }
+  const x0 = from - to,
+    toward = x0 * velocity < 0 ? Math.abs(velocity / x0) : 0,
+    omega = Math.max((2 * Math.PI) / RESPONSE_MS, toward),
+    c = velocity + omega * x0,
+    frames = [from];
+  for (let t = 16; frames.length < 60; t += 16) {
+    const decay = Math.exp(-omega * t),
+      offset = (x0 + c * t) * decay,
+      speed = (velocity - omega * c * t) * decay;
+    if (Math.abs(offset) < 0.5 && Math.abs(speed) < 0.02) break;
     frames.push(to + offset);
   }
   frames.push(to);
