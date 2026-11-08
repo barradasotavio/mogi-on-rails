@@ -529,6 +529,7 @@ function rich(): J {
     activeMogiId: "m",
     loungeName: "Me",
     loungeNames: ["Me", "Alt"],
+    trackOrder: { by: "total", count: "minus" },
     unknownRootField: { kept: true },
     sharedReceipts: [
       {
@@ -1368,6 +1369,13 @@ test("validateTracker: root, pending images and Lounge names", () => {
         s.loungeNames = [long(81)];
       },
       "Your Lounge name is too long.",
+    ],
+    [
+      "Unknown track order",
+      (s) => {
+        s.trackOrder = { by: "best", count: "both" };
+      },
+      "Invalid track order.",
     ],
   ]);
 });

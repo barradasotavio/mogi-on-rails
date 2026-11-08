@@ -7,6 +7,7 @@ import {
   raceNumber,
   racePhysicalNumber,
   reopenCreditQuestion,
+  type Track,
 } from "@mkw/engine";
 import { ArrowLeft, Ellipsis, ImagePlus, Menu, Settings2, Table2, Undo2, Users } from "lucide-react";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -35,6 +36,7 @@ import { freshPager, TrackSheet, useTrackPicker } from "./track-picker";
 export function MogiDetail({
   mogi,
   resultMogi = mogi,
+  voteTracks,
   pendingFiles,
   editor,
   initialReview,
@@ -67,6 +69,8 @@ export function MogiDetail({
 }: {
   mogi: Mogi;
   resultMogi?: Mogi;
+  /** The tracks to vote for, in the default track order. */
+  voteTracks?: readonly Track[];
   pendingFiles: SharedFile[];
   editor?: ReactNode;
   initialReview?: { surface?: "players" | "settings" | "questions"; captureId?: string; raceId?: string };
@@ -362,6 +366,7 @@ export function MogiDetail({
         <MogiOverview
           mogi={mogi}
           resultMogi={resultMogi}
+          voteTracks={voteTracks}
           activity={activity}
           onRace={consult}
           onTrack={pickTrack}

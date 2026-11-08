@@ -13,6 +13,7 @@ import {
   teamLabel,
   teamStandings,
   tiedLeaders,
+  type Track,
 } from "@mkw/engine";
 import { ArrowDown, ArrowUp, CircleHelp, Crown, Loader2, Minus, SquareTerminal } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
@@ -43,6 +44,7 @@ export const mogiProgress = (mogi: Mogi, { finished, count }: { finished: boolea
 export function MogiOverview({
   mogi,
   resultMogi = mogi,
+  voteTracks = [],
   activity,
   onRace,
   onTrack,
@@ -54,6 +56,8 @@ export function MogiOverview({
 }: {
   mogi: Mogi;
   resultMogi?: Mogi;
+  /** Every track with a race in the recent window, in the default track order. */
+  voteTracks?: readonly Track[];
   activity: MogiOverviewActivity;
   onRace: (race: Race) => void;
   onTrack: (race: Race) => void;
@@ -197,6 +201,7 @@ export function MogiOverview({
           </section>
         </ListGroup>
       </ActionScope>
+      <VoteTracks mogi={mogi} tracks={voteTracks} />
       <div className="section-stack @[45rem]:grid @[45rem]:grid-cols-2 @[45rem]:items-start @[45rem]:gap-x-2">
         <MogiStandings mogi={resultMogi} count={count} table={table} onStanding={onStanding} />
         <ListGroup inset title="Tracks">
@@ -272,6 +277,42 @@ export function MogiOverview({
         </ListGroup>
       )}
     </>
+  );
+}
+
+/**
+ * Vote: the tracks to vote for, best first in the default track order, as track symbols that wrap. A track raced in
+ * this mogi, chosen or recognized (`raceTrack`) and counted or not, stays in its place, struck through. Static.
+ */
+function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly Track[] }) {
+  if (!tracks.length) return null;
+  const raced = new Set(mogi.races.map((race) => raceTrack(mogi, race)?.short));
+  return (
+    <ListGroup inset title="Vote">
+      <ul aria-label="Vote" className="flex flex-wrap gap-2">
+        {tracks.map((track) => {
+          const done = raced.has(track.short);
+          return (
+            <li key={track.short} title={track.name} className="relative flex size-10 items-center justify-center">
+              <span className="sr-only">
+                {track.name}
+                {done && ", raced"}
+              </span>
+              <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
+                <TrackIcon track={track} size={32} />
+              </span>
+              {done && (
+                <span
+                  aria-hidden="true"
+                  data-raced
+                  className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 -rotate-45 rounded-full bg-foreground"
+                />
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </ListGroup>
   );
 }
 

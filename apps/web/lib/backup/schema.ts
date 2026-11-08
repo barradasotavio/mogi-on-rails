@@ -1480,6 +1480,12 @@ export const trackerSchema = shape("Tracker data", {
   activeMogiId: later(),
   loungeName: v.optional(loungeName),
   loungeNames: v.optional(capList("Your Lounge names", loungeName, 20, "Too many Lounge names.")),
+  trackOrder: v.optional(
+    shape("Track order", {
+      by: textIn("Track order", ["typical", "total", "races"], "Invalid track order."),
+      count: textIn("Track order", ["both", "plus", "minus"], "Invalid track order."),
+    }),
+  ),
   sourceUndo: v.optional(sourceUndo),
 });
 export type TrackerRecord = v.InferOutput<typeof trackerSchema>;
