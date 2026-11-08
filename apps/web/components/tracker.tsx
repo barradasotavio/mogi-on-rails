@@ -46,7 +46,7 @@ import type { RouteView } from "@/lib/mogi/route";
 import type { Mogi, TrackerState } from "@/lib/mogi/types";
 import { saveUpdateResume } from "@/lib/offline/resume";
 import { requestPersistentStorage } from "@/lib/storage/usage";
-import { orderTracks, savedTrackOrder, withTrackOrder, withVoteShown } from "@/lib/track-order";
+import { savedTrackOrder, voteTracks as votes, withTrackOrder, withVoteShown } from "@/lib/track-order";
 
 /**
  * The app: the mogi list, the open mogi and the other screens, with the sidebar, Settings, New Mogi and
@@ -61,14 +61,11 @@ export function Tracker() {
   const { state, resultMogis, ready, loadError, busy, persist } = session;
   const trackOrder = savedTrackOrder(state);
   const loungeNamesKey = yourLoungeNames(state).join("\n");
-  // The mogi screen's Vote: every track with a race in the recent window, in the default track order. State is
-  // replaced on each save, so this recomputes only when the mogis, the names or the order change.
+  // The mogi screen's Vote: every track with a race in the recent window, by vote light. State is replaced on each
+  // save, so this recomputes only when the mogis or the names change.
   const voteTracks = useMemo(
-    () =>
-      orderTracks(trackStandings(state.mogis, loungeNamesKey ? loungeNamesKey.split("\n") : []).tracks, trackOrder).map(
-        ({ standing }) => standing.track,
-      ),
-    [state.mogis, loungeNamesKey, trackOrder],
+    () => votes(trackStandings(state.mogis, loungeNamesKey ? loungeNamesKey.split("\n") : []).tracks),
+    [state.mogis, loungeNamesKey],
   );
   const galleryPicker = useRef<HTMLInputElement | null>(null);
   const captureIntake = useRef<CaptureIntakeHandle | null>(null);

@@ -349,6 +349,7 @@ body {
   --movement-down: var(--destructive);
   --value-gain: var(--movement-up);
   --value-loss: var(--movement-down);
+  --value-mixed: oklch(0.795 0.184 86.047);
   --team-1: oklch(0.685 0.169 237.323);
   --team-1-foreground: oklch(0.5 0.134 242.749);
   --team-2: oklch(0.645 0.246 16.439);
@@ -398,6 +399,7 @@ body {
   --color-movement-down: var(--movement-down);
   --color-value-gain: var(--value-gain);
   --color-value-loss: var(--value-loss);
+  --color-value-mixed: var(--value-mixed);
   --color-team-1: var(--team-1);
   --color-team-1-foreground: var(--team-1-foreground);
   --color-team-2: var(--team-2);

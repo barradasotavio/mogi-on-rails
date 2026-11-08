@@ -52,3 +52,31 @@ export function orderTracks(tracks: readonly TrackStanding[], order: TrackOrder)
       a.value === null ? (b.value === null ? 0 : 1) : b.value === null ? -1 : direction * (a.value - b.value),
     );
 }
+
+/** A track's vote light: Good, Mixed or Bad, from its usual range. */
+export type VoteLight = "good" | "mixed" | "bad";
+export interface VoteTrack {
+  track: TrackStanding["track"];
+  light: VoteLight;
+}
+/** Fewer races than this in the recent window leave a track Mixed: its usual range says too little. */
+export const VOTE_MIN_RACES = 3;
+
+/** Good when even the usual range's low end gains positions (Q1 > 0), Bad when its high end loses them (Q3 < 0). */
+export function voteLight(standing: TrackStanding): VoteLight {
+  if (standing.recent < VOTE_MIN_RACES) return "mixed";
+  return standing.lowerQuartile > 0 ? "good" : standing.upperQuartile < 0 ? "bad" : "mixed";
+}
+
+const lightRank: Record<VoteLight, number> = { good: 0, mixed: 1, bad: 2 };
+
+/**
+ * The mogi screen's Vote: every track in the window, Good, then Mixed, then Bad, each by Typical +/−, best first.
+ * The engine's order (typical, then races, then catalog) breaks ties, since the sort is stable.
+ */
+export function voteTracks(tracks: readonly TrackStanding[]): VoteTrack[] {
+  return tracks
+    .map((standing) => ({ standing, light: voteLight(standing) }))
+    .sort((a, b) => lightRank[a.light] - lightRank[b.light] || b.standing.typical - a.standing.typical)
+    .map(({ standing, light }) => ({ track: standing.track, light }));
+}

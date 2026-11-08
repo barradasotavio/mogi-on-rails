@@ -235,7 +235,7 @@ export function TracksScreen({
                 ))}
               </List>
             </ListGroup>
-            {/* The current choice becomes the order Tracks opens in and the mogi screen's Vote follows. */}
+            {/* The current choice becomes the order Tracks opens in. */}
             <List>
               <ListRow
                 action="primary"
@@ -245,7 +245,7 @@ export function TracksScreen({
                 Make Default
               </ListRow>
             </List>
-            {/* The mogi screen's Vote follows this order, so whether it shows is set here too. */}
+            {/* The mogi screen's Vote reads these standings, so whether it shows is set here too. */}
             <List>
               <ListRow
                 trail={

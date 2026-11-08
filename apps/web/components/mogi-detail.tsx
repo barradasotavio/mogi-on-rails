@@ -7,7 +7,6 @@ import {
   raceNumber,
   racePhysicalNumber,
   reopenCreditQuestion,
-  type Track,
 } from "@mkw/engine";
 import { ArrowLeft, Ellipsis, ImagePlus, Menu, Settings2, Table2, Undo2, Users } from "lucide-react";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -26,6 +25,7 @@ import { SidebarToggle, Toolbar, visibleMogiTitle } from "@/components/ui/toolba
 import { titleCase } from "@/lib/format";
 import { type MogiQuestion, type MogiQuestionAnswer, mogiQuestions } from "@/lib/mogi/questions";
 import type { Capture, Mogi, Participant, Race, SharedFile } from "@/lib/mogi/types";
+import type { VoteTrack } from "@/lib/track-order";
 
 import { MogiOverview, MogiTable, raceSiblings, tableImage, tableTitle } from "./mogi-overview";
 import { NeedsImagesSheet } from "./needs-images-sheet";
@@ -69,8 +69,8 @@ export function MogiDetail({
 }: {
   mogi: Mogi;
   resultMogi?: Mogi;
-  /** The tracks to vote for, in the default track order. */
-  voteTracks?: readonly Track[];
+  /** The tracks to vote for, by vote light. */
+  voteTracks?: readonly VoteTrack[];
   pendingFiles: SharedFile[];
   editor?: ReactNode;
   initialReview?: { surface?: "players" | "settings" | "questions"; captureId?: string; raceId?: string };

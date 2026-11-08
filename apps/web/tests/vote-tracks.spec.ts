@@ -9,41 +9,50 @@ import { downloadBackup } from "./backup-navigation";
 import { ffaRoster, mogiState, restoreState } from "./mogi-state";
 import { openCurrentMogi } from "./settings-navigation";
 
-test("the saved track order orders Tracks and Vote, strikes tracks raced in the mogi, and it and hiding Vote travel with the backup", async ({
+test("Vote lights tracks by usual range and strikes raced ones; Tracks opens in its saved order; both settings travel with the backup", async ({
   page,
 }, info) => {
+  // Player 1 (p1) finishes in `places[i]` on `tracks[i]`.
   const raced =
-    (tracks: NonNullable<Race["track"]>[], extra: Partial<Race> = {}) =>
+    (tracks: NonNullable<Race["track"]>[], places: number[], extra: Partial<Race> = {}) =>
     (mogi: Mogi) =>
-      tracks.map((track, index): Race => ({
-        id: `r${index + 1}`,
-        origin: "manual",
-        number: index + 1,
-        track,
-        placements: mogi.participants.map(({ id }) => id),
-        ...(index === 1 ? extra : {}),
-      }));
-  // Races per track: Whistlestop Summit 4, DK Spaceport 3, Crown City 2, Mario Bros. Circuit 1 (this mogi's first);
-  // this mogi's second race, on Crown City, doesn't count but was still played.
+      tracks.map((track, index): Race => {
+        const others = mogi.participants.map(({ id }) => id).filter((id) => id !== "p1");
+        others.splice(places[index] - 1, 0, "p1");
+        return {
+          id: `r${index + 1}`,
+          origin: "manual",
+          number: index + 1,
+          track,
+          placements: others,
+          ...(index === 1 ? extra : {}),
+        };
+      });
+  // Against an average of 6.5th: Whistlestop Summit always +5.5 (Good), DK Spaceport always −5.5 (Bad), Crown City
+  // ±5.5 (Mixed). Mario Bros. Circuit, this mogi's first race, has one race (Mixed). This mogi's second race, on Crown
+  // City, doesn't count but was still played.
   const state = mogiState(
-    { roster: ffaRoster("D"), races: raced(["MBC", "CC"], { status: "discarded" }) },
+    { roster: ffaRoster("D"), races: raced(["MBC", "CC"], [1, 1], { status: "discarded" }) },
     {
       roster: ffaRoster("C"),
-      races: raced(["WS", "WS", "WS", "WS", "DKS", "DKS", "DKS", "CC", "CC"]),
+      races: raced(
+        ["WS", "WS", "WS", "DKS", "DKS", "DKS", "CC", "CC", "CC", "CC"],
+        [1, 1, 1, 12, 12, 12, 1, 12, 1, 12],
+      ),
       with: { id: "previous", createdAt: "2026-09-30T12:00:00Z" },
     },
   );
   await restoreState(page, { ...state, loungeNames: ["Player 1"], trackOrder: { by: "races", count: "both" } });
-  const byRaces = ["Whistlestop Summit", "DK Spaceport", "Crown City", "Mario Bros. Circuit"];
   await expect(page.getByRole("list", { name: "Vote", exact: true }).getByRole("listitem")).toHaveText([
-    byRaces[0],
-    byRaces[1],
-    `${byRaces[2]}, raced`,
-    `${byRaces[3]}, raced`,
+    "Whistlestop Summit, Good",
+    "Crown City, Mixed, raced",
+    "Mario Bros. Circuit, Mixed, raced",
+    "DK Spaceport, Bad",
   ]);
 
   await page.goto("/?view=tracks");
   const tracks = page.getByRole("list", { name: "Tracks", exact: true }).getByRole("button");
+  const byRaces = ["Crown City", "Whistlestop Summit", "DK Spaceport", "Mario Bros. Circuit"];
   for (const [index, name] of byRaces.entries()) await expect(tracks.nth(index)).toContainText(name);
   await page.getByRole("button", { name: "Sort", exact: true }).filter({ visible: true }).click();
   const sort = page.getByRole("dialog", { name: "Sort", exact: true });

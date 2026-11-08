@@ -13,7 +13,6 @@ import {
   teamLabel,
   teamStandings,
   tiedLeaders,
-  type Track,
 } from "@mkw/engine";
 import { ArrowDown, ArrowUp, CircleHelp, Crown, Loader2, Minus, SquareTerminal } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
@@ -30,6 +29,7 @@ import { tablePng } from "@/lib/mogi/exports";
 import { mogiOverview } from "@/lib/mogi/questions";
 import { assertTrackerCurrent } from "@/lib/mogi/storage";
 import type { Mogi, Race } from "@/lib/mogi/types";
+import type { VoteLight, VoteTrack } from "@/lib/track-order";
 import { cn } from "@/vendor/shadcn/lib/utils";
 
 import type { PlayerShortcut } from "./mogi-players";
@@ -56,8 +56,8 @@ export function MogiOverview({
 }: {
   mogi: Mogi;
   resultMogi?: Mogi;
-  /** Every track with a race in the recent window, in the default track order. */
-  voteTracks?: readonly Track[];
+  /** Every track with a race in the recent window, by vote light. */
+  voteTracks?: readonly VoteTrack[];
   activity: MogiOverviewActivity;
   onRace: (race: Race) => void;
   onTrack: (race: Race) => void;
@@ -280,38 +280,56 @@ export function MogiOverview({
   );
 }
 
-/**
- * Vote: the tracks to vote for, best first in the default track order. A track raced in this mogi, chosen or
- * recognized (`raceTrack`) and counted or not, stays in its place, struck through. Static. Each titled row is one
- * `TrackVoteRow`, so a second row (tracks to avoid) is one more entry.
- */
-function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly Track[] }) {
-  if (!tracks.length) return null;
-  const raced = new Set(mogi.races.map((race) => raceTrack(mogi, race)?.short));
-  return <TrackVoteRow title="Vote" tracks={tracks} raced={raced} />;
+/** A vote light's word, its dot's fill, and the legend's order. */
+const lights: { light: VoteLight; word: string; dot: string }[] = [
+  { light: "good", word: "Good", dot: "bg-value-gain" },
+  { light: "mixed", word: "Mixed", dot: "bg-value-mixed" },
+  { light: "bad", word: "Bad", dot: "bg-value-loss" },
+];
+const lightOf = (light: VoteLight) => lights.find((entry) => entry.light === light)!;
+
+/** A vote light's dot, ringed in the background so it reads over any track art. */
+function LightDot({ light, className }: { light: VoteLight; className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("size-2.5 rounded-full ring-2 ring-background", lightOf(light).dot, className)}
+    />
+  );
 }
 
-/** A titled row of track symbols that wraps; tracks in `raced` are struck through in place. */
-function TrackVoteRow({
-  title,
-  tracks,
-  raced,
-}: {
-  title: string;
-  tracks: readonly Track[];
-  raced: ReadonlySet<string | undefined>;
-}) {
-  // The grid sits in a plain box: `ListGroup` pulls a direct list up by its rows' inset, and symbols have none.
+/**
+ * Vote: which tracks to vote for, as track symbols that wrap, each with its vote light (`voteTracks`): Good, then
+ * Mixed, then Bad. A track raced in this mogi, chosen or recognized (`raceTrack`) and counted or not, stays in its
+ * place, struck through. Static; the legend under the row names the three dots.
+ */
+function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly VoteTrack[] }) {
+  if (!tracks.length) return null;
+  const raced = new Set(mogi.races.map((race) => raceTrack(mogi, race)?.short));
   return (
-    <ListGroup inset title={title}>
+    <ListGroup
+      inset
+      title="Vote"
+      note={
+        <span aria-hidden="true" className="flex gap-4">
+          {lights.map(({ light, word }) => (
+            <span key={light} className="flex items-center gap-1.5">
+              <LightDot light={light} />
+              {word}
+            </span>
+          ))}
+        </span>
+      }
+    >
+      {/* A plain box: `ListGroup` pulls a direct list up by its rows' inset, and symbols have none. */}
       <div>
-        <ul aria-label={title} className="flex flex-wrap gap-2">
-          {tracks.map((track) => {
+        <ul aria-label="Vote" className="flex flex-wrap gap-2">
+          {tracks.map(({ track, light }) => {
             const done = raced.has(track.short);
             return (
-              <li key={track.short} title={track.name} className="relative flex">
+              <li key={track.short} title={`${track.name} · ${lightOf(light).word}`} className="relative flex">
                 <span className="sr-only">
-                  {track.name}
+                  {track.name}, {lightOf(light).word}
                   {done && ", raced"}
                 </span>
                 <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
@@ -323,6 +341,7 @@ function TrackVoteRow({
                     className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 -rotate-45 rounded-full bg-foreground"
                   />
                 )}
+                <LightDot light={light} className="absolute -right-0.5 -bottom-0.5" />
               </li>
             );
           })}

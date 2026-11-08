@@ -136,7 +136,7 @@ export interface TrackerState {
   loungeNames?: string[];
   /** The single name saved before `loungeNames`; read as one name and dropped on the next save of the names. */
   loungeName?: string;
-  /** Tracks › Sort › Make Default: the order Tracks opens in and the mogi screen's Vote follows. Absent is Typical +/−. */
+  /** Tracks › Sort › Make Default: the order Tracks opens in. Absent is Typical +/−. */
   trackOrder?: TrackOrder;
   /** Tracks › Sort › Show Vote on Mogis. Absent means shown; only `false` is written. */
   voteShown?: boolean;

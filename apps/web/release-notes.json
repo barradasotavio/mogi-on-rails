@@ -4,7 +4,7 @@
     "changes": [
       {
         "kind": "new",
-        "text": "The mogi screen shows which tracks to vote for, best first, and strikes through the ones already raced. Tracks › Sort picks the order with Make Default and can hide it."
+        "text": "The mogi screen shows which tracks to vote for: green for good, yellow for mixed, red for bad, with the ones already raced struck through. Tracks › Sort can hide it and saves a default order with Make Default."
       }
     ]
   },
