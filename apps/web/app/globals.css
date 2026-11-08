@@ -933,6 +933,17 @@ body {
 @utility section-title {
   padding-bottom: var(--section-title-gap);
 }
+/*
+ * Box content in a section (race tiles, track symbols) sits where a row's text ink would: below a title, a text row's
+ * capitals start 4px past the row's line box, and after the content its descent and inset leave 5px more before the
+ * next title. So sections of boxes and sections of rows read the same distance from their titles and from each other.
+ */
+@utility box-ink {
+  /* Its own formatting context, so a child's margin (the race grid's) stays inside instead of collapsing with these. */
+  display: flow-root;
+  margin-top: 0.25rem;
+  margin-bottom: 0.3125rem;
+}
 @utility list-group {
   & > :is(ul, [role="radiogroup"]) {
     margin-bottom: calc(var(--spacing) * -3);

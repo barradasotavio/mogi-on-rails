@@ -164,41 +164,43 @@ export function MogiOverview({
       </span>
       <ActionScope inset>
         <ListGroup inset title="Races">
-          <section ref={races} aria-label="Races" className="race-grid">
-            {overview.positions.map((position) => {
-              // A race with an edit in progress always opens its sheet, where Resume and Discard live.
-              const draftRace =
-                editingRaceId && position.raceId === editingRaceId
-                  ? mogi.races.find((race) => race.id === editingRaceId)
-                  : undefined;
-              const inert =
-                !draftRace &&
-                (position.state === "future" || position.state === "unseen" || position.state === "reading");
-              return (
-                <RaceTile
-                  key={position.number}
-                  state={position.state === "unseen" ? "future" : position.state}
-                  editing={!!draftRace}
-                  aria-label={`Race ${position.number} · ${stateLabel(position.state)}${draftRace ? " · Edit in progress" : ""}`}
-                  data-race-number={position.number}
-                  aria-disabled={inert}
-                  tabIndex={inert ? -1 : undefined}
-                  onClick={() => {
-                    if (draftRace) onRace(draftRace);
-                    else if (
-                      position.state === "counted" ||
-                      position.state === "pending" ||
-                      position.state === "questions" ||
-                      position.state === "needs-images"
-                    )
-                      open(position);
-                  }}
-                >
-                  {position.number}
-                </RaceTile>
-              );
-            })}
-          </section>
+          <div className="box-ink">
+            <section ref={races} aria-label="Races" className="race-grid">
+              {overview.positions.map((position) => {
+                // A race with an edit in progress always opens its sheet, where Resume and Discard live.
+                const draftRace =
+                  editingRaceId && position.raceId === editingRaceId
+                    ? mogi.races.find((race) => race.id === editingRaceId)
+                    : undefined;
+                const inert =
+                  !draftRace &&
+                  (position.state === "future" || position.state === "unseen" || position.state === "reading");
+                return (
+                  <RaceTile
+                    key={position.number}
+                    state={position.state === "unseen" ? "future" : position.state}
+                    editing={!!draftRace}
+                    aria-label={`Race ${position.number} · ${stateLabel(position.state)}${draftRace ? " · Edit in progress" : ""}`}
+                    data-race-number={position.number}
+                    aria-disabled={inert}
+                    tabIndex={inert ? -1 : undefined}
+                    onClick={() => {
+                      if (draftRace) onRace(draftRace);
+                      else if (
+                        position.state === "counted" ||
+                        position.state === "pending" ||
+                        position.state === "questions" ||
+                        position.state === "needs-images"
+                      )
+                        open(position);
+                    }}
+                  >
+                    {position.number}
+                  </RaceTile>
+                );
+              })}
+            </section>
+          </div>
         </ListGroup>
       </ActionScope>
       <VoteTracks mogi={mogi} tracks={voteTracks} />
@@ -280,7 +282,7 @@ export function MogiOverview({
   );
 }
 
-/** A vote light's word, its dot's fill, and the legend's order. */
+/** A vote light's word, which names it to screen readers, and its dot's fill. */
 const lights: { light: VoteLight; word: string; dot: string }[] = [
   { light: "good", word: "Good", dot: "bg-value-gain" },
   { light: "mixed", word: "Mixed", dot: "bg-value-mixed" },
@@ -288,12 +290,18 @@ const lights: { light: VoteLight; word: string; dot: string }[] = [
 ];
 const lightOf = (light: VoteLight) => lights.find((entry) => entry.light === light)!;
 
-/** A vote light's dot, ringed in the background so it reads over any track art. */
-function LightDot({ light, className }: { light: VoteLight; className?: string }) {
+/**
+ * A vote light's dot, inset in the symbol's bottom-right corner: a hairline ring in the background and a soft shadow
+ * keep it apart from light and dark track art alike.
+ */
+function LightDot({ light }: { light: VoteLight }) {
   return (
     <span
       aria-hidden="true"
-      className={cn("size-2.5 rounded-full ring-2 ring-background", lightOf(light).dot, className)}
+      className={cn(
+        "absolute right-1 bottom-1 size-2 rounded-full shadow-sm ring-1 ring-background",
+        lightOf(light).dot,
+      )}
     />
   );
 }
@@ -301,28 +309,16 @@ function LightDot({ light, className }: { light: VoteLight; className?: string }
 /**
  * Vote: which tracks to vote for, as track symbols that wrap, each with its vote light (`voteTracks`): Good, then
  * Mixed, then Bad. A track raced in this mogi, chosen or recognized (`raceTrack`) and counted or not, stays in its
- * place, struck through. Static; the legend under the row names the three dots.
+ * place, struck through. Static; each symbol's accessible name says its light, so the dot's colour is never the only
+ * cue.
  */
 function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly VoteTrack[] }) {
   if (!tracks.length) return null;
   const raced = new Set(mogi.races.map((race) => raceTrack(mogi, race)?.short));
   return (
-    <ListGroup
-      inset
-      title="Vote"
-      note={
-        <span aria-hidden="true" className="flex gap-4">
-          {lights.map(({ light, word }) => (
-            <span key={light} className="flex items-center gap-1.5">
-              <LightDot light={light} />
-              {word}
-            </span>
-          ))}
-        </span>
-      }
-    >
+    <ListGroup inset title="Vote">
       {/* A plain box: `ListGroup` pulls a direct list up by its rows' inset, and symbols have none. */}
-      <div>
+      <div className="box-ink">
         <ul aria-label="Vote" className="flex flex-wrap gap-2">
           {tracks.map(({ track, light }) => {
             const done = raced.has(track.short);
@@ -332,7 +328,7 @@ function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly VoteTrack[]
                   {track.name}, {lightOf(light).word}
                   {done && ", raced"}
                 </span>
-                <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
+                <span aria-hidden="true" className={cn("flex overflow-hidden rounded-md", done && "opacity-40")}>
                   <TrackIcon track={track} size={32} />
                 </span>
                 {done && (
@@ -341,7 +337,7 @@ function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly VoteTrack[]
                     className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 -rotate-45 rounded-full bg-foreground"
                   />
                 )}
-                <LightDot light={light} className="absolute -right-0.5 -bottom-0.5" />
+                <LightDot light={light} />
               </li>
             );
           })}
