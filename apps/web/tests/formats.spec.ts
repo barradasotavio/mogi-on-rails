@@ -159,7 +159,7 @@ test("backup refuses unsupported formats and restores normal queue formats with 
   await page.reload();
   // Without an active mogi, loading opens the list.
   const back = page.getByRole("button", { name: "Back", exact: true });
-  await expect(page.getByRole("heading", { name: "Mogis", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mogi on Rails", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Mogi Tier D\W*FFA/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Mogi Tier D\W*2v2/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Mogi Tier D\W*3v3/ })).toBeVisible();

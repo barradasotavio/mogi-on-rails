@@ -29,7 +29,7 @@ test("regular reopens the last in-progress mogi without leaving an empty screen 
   await expect(page).toHaveURL(latestUrl);
   await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier B", exact: true })).toBeFocused();
   await page.getByRole("button", { name: "Back", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Mogis", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Mogi on Rails", exact: true })).toBeVisible();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("main").getByRole("button", { name: /^Mogi Tier B\W*FFA/ })).toBeFocused();
 });

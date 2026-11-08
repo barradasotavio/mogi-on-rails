@@ -50,7 +50,7 @@ test("a read failure replaces the list and sidebar with recovery, which also off
     "Manage Storage",
   ]);
   await expect(page.getByRole("button", { name: "New Mogi", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Mogis", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Mogi on Rails", exact: true })).toHaveCount(0);
   await expect(page.getByRole("status", { name: "Opening Mogi on Rails", exact: true })).toHaveCount(0);
   await expect(page.getByRole("alert")).toHaveCount(0);
   // At regular width the sidebar and app navigation stay out too.
