@@ -58,6 +58,9 @@ export function applyReviewedRace<T extends Mogi, C extends Capture>(
     countedRaces(mogi).length >= 12
   )
     throw new Error("12 races already count. Discard another one first.");
+  // The screenshot a result is confirmed from is one of its race's screenshots.
+  if (capture && !race.captureIds?.includes(capture.id))
+    race = { ...race, captureIds: [...(race.captureIds ?? []), capture.id] };
   race = {
     ...race,
     ...(mogi.races.some((entry) => entry.physicalNumber !== undefined)
