@@ -74,20 +74,31 @@ export function useFolderWatch(
   useEffect(() => {
     if (since === null || !folders.length) return;
     let checking = false;
+    // A check asked for while one runs (a change the browser reported, the interval) runs right after it: a new
+    // file is offered once two checks see it unchanged, so a dropped check would hold it until the next interval.
+    let again = false;
     let stopped = false;
     async function check() {
-      if (checking || stopped || document.visibilityState !== "visible") return;
+      if (stopped || document.visibilityState !== "visible") return;
       if (
         document.querySelector(
           '[role="dialog"]:not([data-state="closed"]), [role="alertdialog"]:not([data-state="closed"])',
         )
       )
         return;
+      if (checking) {
+        again = true;
+        return;
+      }
       checking = true;
       // A failed check changes nothing; the next one tries again.
       const images = await newFolderImages(folders, since!).catch(() => []);
       if (images.length && !stopped) await latest.current(images).catch(() => {});
       checking = false;
+      if (again) {
+        again = false;
+        void check();
+      }
     }
     void check();
     const timer = setInterval(() => void check(), checkEvery);
