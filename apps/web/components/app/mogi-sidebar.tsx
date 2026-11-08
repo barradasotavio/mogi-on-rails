@@ -7,10 +7,12 @@ import type { RouteView } from "@/lib/mogi/route";
 import type { Mogi } from "@/lib/mogi/types";
 
 /**
- * The same list in the docked sidebar and in the overlay. The header row lines up with the toolbar and holds
- * only its controls; docked, the sidebar's own toggle nearest the content, as in Notes and Mail (floating, the
- * toolbar's toggle stays in place and the overlay has none). The sidebar is
- * named "Mogis" for assistive technology and the list starts at its first section.
+ * The same list in the docked sidebar and in the overlay. The header row lines up with the toolbar: the app's
+ * name at the leading edge (past the window controls in the title bar band), truncated before it reaches the
+ * controls, which stay trailing; docked, the sidebar's own toggle nearest the content, as in Notes and Mail
+ * (floating, the toolbar's toggle stays in place and the overlay has none). The name is plain text, not a
+ * heading, so it never repeats Instructions' `h1`; the sidebar is named "Mogis" for assistive technology and
+ * the list starts at its first section.
  */
 export function MogiSidebar({
   mogis,
@@ -33,8 +35,9 @@ export function MogiSidebar({
 }) {
   return (
     <div className="px-2 pb-6">
-      <div className="sidebar-header toolbar-controls mb-7 flex items-center justify-end gap-2">
-        <div className="flex items-center gap-2">
+      <div className="sidebar-header toolbar-controls mb-7 flex items-center gap-2">
+        <p className="min-w-0 flex-1 truncate text-base font-semibold leading-tight">Mogi on Rails</p>
+        <div className="flex shrink-0 items-center gap-2">
           <GlassButton shape="circle" aria-label="App Settings" onClick={onSettings}>
             <Settings2 aria-hidden="true" />
           </GlassButton>

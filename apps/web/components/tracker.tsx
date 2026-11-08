@@ -249,7 +249,7 @@ export function Tracker() {
                   className={state.mogis.length ? "mb-6 md:hidden" : "flex min-h-full flex-col md:hidden"}
                 >
                   <h1 ref={listHeading} tabIndex={-1} className="mb-8 text-3xl font-bold tracking-tight outline-none">
-                    Mogis
+                    Mogi on Rails
                   </h1>
                   {/* The destinations stay above the empty state, so Instructions is always one tap away. */}
                   <fieldset disabled={busy} className="min-w-0">

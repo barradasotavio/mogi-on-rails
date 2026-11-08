@@ -168,6 +168,8 @@ test("the toolbar carries the actions, the title stays in the content, content s
         grid: bounds(document.querySelector('[aria-label="Races"]')).top,
         sidebarControl:
           document.querySelector("aside:not([inert]) .sidebar-header button")?.getBoundingClientRect().left ?? null,
+        sidebarName:
+          document.querySelector("aside:not([inert]) .sidebar-header p")?.getBoundingClientRect().toJSON() ?? null,
       };
     });
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -177,8 +179,11 @@ test("the toolbar carries the actions, the title stays in the content, content s
   expect(toolbar).toMatchObject({ top: 0, bottom: 52, first: null, last: 1424, title: false });
   expect(toolbar.grid - toolbar.bottom).toBeGreaterThanOrEqual(12);
   await overlay(true);
-  // Docked open, the window controls sit over the sidebar's header.
-  await expect.poll(async () => (await geometry()).sidebarControl).toBeGreaterThanOrEqual(78);
+  // Docked open, the window controls sit over the sidebar's header: the app's name starts past them and
+  // ends before its controls.
+  await expect.poll(async () => (await geometry()).sidebarName?.left).toBeGreaterThanOrEqual(78);
+  const header = await geometry();
+  expect(header.sidebarName?.right).toBeLessThanOrEqual(header.sidebarControl!);
   // The toolbar becomes the 33px band; its controls centre on the window controls' line, and it keeps the
   // content's background, the theme-color the browser paints the window controls with, even scrolled.
   await expect.poll(async () => (await geometry()).bottom).toBe(33);
