@@ -349,6 +349,7 @@ body {
   --movement-down: var(--destructive);
   --value-gain: var(--movement-up);
   --value-loss: var(--movement-down);
+  --value-mixed: oklch(0.795 0.184 86.047);
   --team-1: oklch(0.685 0.169 237.323);
   --team-1-foreground: oklch(0.5 0.134 242.749);
   --team-2: oklch(0.645 0.246 16.439);
@@ -398,6 +399,7 @@ body {
   --color-movement-down: var(--movement-down);
   --color-value-gain: var(--value-gain);
   --color-value-loss: var(--value-loss);
+  --color-value-mixed: var(--value-mixed);
   --color-team-1: var(--team-1);
   --color-team-1-foreground: var(--team-1-foreground);
   --color-team-2: var(--team-2);
@@ -931,6 +933,46 @@ body {
 @utility section-title {
   padding-bottom: var(--section-title-gap);
 }
+/*
+ * A section whose box is its ink (the mogi screen's): the title's box runs from its capitals to its baseline and the
+ * content's from its first ink to its last, so `--section-title-gap` below a title and `--section-gap` between
+ * sections (`section-stack`) are the distances between visible ink. Content declares where its ink starts and ends
+ * inside its own box with `--ink-top` and `--ink-bottom` (0 for boxes such as race tiles or track symbols). A list's
+ * rows are 44px with 16/24 text, so their capitals start 16px in and their baseline ends 16px before the row's end;
+ * a 24px track symbol, centred, starts and ends 10px in, and a standing's race bars 11px. Descenders hang below the baseline, as in type.
+ */
+@utility ink-section {
+  /* Its own formatting context: the title's and the content's margins stay inside instead of collapsing outward. */
+  display: flow-root;
+  /* The 14/16 title: its capitals' first pixel row is 3px into its line, its baseline's last 2px before its end. */
+  & > [data-section-title] {
+    margin-top: -3px;
+    margin-bottom: calc(var(--section-title-gap) - 2px);
+  }
+  & > [data-section-title] + * {
+    margin-top: calc(-1 * var(--ink-top, 0px));
+  }
+  & > :last-child {
+    margin-bottom: calc(-1 * var(--ink-bottom, 0px));
+  }
+  & > ul:has(> li > :is(button, div)) {
+    --ink-top: 16px;
+    --ink-bottom: 16px;
+  }
+  & > ul:has(> li:first-child > :is(button, div) img) {
+    --ink-top: 10px;
+  }
+  & > ul:has(> li:last-child > :is(button, div) img) {
+    --ink-bottom: 10px;
+  }
+  /* A standing's race bars, a 22px box centred in the row, start and end 11px in. */
+  & > ul:has(> li:first-child [data-bar]) {
+    --ink-top: 11px;
+  }
+  & > ul:has(> li:last-child [data-bar]) {
+    --ink-bottom: 11px;
+  }
+}
 @utility list-group {
   & > :is(ul, [role="radiogroup"]) {
     margin-bottom: calc(var(--spacing) * -3);
@@ -947,6 +989,12 @@ body {
     margin-bottom: calc(var(--spacing) * -2);
   }
 }
+/* The mogi table in an ink section: its race numbers' capitals start 2px in, and the Total row's baseline ends 17px
+ * before its end (the current race's tint and the column rule run on past the text, faint). */
+@utility table-ink {
+  --ink-top: 2px;
+  --ink-bottom: 17px;
+}
 /*
  * The mogi's 12 race tiles, portrait (2:3) so the road has length. Compact: one row that scrolls sideways, edge to edge
  * past the page gutters, snapping to tiles. From a 48rem container: 12 across, filling the width.
@@ -954,6 +1002,9 @@ body {
 @utility race-grid {
   display: flex;
   gap: 0.375rem;
+  /* The padding leaves room for a tile's pop and focus ring; an ink section counts from the tiles, past it. */
+  --ink-top: 0.25rem;
+  --ink-bottom: 0.25rem;
   margin-inline: -1rem;
   padding: 0.25rem 1rem;
   overflow-x: auto;

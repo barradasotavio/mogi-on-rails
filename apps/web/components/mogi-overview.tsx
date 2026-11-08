@@ -29,6 +29,7 @@ import { tablePng } from "@/lib/mogi/exports";
 import { mogiOverview } from "@/lib/mogi/questions";
 import { assertTrackerCurrent } from "@/lib/mogi/storage";
 import type { Mogi, Race } from "@/lib/mogi/types";
+import type { VoteLight, VoteTrack } from "@/lib/track-order";
 import { cn } from "@/vendor/shadcn/lib/utils";
 
 import type { PlayerShortcut } from "./mogi-players";
@@ -43,6 +44,7 @@ export const mogiProgress = (mogi: Mogi, { finished, count }: { finished: boolea
 export function MogiOverview({
   mogi,
   resultMogi = mogi,
+  voteTracks = [],
   activity,
   onRace,
   onTrack,
@@ -54,6 +56,8 @@ export function MogiOverview({
 }: {
   mogi: Mogi;
   resultMogi?: Mogi;
+  /** Every track with a race in the recent window, by vote light. */
+  voteTracks?: readonly VoteTrack[];
   activity: MogiOverviewActivity;
   onRace: (race: Race) => void;
   onTrack: (race: Race) => void;
@@ -107,7 +111,8 @@ export function MogiOverview({
   return (
     <>
       <ActionScope inset>
-        <header className="flex items-center justify-between gap-4 px-4 md:gap-6">
+        {/* Its box ends at the progress line's last ink row (14/20 text, then 16/24), as an ink section's does. */}
+        <header className="-mb-1.25 flex items-center justify-between gap-4 px-4 md:-mb-1.5 md:gap-6">
           <div className="min-w-0">
             <h1
               data-mogi-title
@@ -159,7 +164,7 @@ export function MogiOverview({
         {action.kind === "questions" ? `${action.count} ${action.count === 1 ? "question" : "questions"}` : ""}
       </span>
       <ActionScope inset>
-        <ListGroup inset title="Races" className="md:mt-4">
+        <ListGroup ink inset title="Races">
           <section ref={races} aria-label="Races" className="race-grid">
             {overview.positions.map((position) => {
               // A race with an edit in progress always opens its sheet, where Resume and Discard live.
@@ -197,9 +202,10 @@ export function MogiOverview({
           </section>
         </ListGroup>
       </ActionScope>
+      <VoteTracks mogi={mogi} tracks={voteTracks} />
       <div className="section-stack @[45rem]:grid @[45rem]:grid-cols-2 @[45rem]:items-start @[45rem]:gap-x-2">
         <MogiStandings mogi={resultMogi} count={count} table={table} onStanding={onStanding} />
-        <ListGroup inset title="Tracks">
+        <ListGroup ink inset title="Tracks">
           <List dividers="row" aria-label="Tracks">
             {overview.positions.map((position, index) => {
               const { race, run } = raceShortcut(mogi, position, { onRace, onTrack, onQuestions, onNeedsImages });
@@ -259,7 +265,7 @@ export function MogiOverview({
         onNeedsImages={onNeedsImages}
       />
       {mogi.races.some((race) => race.status === "discarded") && (
-        <ListGroup inset title="Discarded">
+        <ListGroup ink inset title="Discarded">
           <List dividers="row" aria-label="Discarded">
             {mogi.races
               .filter((race) => race.status === "discarded")
@@ -272,6 +278,68 @@ export function MogiOverview({
         </ListGroup>
       )}
     </>
+  );
+}
+
+/** A vote light's word, which names it to screen readers, and its dot's fill. */
+const lights: { light: VoteLight; word: string; dot: string }[] = [
+  { light: "good", word: "Good", dot: "bg-value-gain" },
+  { light: "mixed", word: "Mixed", dot: "bg-value-mixed" },
+  { light: "bad", word: "Bad", dot: "bg-value-loss" },
+];
+const lightOf = (light: VoteLight) => lights.find((entry) => entry.light === light)!;
+
+/**
+ * A vote light's dot, inset in the symbol's bottom-right corner: a hairline ring in the background and a soft shadow
+ * keep it apart from light and dark track art alike.
+ */
+function LightDot({ light }: { light: VoteLight }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "absolute right-1 bottom-1 size-2 rounded-full shadow-sm ring-1 ring-background",
+        lightOf(light).dot,
+      )}
+    />
+  );
+}
+
+/**
+ * Vote: which tracks to vote for, as track symbols that wrap, each with its vote light (`voteTracks`): Good, then
+ * Mixed, then Bad. A track raced in this mogi, chosen or recognized (`raceTrack`) and counted or not, stays in its
+ * place, struck through. Static; each symbol's accessible name says its light, so the dot's colour is never the only
+ * cue.
+ */
+function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly VoteTrack[] }) {
+  if (!tracks.length) return null;
+  const raced = new Set(mogi.races.map((race) => raceTrack(mogi, race)?.short));
+  return (
+    <ListGroup ink inset title="Vote">
+      <ul aria-label="Vote" className="flex flex-wrap gap-2">
+        {tracks.map(({ track, light }) => {
+          const done = raced.has(track.short);
+          return (
+            <li key={track.short} title={`${track.name} · ${lightOf(light).word}`} className="relative flex">
+              <span className="sr-only">
+                {track.name}, {lightOf(light).word}
+                {done && ", raced"}
+              </span>
+              <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
+                <TrackIcon track={track} size={44} />
+              </span>
+              {done && (
+                // Corner to corner, bottom-left to top-right, along the symbol square's full diagonal.
+                <svg aria-hidden="true" viewBox="0 0 44 44" className="absolute inset-0 size-full text-foreground">
+                  <line x1="0" y1="44" x2="44" y2="0" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              )}
+              <LightDot light={light} />
+            </li>
+          );
+        })}
+      </ul>
+    </ListGroup>
   );
 }
 
@@ -355,7 +423,7 @@ function MogiStandings({
     const points = teams.map((team) => team.points);
     const tags = inferTeamTags(mogi);
     return (
-      <ListGroup inset title="Standings">
+      <ListGroup ink inset title="Standings">
         <List dividers="row" aria-label="Team standings">
           {teams.map((team, index) => {
             const ranked = [...team.participants].sort((a, b) => (b.points ?? -1) - (a.points ?? -1));
@@ -394,7 +462,7 @@ function MogiStandings({
   const points = players.map((person) => person.points);
   // Players keep one line, so the twelve rows match the twelve Tracks; each player has a colour of the palette.
   return (
-    <ListGroup inset title="Standings">
+    <ListGroup ink inset title="Standings">
       <List dividers="row" aria-label="Player standings">
         {players.map((person, index) => (
           <ListRow
@@ -551,8 +619,10 @@ type MogiTableProps = {
 function MogiTableSection(props: MogiTableProps) {
   // Shown only in a wide container, on regular.
   return (
-    <ListGroup headingInset title="Table" className="hidden @[55rem]:block">
-      <MogiTable {...props} />
+    <ListGroup ink headingInset title="Table" className="hidden @[55rem]:block">
+      <div className="table-ink">
+        <MogiTable {...props} />
+      </div>
     </ListGroup>
   );
 }
@@ -632,7 +702,7 @@ function MogiTableView({
         : `Open race ${position.number} · ${stateLabel(position.state)}${draft ? " · Edit in progress" : ""}`,
       icon:
         position.state === "future" || position.state === "unseen" ? undefined : (
-          <TrackIcon track={track ?? { short: "item-box" }} size={32} />
+          <TrackIcon track={track ?? { short: "item-box" }} size={44} />
         ),
       total: position.state === "future" ? "·" : complete ? raceTotal(race!) : "—",
     };

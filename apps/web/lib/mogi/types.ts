@@ -136,6 +136,16 @@ export interface TrackerState {
   loungeNames?: string[];
   /** The single name saved before `loungeNames`; read as one name and dropped on the next save of the names. */
   loungeName?: string;
+  /** Tracks › Sort › Make Default: the order Tracks opens in. Absent is Typical +/−. */
+  trackOrder?: TrackOrder;
+  /** Tracks › Sort › Show Vote on Mogis. Absent means shown; only `false` is written. */
+  voteShown?: boolean;
+}
+
+/** A track order: the measure, and which races it counts (Races counts every race whatever `count` says). */
+export interface TrackOrder {
+  by: "typical" | "total" | "races";
+  count: "both" | "plus" | "minus";
 }
 
 export const emptyState: TrackerState = {

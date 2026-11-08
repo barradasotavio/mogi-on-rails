@@ -1,8 +1,8 @@
 "use client";
 
-import type { MogiOverviewActivity } from "@mkw/engine";
+import { type MogiOverviewActivity, trackStandings } from "@mkw/engine";
 import { Flag, Plus, Settings, TriangleAlert } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { useAppearance } from "@/components/app/appearance";
 import { ImageOffers } from "@/components/app/image-offers";
@@ -46,6 +46,7 @@ import type { RouteView } from "@/lib/mogi/route";
 import type { Mogi, TrackerState } from "@/lib/mogi/types";
 import { saveUpdateResume } from "@/lib/offline/resume";
 import { requestPersistentStorage } from "@/lib/storage/usage";
+import { savedTrackOrder, voteTracks as votes, withTrackOrder, withVoteShown } from "@/lib/track-order";
 
 /**
  * The app: the mogi list, the open mogi and the other screens, with the sidebar, Settings, New Mogi and
@@ -58,6 +59,14 @@ export function Tracker() {
   const actionErrors = useActionError();
   const session = useTrackerSession(actionErrors);
   const { state, resultMogis, ready, loadError, busy, persist } = session;
+  const trackOrder = savedTrackOrder(state);
+  const loungeNamesKey = yourLoungeNames(state).join("\n");
+  // The mogi screen's Vote: every track with a race in the recent window, by vote light. State is replaced on each
+  // save, so this recomputes only when the mogis or the names change.
+  const voteTracks = useMemo(
+    () => votes(trackStandings(state.mogis, loungeNamesKey ? loungeNamesKey.split("\n") : []).tracks),
+    [state.mogis, loungeNamesKey],
+  );
   const galleryPicker = useRef<HTMLInputElement | null>(null);
   const captureIntake = useRef<CaptureIntakeHandle | null>(null);
   const [intakeActivity, setIntakeActivity] = useState<MogiOverviewActivity>({});
@@ -319,6 +328,7 @@ export function Tracker() {
                       }
                       mogi={mogi}
                       resultMogi={resultMogi}
+                      voteTracks={state.voteShown === false ? undefined : voteTracks}
                       pendingFiles={state.sharedReceipts?.flatMap((receipt) => receipt.files) ?? []}
                       visible={screen === "dashboard"}
                       editor={
@@ -386,6 +396,11 @@ export function Tracker() {
                 <TracksScreen
                   mogis={state.mogis}
                   loungeNames={yourLoungeNames(state)}
+                  defaultOrder={trackOrder}
+                  busy={busy}
+                  onMakeDefault={(order) => void persist((latest) => withTrackOrder(latest, order))}
+                  voteShown={state.voteShown !== false}
+                  onVoteShown={(shown) => void persist((latest) => withVoteShown(latest, shown))}
                   visible
                   controlsContainer={mogiControls}
                   mogisShown={sidebar.open}

@@ -146,11 +146,11 @@ export async function tablePng(mogi: Mogi): Promise<Blob> {
     rank = 40,
     name = 168,
     totalWidth = 56,
-    raceWidth = 44,
+    raceWidth = 48,
     row = 32,
     footer = 44,
     head = 96,
-    thead = 72;
+    thead = 84;
   const width = pad * 2 + rank + name + totalWidth + raceWidth * 12;
   const spaces = Math.max(0, groups.length - 1) * 12 + 12;
   const height = head + thead + lines * row + spaces + 2 + footer + pad;
@@ -204,7 +204,15 @@ export async function tablePng(mogi: Mogi): Promise<Blob> {
     font(14, 600);
     text(number, center(number), y + 18, "center");
     const icon = icons[number - 1];
-    if (icon) c.drawImage(icon, center(number) - 16, y + 30, 32, 32);
+    if (icon) {
+      // 44px with the app's 10px radius (`rounded-lg`), clipped as the on-screen symbol is.
+      c.save();
+      c.beginPath();
+      c.roundRect(center(number) - 22, y + 30, 44, 44, 10);
+      c.clip();
+      c.drawImage(icon, center(number) - 22, y + 30, 44, 44);
+      c.restore();
+    }
   }
   y += thead;
   const rule = () => {

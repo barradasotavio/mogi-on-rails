@@ -20,6 +20,7 @@ export function ListGroup({
   inset = false,
   headingInset = false,
   sidebar = false,
+  ink = false,
 }: {
   title?: ReactNode;
   actions?: ReactNode;
@@ -29,14 +30,16 @@ export function ListGroup({
   inset?: boolean;
   headingInset?: boolean;
   sidebar?: boolean;
+  /** The box is the ink (`ink-section`), so section spacing counts between visible ink; for the mogi screen. */
+  ink?: boolean;
 }) {
   return (
-    <section className={cn(!sidebar && "list-group", inset && "px-4", className)}>
+    <section className={cn(ink ? "ink-section" : !sidebar && "list-group", inset && "px-4", className)}>
       {title &&
         (actions ? (
           <div
             data-section-title
-            className={cn("section-title flex items-end justify-between gap-4", headingInset && "px-4")}
+            className={cn(!ink && "section-title", "flex items-end justify-between gap-4", headingInset && "px-4")}
           >
             <h2 className="text-sm/4 font-medium text-muted-foreground">{title}</h2>
             {actions}
@@ -45,7 +48,8 @@ export function ListGroup({
           <h2
             data-section-title
             className={cn(
-              "section-title text-sm/4 font-medium text-muted-foreground",
+              !ink && "section-title",
+              "text-sm/4 font-medium text-muted-foreground",
               sidebar ? "px-3" : headingInset && "px-4",
             )}
           >

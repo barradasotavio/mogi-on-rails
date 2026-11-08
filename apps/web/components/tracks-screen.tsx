@@ -15,13 +15,13 @@ import { MetadataBadge } from "@/components/ui/metadata";
 import { MogiScrollBody } from "@/components/ui/mogi-scroll-body";
 import { RaceBars } from "@/components/ui/race-bars";
 import { Sheet } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { SidebarToggle, Toolbar } from "@/components/ui/toolbar";
 import { VALUE_DOMAIN, valueSlots, ValueTrend } from "@/components/ui/value-trend";
 import type { Mogi } from "@/lib/mogi/types";
+import { type Count, orderTracks, sameTrackOrder, type SortBy, type TrackOrder } from "@/lib/track-order";
 import { cn } from "@/vendor/shadcn/lib/utils";
 
-type SortBy = "typical" | "total" | "races";
-type Count = "both" | "plus" | "minus";
 /** The Sort panel's two sections, as Finder's view options: what to measure, and which races it counts. */
 const sortBys: { value: SortBy; label: string }[] = [
   { value: "typical", label: "Typical" },
@@ -38,13 +38,6 @@ const measureName = (by: SortBy, count: Count) =>
   by === "races"
     ? "Races"
     : `${sortBys.find((entry) => entry.value === by)!.label} ${counts.find((entry) => entry.value === count)!.short}`;
-/** The chosen measure of a track; null when it has no race on that side. */
-const measureOf = (standing: TrackStanding, by: SortBy, count: Count): number | null =>
-  by === "races"
-    ? standing.recent
-    : by === "typical"
-      ? { both: standing.typical, plus: standing.typicalPlus, minus: standing.typicalMinus }[count]
-      : { both: standing.cost, plus: standing.totalPlus, minus: standing.totalMinus }[count];
 const date = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 
 /**
@@ -66,11 +59,17 @@ const raceLabel = (value: number, index: number) => `Race ${index + 1} · ${sign
  * Tracks: how each track goes for you, from your finish in every counted race against your own average in that
  * mogi (`trackStandings`), over your last `RECENT_MOGIS` mogis. A destination beside the mogis, with the same
  * controls as the mogi screen: the toolbar on regular, the floating bar on compact, and in either a glass Sort item
- * that opens the sort panel. One list of every track; a row opens its races in a sheet.
+ * that opens the sort panel. One list of every track; a row opens its races in a sheet. It opens in the saved default
+ * order, which Make Default in the panel replaces; any other choice lasts for the visit.
  */
 export function TracksScreen({
   mogis,
   loungeNames,
+  defaultOrder,
+  busy,
+  onMakeDefault,
+  voteShown,
+  onVoteShown,
   visible,
   controlsContainer,
   mogisShown,
@@ -80,6 +79,11 @@ export function TracksScreen({
 }: {
   mogis: Mogi[];
   loungeNames: string[];
+  defaultOrder: TrackOrder;
+  busy: boolean;
+  onMakeDefault: (order: TrackOrder) => void;
+  voteShown: boolean;
+  onVoteShown: (shown: boolean) => void;
   visible: boolean;
   controlsContainer: HTMLElement | null;
   mogisShown: boolean;
@@ -87,8 +91,8 @@ export function TracksScreen({
   onBack: () => void;
   onChooseName: () => void;
 }) {
-  const [sortBy, setSortBy] = useState<SortBy>("typical");
-  const [count, setCount] = useState<Count>("both");
+  const [sortBy, setSortBy] = useState<SortBy>(defaultOrder.by);
+  const [count, setCount] = useState<Count>(defaultOrder.count);
   const [open, setOpen] = useState<string | null>(null);
   const [sorting, setSorting] = useState(false);
   const namesKey = loungeNames.join("\n");
@@ -231,6 +235,31 @@ export function TracksScreen({
                 ))}
               </List>
             </ListGroup>
+            {/* The current choice becomes the order Tracks opens in. */}
+            <List>
+              <ListRow
+                action="primary"
+                disabled={busy || sameTrackOrder({ by: sortBy, count }, defaultOrder)}
+                onSelect={() => onMakeDefault({ by: sortBy, count })}
+              >
+                Make Default
+              </ListRow>
+            </List>
+            {/* The mogi screen's Vote reads these standings, so whether it shows is set here too. */}
+            <List>
+              <ListRow
+                trail={
+                  <Switch
+                    aria-labelledby="tracks-vote-shown"
+                    disabled={busy}
+                    checked={voteShown}
+                    onCheckedChange={onVoteShown}
+                  />
+                }
+              >
+                <span id="tracks-vote-shown">Show Vote on Mogis</span>
+              </ListRow>
+            </List>
           </div>
         </Sheet>
       )}
@@ -248,11 +277,7 @@ export function TracksScreen({
   );
 }
 
-/**
- * Every track in one list, every track alike whatever its race count, starting at the extreme the measure is about:
- * the highest for plus and +/−, the most negative for minus, the most races for Races. Tracks with no race on the
- * chosen side follow, with "—"; engine order (typical, then races, then catalog) breaks ties, since the sort is stable.
- */
+/** Every track in one list, every track alike whatever its race count, in `orderTracks` order, "—" with no race on the chosen side. */
 function TrackList({
   tracks,
   sortBy,
@@ -264,12 +289,7 @@ function TrackList({
   count: Count;
   onSelect: (standing: TrackStanding) => void;
 }) {
-  const direction = sortBy !== "races" && count === "minus" ? 1 : -1;
-  const ordered = tracks
-    .map((standing) => ({ standing, value: measureOf(standing, sortBy, count) }))
-    .sort((a, b) =>
-      a.value === null ? (b.value === null ? 0 : 1) : b.value === null ? -1 : direction * (a.value - b.value),
-    );
+  const ordered = orderTracks(tracks, { by: sortBy, count });
   const measure = measureName(sortBy, count);
   // The measure's name titles the list, leading like every section title, as iOS Settings › Battery titles its
   // list by app over trailing percentages; each value keeps the name for screen readers.
@@ -334,7 +354,7 @@ function TrackRow({
       accessory="chevron"
       wrap
       onSelect={() => onSelect(standing)}
-      media={<TrackIcon track={standing.track} size="row" />}
+      media={<TrackIcon track={standing.track} size={44} />}
       description={
         <span className="flex items-center gap-2">
           <span className="min-w-0 flex-1 truncate">{sortBy !== "races" && plural(standing.recent, "race")}</span>

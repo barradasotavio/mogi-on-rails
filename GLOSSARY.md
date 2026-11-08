@@ -56,6 +56,10 @@ How often a track comes up: how many of its races are in the [recent window](#re
 The sum of a track's race values in the recent window (`cost` in the engine): what the track adds to or takes from your finishes overall. Total plus and total minus sum the plus and the minus races only (`totalPlus`, `totalMinus`), none when the track has no race on that side.
 _Avoid_: Contribution, Cost, Priority, Positions lost
 
+**Vote light**:
+A track's call for voting, from its [usual range](#usual-range): Good when the 1st quartile is above zero, Bad when the 3rd quartile is below zero, Mixed otherwise, including a track with fewer than 3 races in the recent window (`voteLight`).
+_Avoid_: Rating, Grade, Tier
+
 **Unstable track**:
 A track with at least 3 races in the recent window whose usual range reaches 2 positions on each side of zero (1st quartile ≤ −2 and 3rd quartile ≥ +2, `UNSTABLE_REACH`), so Typical +/− hides good and bad races alike, as on a track that splits into two clusters.
 
