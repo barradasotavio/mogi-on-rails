@@ -1486,6 +1486,7 @@ export const trackerSchema = shape("Tracker data", {
       count: textIn("Track order", ["both", "plus", "minus"], "Invalid track order."),
     }),
   ),
+  voteShown: v.optional(v.boolean("Show Vote on Mogis: invalid value.")),
   sourceUndo: v.optional(sourceUndo),
 });
 export type TrackerRecord = v.InferOutput<typeof trackerSchema>;

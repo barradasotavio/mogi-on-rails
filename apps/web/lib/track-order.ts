@@ -20,6 +20,13 @@ export function withTrackOrder(state: TrackerState, order: TrackOrder): TrackerS
   return next;
 }
 
+/** The state with Vote shown or hidden on the mogi screen; shown, the default, is written as no field. */
+export function withVoteShown(state: TrackerState, shown: boolean): TrackerState {
+  const next: TrackerState = { ...state, voteShown: shown };
+  if (shown) delete next.voteShown;
+  return next;
+}
+
 /** Races counts every race, so its count never tells two orders apart. */
 export const sameTrackOrder = (a: TrackOrder, b: TrackOrder) =>
   a.by === b.by && (a.by === "races" || a.count === b.count);

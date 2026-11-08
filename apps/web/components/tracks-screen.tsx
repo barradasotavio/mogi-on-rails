@@ -15,6 +15,7 @@ import { MetadataBadge } from "@/components/ui/metadata";
 import { MogiScrollBody } from "@/components/ui/mogi-scroll-body";
 import { RaceBars } from "@/components/ui/race-bars";
 import { Sheet } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { SidebarToggle, Toolbar } from "@/components/ui/toolbar";
 import { VALUE_DOMAIN, valueSlots, ValueTrend } from "@/components/ui/value-trend";
 import type { Mogi } from "@/lib/mogi/types";
@@ -67,6 +68,8 @@ export function TracksScreen({
   defaultOrder,
   busy,
   onMakeDefault,
+  voteShown,
+  onVoteShown,
   visible,
   controlsContainer,
   mogisShown,
@@ -79,6 +82,8 @@ export function TracksScreen({
   defaultOrder: TrackOrder;
   busy: boolean;
   onMakeDefault: (order: TrackOrder) => void;
+  voteShown: boolean;
+  onVoteShown: (shown: boolean) => void;
   visible: boolean;
   controlsContainer: HTMLElement | null;
   mogisShown: boolean;
@@ -238,6 +243,21 @@ export function TracksScreen({
                 onSelect={() => onMakeDefault({ by: sortBy, count })}
               >
                 Make Default
+              </ListRow>
+            </List>
+            {/* The mogi screen's Vote follows this order, so whether it shows is set here too. */}
+            <List>
+              <ListRow
+                trail={
+                  <Switch
+                    aria-labelledby="tracks-vote-shown"
+                    disabled={busy}
+                    checked={voteShown}
+                    onCheckedChange={onVoteShown}
+                  />
+                }
+              >
+                <span id="tracks-vote-shown">Show Vote on Mogis</span>
               </ListRow>
             </List>
           </div>

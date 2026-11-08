@@ -163,7 +163,7 @@ export function MogiOverview({
         {action.kind === "questions" ? `${action.count} ${action.count === 1 ? "question" : "questions"}` : ""}
       </span>
       <ActionScope inset>
-        <ListGroup inset title="Races" className="md:mt-4">
+        <ListGroup inset title="Races">
           <section ref={races} aria-label="Races" className="race-grid">
             {overview.positions.map((position) => {
               // A race with an edit in progress always opens its sheet, where Resume and Discard live.
@@ -281,37 +281,53 @@ export function MogiOverview({
 }
 
 /**
- * Vote: the tracks to vote for, best first in the default track order, as track symbols that wrap. A track raced in
- * this mogi, chosen or recognized (`raceTrack`) and counted or not, stays in its place, struck through. Static.
+ * Vote: the tracks to vote for, best first in the default track order. A track raced in this mogi, chosen or
+ * recognized (`raceTrack`) and counted or not, stays in its place, struck through. Static. Each titled row is one
+ * `TrackVoteRow`, so a second row (tracks to avoid) is one more entry.
  */
 function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly Track[] }) {
   if (!tracks.length) return null;
   const raced = new Set(mogi.races.map((race) => raceTrack(mogi, race)?.short));
+  return <TrackVoteRow title="Vote" tracks={tracks} raced={raced} />;
+}
+
+/** A titled row of track symbols that wraps; tracks in `raced` are struck through in place. */
+function TrackVoteRow({
+  title,
+  tracks,
+  raced,
+}: {
+  title: string;
+  tracks: readonly Track[];
+  raced: ReadonlySet<string | undefined>;
+}) {
+  // The grid sits in a plain box: `ListGroup` pulls a direct list up by its rows' inset, and symbols have none.
   return (
-    <ListGroup inset title="Vote">
-      <ul aria-label="Vote" className="flex flex-wrap gap-2">
-        {tracks.map((track) => {
-          const done = raced.has(track.short);
-          return (
-            <li key={track.short} title={track.name} className="relative flex size-10 items-center justify-center">
-              <span className="sr-only">
-                {track.name}
-                {done && ", raced"}
-              </span>
-              <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
-                <TrackIcon track={track} size={32} />
-              </span>
-              {done && (
-                <span
-                  aria-hidden="true"
-                  data-raced
-                  className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 -rotate-45 rounded-full bg-foreground"
-                />
-              )}
-            </li>
-          );
-        })}
-      </ul>
+    <ListGroup inset title={title}>
+      <div>
+        <ul aria-label={title} className="flex flex-wrap gap-2">
+          {tracks.map((track) => {
+            const done = raced.has(track.short);
+            return (
+              <li key={track.short} title={track.name} className="relative flex">
+                <span className="sr-only">
+                  {track.name}
+                  {done && ", raced"}
+                </span>
+                <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
+                  <TrackIcon track={track} size={32} />
+                </span>
+                {done && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 -rotate-45 rounded-full bg-foreground"
+                  />
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </ListGroup>
   );
 }

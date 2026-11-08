@@ -25,6 +25,7 @@ The ZIP carries `manifest.json` (`format`, `backupVersion`, `exportedAt`, `state
 - `state` is the public domain records, independent of IndexedDB database names, stores and keys, and preserves every JSON field, unknown extensions included.
 - `loungeNames` (Settings › Your Lounge Names) is an optional list of up to 20 texts of up to 80 characters; absent means none is set. A state saved with the single `loungeName` reads as a one-name list, and the next change of the names writes only `loungeNames`.
 - `trackOrder` (Tracks › Sort › Make Default) is an optional `{ by, count }`: `by` one of `typical`, `total`, `races`; `count` one of `both`, `plus`, `minus`. Absent means Typical +/−.
+- `voteShown` (Tracks › Sort › Show Vote on Mogis) is an optional boolean; absent means shown, and only `false` is written.
 - A race's `nativePointOrigins: "manual"` is legacy: it still validates, and restore re-models the race's `nativePoints` from the scale ([native points](scoring.md#native-points)).
 - `Capture.original` is `null` when the bytes were deleted to free space; the full record round-trips without a binary.
 - SHA-256, size, decoding and dimensions of each binary are checked before the preview.

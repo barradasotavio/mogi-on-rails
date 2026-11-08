@@ -954,7 +954,8 @@ body {
 @utility race-grid {
   display: flex;
   gap: 0.375rem;
-  margin-inline: -1rem;
+  /* The padding leaves room for a tile's pop and focus ring; the margin cancels it, so section spacing counts from the tiles. */
+  margin: -0.25rem -1rem;
   padding: 0.25rem 1rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;

@@ -46,7 +46,7 @@ import type { RouteView } from "@/lib/mogi/route";
 import type { Mogi, TrackerState } from "@/lib/mogi/types";
 import { saveUpdateResume } from "@/lib/offline/resume";
 import { requestPersistentStorage } from "@/lib/storage/usage";
-import { orderTracks, savedTrackOrder, withTrackOrder } from "@/lib/track-order";
+import { orderTracks, savedTrackOrder, withTrackOrder, withVoteShown } from "@/lib/track-order";
 
 /**
  * The app: the mogi list, the open mogi and the other screens, with the sidebar, Settings, New Mogi and
@@ -331,7 +331,7 @@ export function Tracker() {
                       }
                       mogi={mogi}
                       resultMogi={resultMogi}
-                      voteTracks={voteTracks}
+                      voteTracks={state.voteShown === false ? undefined : voteTracks}
                       pendingFiles={state.sharedReceipts?.flatMap((receipt) => receipt.files) ?? []}
                       visible={screen === "dashboard"}
                       editor={
@@ -402,6 +402,8 @@ export function Tracker() {
                   defaultOrder={trackOrder}
                   busy={busy}
                   onMakeDefault={(order) => void persist((latest) => withTrackOrder(latest, order))}
+                  voteShown={state.voteShown !== false}
+                  onVoteShown={(shown) => void persist((latest) => withVoteShown(latest, shown))}
                   visible
                   controlsContainer={mogiControls}
                   mogisShown={sidebar.open}

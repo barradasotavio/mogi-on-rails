@@ -7,8 +7,9 @@ import type { Mogi, Race } from "@/lib/mogi/types";
 
 import { downloadBackup } from "./backup-navigation";
 import { ffaRoster, mogiState, restoreState } from "./mogi-state";
+import { openCurrentMogi } from "./settings-navigation";
 
-test("the saved track order orders Tracks and Vote, strikes tracks raced in the mogi and travels with the backup", async ({
+test("the saved track order orders Tracks and Vote, strikes tracks raced in the mogi, and it and hiding Vote travel with the backup", async ({
   page,
 }, info) => {
   const raced =
@@ -50,7 +51,15 @@ test("the saved track order orders Tracks and Vote, strikes tracks raced in the 
   await sort.getByRole("button", { name: "Total", exact: true }).click();
   await sort.getByRole("button", { name: "Make Default", exact: true }).click();
   await expect(sort.getByRole("button", { name: "Make Default", exact: true })).toBeDisabled();
+  const shown = sort.getByRole("switch", { name: "Show Vote on Mogis", exact: true });
+  await expect(shown).toBeChecked();
+  await shown.click();
+  await expect(shown).not.toBeChecked();
   await page.keyboard.press("Escape");
   const manifest = unzipSync(readFileSync(await downloadBackup(page, info.outputPath("backup.zip"))))["manifest.json"];
-  expect(JSON.parse(strFromU8(manifest)).state.trackOrder).toEqual({ by: "total", count: "both" });
+  const saved = JSON.parse(strFromU8(manifest)).state;
+  expect(saved.trackOrder).toEqual({ by: "total", count: "both" });
+  expect(saved.voteShown).toBe(false);
+  await openCurrentMogi(page);
+  await expect(page.getByRole("list", { name: "Vote", exact: true })).toHaveCount(0);
 });

@@ -530,6 +530,7 @@ function rich(): J {
     loungeName: "Me",
     loungeNames: ["Me", "Alt"],
     trackOrder: { by: "total", count: "minus" },
+    voteShown: false,
     unknownRootField: { kept: true },
     sharedReceipts: [
       {

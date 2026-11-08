@@ -138,6 +138,8 @@ export interface TrackerState {
   loungeName?: string;
   /** Tracks › Sort › Make Default: the order Tracks opens in and the mogi screen's Vote follows. Absent is Typical +/−. */
   trackOrder?: TrackOrder;
+  /** Tracks › Sort › Show Vote on Mogis. Absent means shown; only `false` is written. */
+  voteShown?: boolean;
 }
 
 /** A track order: the measure, and which races it counts (Races counts every race whatever `count` says). */
