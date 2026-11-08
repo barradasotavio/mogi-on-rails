@@ -354,7 +354,7 @@ function TrackRow({
       accessory="chevron"
       wrap
       onSelect={() => onSelect(standing)}
-      media={<TrackIcon track={standing.track} size="row" />}
+      media={<TrackIcon track={standing.track} size={44} />}
       description={
         <span className="flex items-center gap-2">
           <span className="min-w-0 flex-1 truncate">{sortBy !== "races" && plural(standing.recent, "race")}</span>

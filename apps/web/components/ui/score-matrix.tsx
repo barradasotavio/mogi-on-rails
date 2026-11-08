@@ -100,7 +100,7 @@ export function ScoreMatrix({
         <td
           key={i}
           className={cn(
-            "min-w-10 text-center",
+            "min-w-12 text-center",
             team
               ? cn(teamBorder, "bg-muted", i === columns.length - 1 && cap(columns[i].number))
               : !firstMember && "border-t border-rule",
@@ -162,7 +162,7 @@ export function ScoreMatrix({
                   key={column.number}
                   data-current={column.number === current || undefined}
                   className={cn(
-                    "w-1/12 min-w-10 px-0.5 pb-1 align-top font-medium",
+                    "w-1/12 min-w-12 px-0.5 pb-1 align-top font-medium",
                     highlight(column.number),
                     column.number === current && "rounded-t-lg",
                   )}
@@ -174,12 +174,12 @@ export function ScoreMatrix({
                     disabled={column.state === "future" || column.state === "unseen" || column.state === "reading"}
                     onClick={column.onOpen}
                     className={cn(
-                      "flex h-14 w-full flex-col items-center justify-start gap-0.5 rounded-md leading-tight outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                      "flex h-16 w-full flex-col items-center justify-start gap-0.5 rounded-md leading-tight outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                       column.state !== "future" && column.state !== "unseen" && "text-foreground active:bg-muted",
                     )}
                   >
                     <span className="text-sm/4">{column.number}</span>
-                    {column.icon ?? <span className="size-8" />}
+                    {column.icon ?? <span className="size-11" />}
                   </button>
                 </th>
               ))}

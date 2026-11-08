@@ -23,7 +23,7 @@ async function expectImageTitle(image: Locator, subtitle: string) {
     const image = element as HTMLImageElement;
     const actual = document.createElement("canvas");
     const expected = document.createElement("canvas");
-    actual.width = expected.width = 1680;
+    actual.width = expected.width = 1776;
     actual.height = expected.height = 192;
     const a = actual.getContext("2d")!;
     const e = expected.getContext("2d")!;
@@ -31,7 +31,7 @@ async function expectImageTitle(image: Locator, subtitle: string) {
     e.scale(2, 2);
     const theme = getComputedStyle(document.documentElement);
     e.fillStyle = theme.getPropertyValue("--background").trim();
-    e.fillRect(0, 0, 840, 96);
+    e.fillRect(0, 0, 888, 96);
     e.textBaseline = "middle";
     const family = getComputedStyle(document.body).fontFamily;
     e.font = `600 22px ${family}`;
@@ -40,8 +40,8 @@ async function expectImageTitle(image: Locator, subtitle: string) {
     e.font = `400 15px ${family}`;
     e.fillStyle = theme.getPropertyValue("--muted-foreground").trim();
     e.fillText(subtitle, 24, 66);
-    const pixels = a.getImageData(0, 0, 1680, 192).data;
-    const reference = e.getImageData(0, 0, 1680, 192).data;
+    const pixels = a.getImageData(0, 0, 1776, 192).data;
+    const reference = e.getImageData(0, 0, 1776, 192).data;
     return pixels.reduce((sum, value, index) => sum + Number(value !== reference[index]), 0);
   }, subtitle);
   expect(differences).toBe(0);
@@ -69,10 +69,11 @@ test("the partial image has an English title in light and dark themes", async ({
     if (theme === "dark") await expect(image).not.toHaveAttribute("src", previous!);
     await expect(image).toBeVisible();
     await image.evaluate((element) => (element as HTMLImageElement).decode());
-    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBe(1680);
-    expect(await image.evaluate((element) => (element as HTMLImageElement).naturalHeight)).toBe(1772);
+    await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBe(1776);
+    expect(await image.evaluate((element) => (element as HTMLImageElement).naturalHeight)).toBe(1796);
     await expectImageTitle(image, "Table after race 1 of 12");
-    // The PNG must contain the approved emoji pixels in the 32px band below the race number.
+    // The PNG must contain the approved emoji pixels in the 44px symbol below the race number; the 32px square inside it
+    // stays clear of the rounded corners.
     const iconDifferences = await image.evaluate(async (element) => {
       const icon = new Image();
       icon.src = "/tracks/CC.webp";
@@ -82,10 +83,10 @@ test("the partial image has an English title in light and dark themes", async ({
       actual.width = expected.width = actual.height = expected.height = 64;
       const a = actual.getContext("2d")!,
         e = expected.getContext("2d")!;
-      a.drawImage(element as HTMLImageElement, -588, -252);
+      a.drawImage(element as HTMLImageElement, -592, -264);
       e.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
       e.fillRect(0, 0, 64, 64);
-      e.drawImage(icon, 0, 0, 64, 64);
+      e.drawImage(icon, -12, -12, 88, 88);
       const pixels = a.getImageData(0, 0, 64, 64).data,
         reference = e.getImageData(0, 0, 64, 64).data;
       return pixels.reduce((sum, value, index) => sum + Number(value !== reference[index]), 0);
@@ -147,7 +148,7 @@ test("the final image becomes partial when one of twelve races is discarded", as
       actual.height = expected.height = 64;
       const a = actual.getContext("2d")!,
         e = expected.getContext("2d")!;
-      a.drawImage(element as HTMLImageElement, -128, -(336 + index * 216));
+      a.drawImage(element as HTMLImageElement, -128, -(360 + index * 216));
       e.scale(2, 2);
       const theme = getComputedStyle(document.documentElement);
       e.fillStyle = theme.getPropertyValue("--muted").trim();

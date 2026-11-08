@@ -328,14 +328,14 @@ function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly VoteTrack[]
                   {track.name}, {lightOf(light).word}
                   {done && ", raced"}
                 </span>
-                <span aria-hidden="true" className={cn("flex overflow-hidden rounded-md", done && "opacity-40")}>
-                  <TrackIcon track={track} size={32} />
+                <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
+                  <TrackIcon track={track} size={44} />
                 </span>
                 {done && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 -rotate-45 rounded-full bg-foreground"
-                  />
+                  // Corner to corner, bottom-left to top-right, along the symbol square's full diagonal.
+                  <svg aria-hidden="true" viewBox="0 0 44 44" className="absolute inset-0 size-full text-foreground">
+                    <line x1="0" y1="44" x2="44" y2="0" stroke="currentColor" strokeWidth="2" />
+                  </svg>
                 )}
                 <LightDot light={light} />
               </li>
@@ -704,7 +704,7 @@ function MogiTableView({
         : `Open race ${position.number} · ${stateLabel(position.state)}${draft ? " · Edit in progress" : ""}`,
       icon:
         position.state === "future" || position.state === "unseen" ? undefined : (
-          <TrackIcon track={track ?? { short: "item-box" }} size={32} />
+          <TrackIcon track={track ?? { short: "item-box" }} size={44} />
         ),
       total: position.state === "future" ? "·" : complete ? raceTotal(race!) : "—",
     };
