@@ -7,6 +7,10 @@
         "text": "The race sheet lists that race's screenshots. Remove one to recount the race; Undo brings it back."
       },
       {
+        "kind": "fix",
+        "text": "Races whose screenshots disappeared after fixing names in Players show them again; results stay the same."
+      },
+      {
         "kind": "new",
         "text": "Watched folders can add new screenshots without asking: turn on Add Without Asking in Settings › Watched Folders."
       },
