@@ -442,6 +442,8 @@ test("a stale tab refuses overwrites and reloads the mogi saved by the other tab
   await choosePlace(other, "1st", "Piloto 2");
   await other.getByRole("button", { name: "Save Result", exact: true }).click();
   await expect(other.getByText("FFA · Race 1 of 12", { exact: true })).toBeVisible();
+  // Back to the first tab, as the user would: Chrome can stop drawing a background tab, and its clicks never land.
+  await page.bringToFront();
   await openMogiSettings(page);
   await page.getByRole("button", { name: "Delete Mogi", exact: true }).click();
   const confirmation = page.getByRole("alertdialog", { name: /^Delete .+\?$/ });
@@ -454,6 +456,7 @@ test("a stale tab refuses overwrites and reloads the mogi saved by the other tab
   await expect(changed.getByRole("button")).toHaveText(["Reload"]);
   await changed.getByRole("button", { name: "Reload", exact: true }).click();
   await expect(page.getByText("FFA · Race 1 of 12", { exact: true })).toBeVisible();
+  await other.bringToFront();
   await other.reload();
   await expect(other.getByText("FFA · Race 1 of 12", { exact: true })).toBeVisible();
 });

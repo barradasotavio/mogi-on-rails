@@ -197,6 +197,8 @@ test("export refuses data changed in another tab", async ({ page, context }) => 
   await other.keyboard.press("Escape");
   await other.reload();
   await expect(other.getByRole("heading", { name: "Mogi Tier E", exact: true })).toBeVisible();
+  // Back to the first tab, as the user would: Chrome can stop drawing a background tab, and its clicks never land.
+  await page.bringToFront();
   await panel.getByRole("button", { name: "Copy !submit", exact: true }).click();
   await expect(panel.getByText("The data changed. Reload before exporting.", { exact: true })).toBeVisible();
   await expect(panel.getByRole("img", { name: "Table preview", exact: true })).toHaveCount(0);
