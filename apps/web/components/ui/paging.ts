@@ -14,6 +14,8 @@ const WHEEL_DECAY_EVENTS = 3;
 const WHEEL_DECAY_SHARE = 0.6;
 /** Momentum only decays: a delta past twice its lowest since it began falling, plus this jitter, is a new swipe. */
 const WHEEL_RISE_PX = 4;
+/** Momentum is compared per frame of a 120 Hz trackpad: a busy page gets late events merged into one bigger delta. */
+const WHEEL_FRAME_MS = 8;
 
 /** A released drag settles where it would be this long later at its speed, as in UIScrollView. */
 const PROJECTION_MS = 200;
@@ -120,6 +122,7 @@ export function listenForTrackpadPaging(
     falls = 0,
     last = 0,
     trough = Infinity,
+    lastTime = 0,
     timer = 0,
     samples: { time: number; travel: number }[] = [];
   const end = () => {
@@ -142,12 +145,15 @@ export function listenForTrackpadPaging(
           ? element.clientWidth
           : 1;
     const delta = event.deltaX * unit,
-      size = Math.abs(delta);
+      size = Math.abs(delta),
+      frames = Math.max(1, Math.round((event.timeStamp - lastTime) / WHEEL_FRAME_MS));
+    lastTime = event.timeStamp;
     clearTimeout(timer);
     if (phase === "momentum") {
-      if (size < 2 * trough + WHEEL_RISE_PX) {
-        if (size < last) trough = Math.min(trough, size);
-        last = size;
+      const pace = size / frames;
+      if (pace < 2 * trough + WHEEL_RISE_PX) {
+        if (pace < last) trough = Math.min(trough, pace);
+        last = pace;
         timer = window.setTimeout(end, WHEEL_SETTLE_MS);
         return;
       }
