@@ -111,8 +111,8 @@ export function MogiOverview({
   return (
     <>
       <ActionScope inset>
-        {/* Its box ends at the progress line's baseline (14/20 text, then 16/24), as an ink section's does. */}
-        <header className="-mb-1 flex items-center justify-between gap-4 px-4 md:-mb-1.5 md:gap-6">
+        {/* Its box ends at the progress line's last ink row (14/20 text, then 16/24), as an ink section's does. */}
+        <header className="-mb-1.25 flex items-center justify-between gap-4 px-4 md:-mb-1.5 md:gap-6">
           <div className="min-w-0">
             <h1
               data-mogi-title
