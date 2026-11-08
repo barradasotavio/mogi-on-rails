@@ -420,3 +420,21 @@ test("a saved confirmed race whose finish order screen lost its link shows that 
     );
   checkTotals(loaded, 12);
 });
+
+test("answering the names of a race's finish order screen links that screenshot to the race it confirms", async () => {
+  // The answer confirms the race from its screen: the link follows even when the race had lost it.
+  let mogi = structuredClone((await replayReal([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]])).mogi);
+  const race = mogi.races.find((entry) => entry.number === 4)!;
+  const capture = mogi.captures!.find((entry) => entry.id === race.captureIds![0])!;
+  assert.equal(capture.stage, "finish-order-confirmed");
+  race.captureIds = [];
+  const person = capture.nameAssociations![0].participantId!;
+  for (const synonym of participantSynonyms(mogi, person)) mogi = unlinkSynonym(mogi, person, synonym);
+  for (let question = mogiQuestions(mogi)[0]; question; question = mogiQuestions(mogi)[0]) {
+    assert.equal(question.kind, "name");
+    mogi = await answerMogiQuestion(mogi, question.id, { kind: "name", answer: { participantId: person } });
+  }
+  const confirmed = mogi.races.find((entry) => entry.id === race.id)!;
+  assert.equal(confirmed.status, "confirmed");
+  assert.deepEqual(confirmed.captureIds, [capture.id]);
+});
