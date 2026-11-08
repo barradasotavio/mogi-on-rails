@@ -266,19 +266,13 @@ test("the full table opens at the last race, checks 82 per race and changes plac
   await expect(page.getByRole("button", { name: "Table", exact: true })).toBeHidden();
   await expect(page.getByRole("button", { name: "More", exact: true })).toBeHidden();
   await expect(page.getByRole("heading", { name: "Tracks", exact: true })).toBeVisible();
-  // A section title sits the same gap above its first line of text: the table's labels as a list's rows.
+  // A section title sits the same gap above its content's first ink: the table's race numbers as a row's symbol.
   const titleGaps = await page.locator("main").evaluate((main) =>
     ["Tracks", "Table"].map((name) => {
       const title = [...main.querySelectorAll("h2")].find((heading) => heading.textContent === name)!;
-      const walker = document.createTreeWalker(title.nextElementSibling!, NodeFilter.SHOW_TEXT, {
-        acceptNode: (node) => (node.textContent!.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP),
-      });
-      const top = (node: Node) => {
-        const range = document.createRange();
-        range.selectNodeContents(node);
-        return range.getBoundingClientRect();
-      };
-      return top(walker.nextNode()!).top - top(title.firstChild!).bottom;
+      const content = title.nextElementSibling!;
+      const ink = parseFloat(getComputedStyle(content).getPropertyValue("--ink-top"));
+      return content.getBoundingClientRect().top + ink - title.getBoundingClientRect().bottom;
     }),
   );
   expect(Math.max(...titleGaps) - Math.min(...titleGaps)).toBeLessThanOrEqual(1);

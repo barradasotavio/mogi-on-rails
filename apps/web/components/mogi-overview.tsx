@@ -111,7 +111,8 @@ export function MogiOverview({
   return (
     <>
       <ActionScope inset>
-        <header className="flex items-center justify-between gap-4 px-4 md:gap-6">
+        {/* Its box ends at the progress line's baseline (14/20 text, then 16/24), as an ink section's does. */}
+        <header className="-mb-1 flex items-center justify-between gap-4 px-4 md:-mb-1.5 md:gap-6">
           <div className="min-w-0">
             <h1
               data-mogi-title
@@ -163,50 +164,48 @@ export function MogiOverview({
         {action.kind === "questions" ? `${action.count} ${action.count === 1 ? "question" : "questions"}` : ""}
       </span>
       <ActionScope inset>
-        <ListGroup inset title="Races">
-          <div className="box-ink">
-            <section ref={races} aria-label="Races" className="race-grid">
-              {overview.positions.map((position) => {
-                // A race with an edit in progress always opens its sheet, where Resume and Discard live.
-                const draftRace =
-                  editingRaceId && position.raceId === editingRaceId
-                    ? mogi.races.find((race) => race.id === editingRaceId)
-                    : undefined;
-                const inert =
-                  !draftRace &&
-                  (position.state === "future" || position.state === "unseen" || position.state === "reading");
-                return (
-                  <RaceTile
-                    key={position.number}
-                    state={position.state === "unseen" ? "future" : position.state}
-                    editing={!!draftRace}
-                    aria-label={`Race ${position.number} · ${stateLabel(position.state)}${draftRace ? " · Edit in progress" : ""}`}
-                    data-race-number={position.number}
-                    aria-disabled={inert}
-                    tabIndex={inert ? -1 : undefined}
-                    onClick={() => {
-                      if (draftRace) onRace(draftRace);
-                      else if (
-                        position.state === "counted" ||
-                        position.state === "pending" ||
-                        position.state === "questions" ||
-                        position.state === "needs-images"
-                      )
-                        open(position);
-                    }}
-                  >
-                    {position.number}
-                  </RaceTile>
-                );
-              })}
-            </section>
-          </div>
+        <ListGroup ink inset title="Races">
+          <section ref={races} aria-label="Races" className="race-grid">
+            {overview.positions.map((position) => {
+              // A race with an edit in progress always opens its sheet, where Resume and Discard live.
+              const draftRace =
+                editingRaceId && position.raceId === editingRaceId
+                  ? mogi.races.find((race) => race.id === editingRaceId)
+                  : undefined;
+              const inert =
+                !draftRace &&
+                (position.state === "future" || position.state === "unseen" || position.state === "reading");
+              return (
+                <RaceTile
+                  key={position.number}
+                  state={position.state === "unseen" ? "future" : position.state}
+                  editing={!!draftRace}
+                  aria-label={`Race ${position.number} · ${stateLabel(position.state)}${draftRace ? " · Edit in progress" : ""}`}
+                  data-race-number={position.number}
+                  aria-disabled={inert}
+                  tabIndex={inert ? -1 : undefined}
+                  onClick={() => {
+                    if (draftRace) onRace(draftRace);
+                    else if (
+                      position.state === "counted" ||
+                      position.state === "pending" ||
+                      position.state === "questions" ||
+                      position.state === "needs-images"
+                    )
+                      open(position);
+                  }}
+                >
+                  {position.number}
+                </RaceTile>
+              );
+            })}
+          </section>
         </ListGroup>
       </ActionScope>
       <VoteTracks mogi={mogi} tracks={voteTracks} />
       <div className="section-stack @[45rem]:grid @[45rem]:grid-cols-2 @[45rem]:items-start @[45rem]:gap-x-2">
         <MogiStandings mogi={resultMogi} count={count} table={table} onStanding={onStanding} />
-        <ListGroup inset title="Tracks">
+        <ListGroup ink inset title="Tracks">
           <List dividers="row" aria-label="Tracks">
             {overview.positions.map((position, index) => {
               const { race, run } = raceShortcut(mogi, position, { onRace, onTrack, onQuestions, onNeedsImages });
@@ -266,7 +265,7 @@ export function MogiOverview({
         onNeedsImages={onNeedsImages}
       />
       {mogi.races.some((race) => race.status === "discarded") && (
-        <ListGroup inset title="Discarded">
+        <ListGroup ink inset title="Discarded">
           <List dividers="row" aria-label="Discarded">
             {mogi.races
               .filter((race) => race.status === "discarded")
@@ -316,33 +315,30 @@ function VoteTracks({ mogi, tracks }: { mogi: Mogi; tracks: readonly VoteTrack[]
   if (!tracks.length) return null;
   const raced = new Set(mogi.races.map((race) => raceTrack(mogi, race)?.short));
   return (
-    <ListGroup inset title="Vote">
-      {/* A plain box: `ListGroup` pulls a direct list up by its rows' inset, and symbols have none. */}
-      <div className="box-ink">
-        <ul aria-label="Vote" className="flex flex-wrap gap-2">
-          {tracks.map(({ track, light }) => {
-            const done = raced.has(track.short);
-            return (
-              <li key={track.short} title={`${track.name} · ${lightOf(light).word}`} className="relative flex">
-                <span className="sr-only">
-                  {track.name}, {lightOf(light).word}
-                  {done && ", raced"}
-                </span>
-                <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
-                  <TrackIcon track={track} size={44} />
-                </span>
-                {done && (
-                  // Corner to corner, bottom-left to top-right, along the symbol square's full diagonal.
-                  <svg aria-hidden="true" viewBox="0 0 44 44" className="absolute inset-0 size-full text-foreground">
-                    <line x1="0" y1="44" x2="44" y2="0" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                )}
-                <LightDot light={light} />
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+    <ListGroup ink inset title="Vote">
+      <ul aria-label="Vote" className="flex flex-wrap gap-2">
+        {tracks.map(({ track, light }) => {
+          const done = raced.has(track.short);
+          return (
+            <li key={track.short} title={`${track.name} · ${lightOf(light).word}`} className="relative flex">
+              <span className="sr-only">
+                {track.name}, {lightOf(light).word}
+                {done && ", raced"}
+              </span>
+              <span aria-hidden="true" className={cn("flex", done && "opacity-40")}>
+                <TrackIcon track={track} size={44} />
+              </span>
+              {done && (
+                // Corner to corner, bottom-left to top-right, along the symbol square's full diagonal.
+                <svg aria-hidden="true" viewBox="0 0 44 44" className="absolute inset-0 size-full text-foreground">
+                  <line x1="0" y1="44" x2="44" y2="0" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              )}
+              <LightDot light={light} />
+            </li>
+          );
+        })}
+      </ul>
     </ListGroup>
   );
 }
@@ -427,7 +423,7 @@ function MogiStandings({
     const points = teams.map((team) => team.points);
     const tags = inferTeamTags(mogi);
     return (
-      <ListGroup inset title="Standings">
+      <ListGroup ink inset title="Standings">
         <List dividers="row" aria-label="Team standings">
           {teams.map((team, index) => {
             const ranked = [...team.participants].sort((a, b) => (b.points ?? -1) - (a.points ?? -1));
@@ -466,7 +462,7 @@ function MogiStandings({
   const points = players.map((person) => person.points);
   // Players keep one line, so the twelve rows match the twelve Tracks; each player has a colour of the palette.
   return (
-    <ListGroup inset title="Standings">
+    <ListGroup ink inset title="Standings">
       <List dividers="row" aria-label="Player standings">
         {players.map((person, index) => (
           <ListRow
@@ -623,8 +619,10 @@ type MogiTableProps = {
 function MogiTableSection(props: MogiTableProps) {
   // Shown only in a wide container, on regular.
   return (
-    <ListGroup headingInset title="Table" className="hidden @[55rem]:block">
-      <MogiTable {...props} />
+    <ListGroup ink headingInset title="Table" className="hidden @[55rem]:block">
+      <div className="table-ink">
+        <MogiTable {...props} />
+      </div>
     </ListGroup>
   );
 }

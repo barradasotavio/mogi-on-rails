@@ -105,7 +105,7 @@ export function useTrackPicker({
                   accessory={current === entry.short ? "check" : undefined}
                   disabled={busy || saving}
                   onSelect={() => void choose(entry)}
-                  media={<TrackIcon track={entry} size={44} />}
+                  media={<TrackIcon track={entry} size={32} />}
                 >
                   <span className="flex items-center gap-3">
                     <span className="truncate">{entry.name}</span>
