@@ -87,15 +87,30 @@ test("the race sheet and a Tracks row's picker page among sibling races; the pic
     page,
     mogiState({
       roster,
-      races: (mogi) =>
-        [1, 2, 3].map((number) => ({
+      races: (mogi) => [
+        ...[1, 2, 3].map((number) => ({
           id: `race-${number}`,
-          origin: "manual",
+          origin: "manual" as const,
           number,
           placements: mogi.participants.map((person) => person.id),
         })),
+        // Pending with no placements, its track already known.
+        { id: "race-4", origin: "manual", number: 4, status: "pending", placements: [], track: "BC" },
+      ],
     }),
   );
+
+  // A pending race's Tracks row shows its known track; a track chosen inside its race shows there at once.
+  const pendingRow = page.getByRole("list", { name: "Tracks", exact: true }).getByRole("button").nth(3);
+  await expect(pendingRow).toContainText("Bowser's Castle");
+  await pendingRow.click();
+  const pending = page.getByRole("dialog");
+  await expect(pending).toHaveAccessibleName("Race 4");
+  await pending.getByRole("button", { name: /^Track/ }).click();
+  await pending.getByRole("searchbox", { name: "Search track or code", exact: true }).fill("CC");
+  await pending.getByRole("button", { name: "CC Crown City CC", exact: true }).click();
+  await pending.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(pendingRow).toContainText("Crown City");
 
   await page.getByRole("button", { name: "Race 1 · counted", exact: true }).click();
   // The one sheet open; its name follows the page.
