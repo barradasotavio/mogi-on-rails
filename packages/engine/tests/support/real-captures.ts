@@ -247,12 +247,14 @@ export async function replayReal(batches: number[][], strict = true, withDuplica
 }
 
 export const ffa = load("ffa-2026-11-02") as typeof raw & { afterRace8: Record<string, number> };
-export function emptyFfaMogi(): Mogi {
+// A 12-race FFA: a restart to 0 after race 1, results for races 1–3 and 10–12, boards only for 4–9.
+export const restartedFfa = load("ffa-2026-11-08") as typeof raw;
+export function emptyFfaMogi(roster = ffa.roster): Mogi {
   return {
     ...emptyRealMogi(),
     format: "FFA",
     teams: undefined,
-    participants: ffa.roster.map((person) => ({ ...person, ign: person.loungeName, ignOrigin: "fallback" })),
+    participants: roster.map((person) => ({ ...person, ign: person.loungeName, ignOrigin: "fallback" })),
   };
 }
 export function ffaReading(index: number, timed: boolean): (typeof raw.captures)[number] {
