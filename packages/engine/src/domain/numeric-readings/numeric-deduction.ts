@@ -48,7 +48,8 @@ export function spuriousCharacterCandidate(text: string, value: number): boolean
   return numericCandidates(text).includes(value);
 }
 
-/** Store a deduced total and its explanation; a later deduction for the row replaces it. */
+/** Store a deduced total and its explanation; a later deduction for the row replaces it. A person inferred past the
+ * crop (`unseenRowParticipant`) has no row to hold one: their total lives only in the room vector. */
 export function recordDeducedTotal(
   plan: NumericPlan,
   row: number,
@@ -56,6 +57,7 @@ export function recordDeducedTotal(
   rule: CaptureExplanationStep["rule"],
   discarded?: number,
 ) {
+  if (row > plan.source.rows.length) return;
   const reading = plan.source.numericRows?.find((reading) => reading.row === row)?.right;
   discarded ??= plan.pointSteps.get(row)?.evidence.discarded;
   if (discarded !== undefined) rule = "points.out-of-range";
