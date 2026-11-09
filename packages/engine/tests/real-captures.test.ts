@@ -300,3 +300,19 @@ test("an FFA with a restart after race 1 and board-only races 4–9 counts all t
     "Toadie Clan": 48,
   });
 });
+
+test("the restarted FFA fed one capture at a time ends as its batch does", async () => {
+  // Watched folders add screenshots one at a time; arrival order changes nothing.
+  const summary = (mogi: Mogi) => ({
+    races: countedRaces(mogi).map((race) => [
+      race.number,
+      race.placements.map((id) => mogi.participants.find((person) => person.id === id)!.loungeName),
+    ]),
+    questions: mogiQuestions(mogi).map((question) => question.kind),
+    standings: individualStandings(mogi).map((person) => [person.loungeName, person.points]),
+  });
+  const batch = await ingestReadings(emptyFfaMogi(restartedFfa.roster), structuredClone(restartedFfa.captures));
+  let single = emptyFfaMogi(restartedFfa.roster);
+  for (const capture of restartedFfa.captures) single = await ingestReadings(single, [structuredClone(capture)]);
+  assert.deepEqual(summary(single), summary(batch));
+});
