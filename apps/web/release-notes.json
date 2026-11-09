@@ -3,6 +3,10 @@
     "date": "2026-11-08",
     "changes": [
       {
+        "kind": "fix",
+        "text": "Save Backup works again when a screenshot missed one player's row, instead of stopping with \"Invalid deduced number.\""
+      },
+      {
         "kind": "new",
         "text": "The mogi screen shows which tracks to vote for: green for good, yellow for mixed, red for bad, with the ones already raced struck through. Tracks › Sort can hide it and saves a default order with Make Default."
       }

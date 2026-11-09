@@ -838,6 +838,25 @@ test("the twelfth person's total missing from a pre-race crop comes from the rac
   assert.deepEqual(numbers(after), numbers(mogi));
 });
 
+test("a crop missing one row never stores a deduced total past its rows, and a stored one is dropped (#72)", async () => {
+  const unseen = (capture: Capture) => {
+    capture.rows.splice(4, 1);
+    capture.nameAssociations!.splice(4, 1);
+    capture.numericRows = capture.numericRows!.filter((row) => row.row !== 5).map((row, i) => ({ ...row, row: i + 1 }));
+    return capture;
+  };
+  // p5's earlier total is misread, so its race sum leaves the previous vector's range and the scale re-deduces it.
+  const anchor = source("after-4", 4, "twoColumns");
+  anchor.numericRows![4].right = reading(24);
+  const lobby = unseen(source("after-5", 5, "twoColumns"));
+  lobby.numericDeductions = [{ row: 12, field: "right", value: 32, origin: "deduced" }];
+  const mogi = (
+    await normalizeReconstructions({ mogis: [ingest(prefix(0), source("zero", 0, "twoColumns"), anchor, lobby)] })
+  ).mogis[0];
+  for (const capture of mogi.captures ?? [])
+    assert.ok((capture.numericDeductions ?? []).every((deduction) => deduction.row <= capture.rows.length));
+});
+
 test("final totals with one unreadable row settle race 12 against the pre-race-12 totals without questions", async () => {
   const final = source("final", 12);
   final.interpretation!.screen = "finalStandings";
