@@ -1,9 +1,8 @@
 "use client";
 
-import { captureRowBounds, type NameQuestion, type PointsQuestion } from "@mkw/engine";
+import { captureRowBounds, type NameQuestion } from "@mkw/engine";
 import { useEffect, useRef, useState } from "react";
 
-import { InlineError } from "@/components/ui/action-error";
 import { CaptureViewer, CaptureViewerTrigger } from "@/components/ui/capture-viewer";
 import { ChoiceChips, ListRadioGroup } from "@/components/ui/choice";
 import { GlassButton } from "@/components/ui/glass-button";
@@ -39,23 +38,6 @@ function nameOccurrenceNote(question: NameQuestion) {
     return `Also in ${numbers.length === 1 ? "race" : "races"} ${races}`;
   }
   return `Also in ${question.occurrences.length} other ${question.occurrences.length === 1 ? "screenshot" : "screenshots"}`;
-}
-
-/** A suggestion that differs from the reading was worked out from the other totals, and says so. */
-function suggestionNote(question: PointsQuestion) {
-  if (question.suggestion === question.read) return "Suggested from the screenshot.";
-  return question.read === null
-    ? "Worked out from the other totals."
-    : `Read as ${question.read}. ${question.suggestion} fits the other totals.`;
-}
-
-/** The answer is the total on the screenshot: where points are still being added, the note says to add them. */
-function pointsNote(question: PointsQuestion, suggested: boolean) {
-  const notes = [
-    question.addition ? `Add the +${question.addition} to the total.` : undefined,
-    suggested ? suggestionNote(question) : undefined,
-  ].filter(Boolean);
-  return notes.length ? notes.join(" ") : undefined;
 }
 
 export function QuestionSheet({
@@ -151,6 +133,7 @@ export function QuestionSheet({
   return (
     <QuestionPage
       question={shown}
+      index={presentation.index}
       shots={shots}
       busy={locked}
       open={open && (!!current || locked)}
@@ -192,6 +175,7 @@ interface Shot {
 
 function QuestionPage({
   question,
+  index,
   shots,
   open,
   title,
@@ -202,6 +186,8 @@ function QuestionPage({
   busy,
 }: {
   question: MogiQuestion;
+  /** The question's place in this session; a question that returns after an answer is a new page. */
+  index: number;
   shots: Shot[];
   open: boolean;
   title: string;
@@ -215,11 +201,8 @@ function QuestionPage({
   const [otherRace, setOtherRace] = useState(false);
   const [subName, setSubName] = useState("");
   const [replaced, setReplaced] = useState<string | null>(null);
-  // A rejected total comes back as a new page, so the field starts empty instead of repeating it.
-  const pageKey =
-    question.kind === "points" && question.rejected !== undefined
-      ? `${question.id}:rejected:${question.rejected}`
-      : question.id;
+  // A contradicted total returns as the same question with a new index, so the field starts empty again.
+  const pageKey = `${question.id}:${index}`;
   const [page, setPage] = useState(pageKey);
   const [wasOpen, setWasOpen] = useState(open);
   if (wasOpen !== open) setWasOpen(open);
@@ -344,28 +327,18 @@ function QuestionPage({
           )}
         </div>
         {question.kind === "points" ? (
-          <>
-            <ListGroup
-              title="Points"
-              note={pointsNote(question, question.suggestion !== null && choice === String(question.suggestion))}
-            >
-              <Input
-                variant="filled"
-                aria-label="Points"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={4}
-                value={choice}
-                disabled={busy}
-                onChange={(event) => setChoice(event.target.value)}
-              />
-            </ListGroup>
-            {question.rejected !== undefined && (
-              <InlineError placement="sheet">
-                {`${question.rejected} doesn't fit the other totals. Check the row on the screenshot.`}
-              </InlineError>
-            )}
-          </>
+          <ListGroup title="Points">
+            <Input
+              variant="filled"
+              aria-label="Points"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              value={choice}
+              disabled={busy}
+              onChange={(event) => setChoice(event.target.value)}
+            />
+          </ListGroup>
         ) : (
           <ListRadioGroup
             aria-label={heading}

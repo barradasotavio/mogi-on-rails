@@ -733,7 +733,7 @@ test("a contradictory readable total keeps a conflict even with a deduced prior 
   assert.equal(mogi.captures!.find((source) => source.id === capture.id)!.numericRows![0].right.value, 1000);
 });
 
-test("a total no earlier screen can reach is never suggested, and confirming it anyway says it was rejected (points.out-of-range)", async () => {
+test("a total no earlier screen can reach is never suggested, and confirming it anyway reopens it empty (points.out-of-range)", async () => {
   // Race 10's screen reads row 4's total with a spurious leading 1, and p9 restarted at 0: no sum fits it.
   const last = source("adding-10", 9, "finishOrderAdding");
   const truth = last.numericRows![3].right.value!;
@@ -745,15 +745,12 @@ test("a total no earlier screen can reach is never suggested, and confirming it 
   const row4 = () => mogiQuestions(mogi).find((q) => q.kind === "points" && q.captureId === "adding-10" && q.row === 4);
   assert.notEqual(row4()?.kind === "points" && row4()?.suggestion, 100 + truth);
   // Confirming what each field offers, or the misread where it offers nothing, asks each question once; row 4
-  // returns once more, saying the total was rejected.
+  // returns once more, empty.
   const asked = new Set<string>();
-  let confirmed: number | undefined;
   for (let question = mogiQuestions(mogi)[0]; question?.kind === "points"; question = mogiQuestions(mogi)[0]) {
-    if (question.rejected !== undefined) break;
-    assert.ok(!asked.has(question.id), question.id);
+    if (asked.has(question.id)) break;
     asked.add(question.id);
     const value = question.suggestion ?? question.read!;
-    if (question.row === 4) confirmed = value;
     mogi = (
       await normalizeReconstructions({
         mogis: [await answerMogiQuestion(mogi, question.id, { kind: "points", value })],
@@ -761,7 +758,8 @@ test("a total no earlier screen can reach is never suggested, and confirming it 
     ).mogis[0];
   }
   const again = row4();
-  assert.ok(again?.kind === "points" && again.rejected === confirmed && again.suggestion === null);
+  assert.ok(again?.kind === "points" && again.suggestion === null);
+  assert.equal(mogiQuestions(mogi)[0]?.id, again.id);
 });
 
 test("an unread total on a screen repeating the previous totals takes the previous one (duplicate.same-vector)", async () => {
@@ -1452,12 +1450,12 @@ test("answering a restart's total on its screenshot settles it, even over a cont
   let mogi = ingest(prefix(0), ...restartAfterRace1());
   mogi.captures!.find((capture) => capture.id === "adding-2")!.numericAnswers = [{ row: 7, field: "right", value: 7 }];
   mogi = (await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0];
-  // The room asks that row again, showing the rejected answer as a screenshot total, and nothing else.
+  // The room asks that row again, empty, and nothing else.
   assert.deepEqual(
     mogiQuestions(mogi).map((question) =>
-      question.kind === "points" ? [question.id, question.rejected, question.addition] : [question.id],
+      question.kind === "points" ? [question.id, question.suggestion] : [question.id],
     ),
-    [["points:adding-2:7", 13, 6]],
+    [["points:adding-2:7", null]],
   );
   mogi = await answerMogiQuestion(mogi, "points:adding-2:7", { kind: "points", value: 6 });
   assert.deepEqual(mogi.captures!.find((capture) => capture.id === "adding-2")!.numericAnswers, [
@@ -1480,7 +1478,6 @@ for (const [screen, total, right] of [
     let mogi = (await normalizeReconstructions({ mogis: [ingest(prefix(3), capture)] })).mogis[0];
     assert.ok(mogiQuestions(mogi).some((q) => q.id === "points:race-4:1"));
     for (let question = mogiQuestions(mogi)[0]; question?.kind === "points"; question = mogiQuestions(mogi)[0]) {
-      assert.equal(question.rejected, undefined);
       mogi = await answerMogiQuestion(mogi, question.id, {
         kind: "points",
         value: question.id === "points:race-4:1" ? total : question.suggestion!,
