@@ -14,7 +14,7 @@ import {
   teamLabel,
   unlinkSynonym,
 } from "@mkw/engine";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -201,6 +201,9 @@ function Person({
   const toast = useToast();
   const team = inferTeamTags(mogi).find((team) => team.teamId === person.teamId);
   const [ign, setIgn] = useState(person.ign);
+  // The value being or already saved, so Enter followed by blur, or blur by leaving, saves once.
+  const submitted = useRef<string | null>(null);
+  const edited = useRef(false);
   const [error, setError] = useState("");
   const standing = individualStandings(mogi).find((row) => row.id === participationSlot(person));
   const substitutions =
@@ -231,6 +234,7 @@ function Person({
     else setError("Couldn't unlink this reading. Try again.");
   }
   async function saveIgn() {
+    edited.current = false;
     const value = ign.trim();
     // The same name still saves when some capture links its spelling to someone else.
     const links = (state: Mogi) => JSON.stringify(state.captures?.map((capture) => capture.nameAssociations));
@@ -238,13 +242,22 @@ function Person({
       setIgn(person.ign);
       return;
     }
+    if (value === submitted.current) return;
+    submitted.current = value;
     setError("");
     if (await onIgnChange(person, value)) setIgn(value);
     else {
+      submitted.current = null;
       setIgn(person.ign);
       setError("Couldn't save the in-game name. Try again.");
     }
   }
+  // Back, Close and Escape remove the field without blurring it: a typed name still saves.
+  // Only a typed edit: an untouched field would relink a spelling just unlinked.
+  const saveOnLeave = useEffectEvent(() => {
+    if (edited.current) void saveIgn();
+  });
+  useEffect(() => () => saveOnLeave(), []);
   return (
     <>
       <ListGroup title="In-game name">
@@ -254,7 +267,13 @@ function Person({
           value={ign}
           maxLength={80}
           disabled={busy}
-          onChange={(event) => setIgn(event.target.value)}
+          onChange={(event) => {
+            edited.current = true;
+            setIgn(event.target.value);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") void saveIgn();
+          }}
           onBlur={() => void saveIgn()}
         />
       </ListGroup>

@@ -209,15 +209,26 @@ test("ZIP restores data and original bytes; altered files and cancellation prese
   await expect(person.getByRole("button", { name: "Back", exact: true })).toBeFocused();
   await expect(person.getByText("1st · 15 pts", { exact: true })).toBeVisible();
   await expect(person.getByText("Team", { exact: true })).toHaveCount(0);
-  await person.getByLabel("In-game name", { exact: true }).fill("Kart name");
+  const ign = person.getByLabel("In-game name", { exact: true });
+  // Enter saves, and closing the sheet saves an edit nothing else saved (#76).
+  for (const [name, keys] of [
+    ["Kart name", ["Enter", "Escape"]],
+    ["Kart pilot", ["Escape"]],
+  ] as const) {
+    await ign.fill(name);
+    for (const key of keys) await ign.press(key);
+    await expect(person).toBeHidden();
+    await openParticipants(page);
+    await expect(list.getByRole("listitem").first()).toContainText(name);
+    await list.getByRole("button", { name: "Piloto 1", exact: true }).click();
+    await expect(ign).toHaveValue(name);
+  }
+  await ign.fill("");
   await person.getByRole("button", { name: "Back", exact: true }).focus();
-  await expect(person.getByLabel("In-game name", { exact: true })).toHaveValue("Kart name");
-  await person.getByLabel("In-game name", { exact: true }).fill("");
-  await person.getByRole("button", { name: "Back", exact: true }).focus();
-  await expect(person.getByLabel("In-game name", { exact: true })).toHaveValue("Kart name");
+  await expect(ign).toHaveValue("Kart pilot");
   await person.getByRole("button", { name: "Back", exact: true }).click();
   await expect(list.getByRole("button", { name: "Close", exact: true })).toBeFocused();
-  await expect(list.getByRole("listitem").first()).toContainText("Kart name");
+  await expect(list.getByRole("listitem").first()).toContainText("Kart pilot");
   await list.getByRole("button", { name: "Close", exact: true }).click();
   await expect(list).toBeHidden();
   await expect(page.getByRole("button", { name: "Menu", exact: true })).toBeFocused();
@@ -331,7 +342,7 @@ test("ZIP restores data and original bytes; altered files and cancellation prese
   expect(restoredState.loungeNames).toEqual(["Piloto 1"]);
   expect(restoredState.mogis[0].submissionTier).toBe("D");
   expect(restoredState.mogis[0].originalList).toBe(roster);
-  expect(restoredState.mogis[0].participants[0].ign).toBe("Kart name");
+  expect(restoredState.mogis[0].participants[0].ign).toBe("Kart pilot");
   expect(restoredState.mogis[0].races).toHaveLength(1);
   const restoredFile = restoredState.sharedReceipts.flatMap(
     (receipt: { files: { original: { path: string } }[] }) => receipt.files,
