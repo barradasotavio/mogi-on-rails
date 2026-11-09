@@ -110,11 +110,13 @@ export { normalizeReconstructions } from "./domain/reconstruction/revalidation.t
 // Clarification questions
 export { analyzeCaptures } from "./domain/questions/capture-analysis.ts";
 export {
+  captureNameAssociations,
   type MogiQuestion,
   mogiQuestions,
   type NameQuestion,
   ordinal,
   type PointsQuestion,
+  type PositionQuestion,
 } from "./domain/questions/mogi-questions.ts";
 export { answerMogiQuestion, type MogiQuestionAnswer } from "./domain/questions/question-answers.ts";
 export { captureNeedsClarification } from "./domain/questions/questions.ts";
