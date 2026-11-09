@@ -13,12 +13,15 @@ export function positionShots(mogi: Mogi, question: Pick<PositionQuestion, "numb
   const placed = chronological(mogi, mogi.captures ?? []).map((capture) => ({
     capture,
     number: imageRace(mogi, capture),
-    before: (capture.context?.phase ?? contextPhase(capture)) === "before",
+    moment: capture.context?.phase ?? contextPhase(capture),
   }));
-  const results = placed.filter((entry) => entry.number === number && !entry.before);
+  const results = placed.filter((entry) => entry.number === number && entry.moment === "after");
+  // The final standings come after the last race whether or not they carry its number.
+  const later = (entry: (typeof placed)[number]) =>
+    entry.moment === "event-final" ? (entry.number ?? number) >= number : (entry.number ?? 0) > number;
   const bounds = [
-    placed.findLast((entry) => entry.number !== undefined && entry.number <= number),
-    placed.find((entry) => entry.number !== undefined && entry.number > number),
+    placed.findLast((entry) => entry.number !== undefined && !later(entry) && entry.number <= number),
+    placed.find(later),
   ].filter((entry) => !!entry);
   return (results.length ? results : bounds).map(({ capture }) => ({
     capture,

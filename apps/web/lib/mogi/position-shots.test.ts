@@ -7,7 +7,7 @@ import { positionShots } from "./position-shots.ts";
 import type { Mogi } from "./types.ts";
 
 const people = Array.from({ length: 12 }, (_, i) => `p${i + 1}`);
-const capture = (id: string, raceId: string, phase: "before" | "after", order: (string | null)[]) => ({
+const capture = (id: string, raceId: string, phase: "before" | "after" | "event-final", order: (string | null)[]) => ({
   id,
   context: { phase, raceId },
   rows: [],
@@ -50,4 +50,15 @@ test("a position question whose race has a results screen shows that screen", ()
     capture("lobby-3", "race-3", "before", people),
   ]);
   assert.deepEqual(shots(state), [["results-2", "Race 2 · after the race", 3]]);
+});
+
+test("after the last race, the final standings are the totals after it", () => {
+  const state = mogi([
+    capture("lobby-4", "race-4", "before", people),
+    capture("final", "race-4", "event-final", people),
+  ]);
+  assert.deepEqual(
+    positionShots(state, { ...question, number: 4 }).map((shot) => shot.capture.id),
+    ["lobby-4", "final"],
+  );
 });
