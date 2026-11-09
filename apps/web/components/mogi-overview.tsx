@@ -97,15 +97,17 @@ export function MogiOverview({
   // activity, so reading or saving a track doesn't recompute the standings.
   const table = tableRows(resultMogi, mogiOverview(resultMogi).positions);
   const summary = (race: Race) => {
-    if (!race.placements.length) return <span className="text-muted-foreground/60">—</span>;
+    // A known track shows whether or not the race has placements; without them, no track is asked for yet.
     const track = raceTrack(mogi, race);
     return track ? (
       <span className="flex min-w-0 items-center gap-2">
         <TrackIcon track={track} />
         <span className="truncate">{track.name}</span>
       </span>
-    ) : (
+    ) : race.placements.length ? (
       <span className="font-medium text-link">Log Track</span>
+    ) : (
+      <span className="text-muted-foreground/60">—</span>
     );
   };
   return (
