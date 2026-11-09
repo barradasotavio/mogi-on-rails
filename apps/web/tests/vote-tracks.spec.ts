@@ -9,7 +9,7 @@ import { downloadBackup } from "./backup-navigation";
 import { ffaRoster, mogiState, restoreState } from "./mogi-state";
 import { openCurrentMogi } from "./settings-navigation";
 
-test("Vote lights tracks by usual range and strikes raced ones; Tracks opens in its saved order; both settings travel with the backup", async ({
+test("Vote follows the saved sort, lit by natural breaks, and strikes raced ones; Tracks opens in its saved order; both settings travel with the backup", async ({
   page,
 }, info) => {
   // Player 1 (p1) finishes in `places[i]` on `tracks[i]`.
@@ -28,9 +28,8 @@ test("Vote lights tracks by usual range and strikes raced ones; Tracks opens in 
           ...(index === 1 ? extra : {}),
         };
       });
-  // Against an average of 6.5th: Whistlestop Summit always +5.5 (Good), DK Spaceport always −5.5 (Bad), Crown City
-  // ±5.5 (Mixed). Mario Bros. Circuit, this mogi's first race, has one race (Mixed). This mogi's second race, on Crown
-  // City, doesn't count but was still played.
+  // The saved sort is Races: Crown City 5 (this mogi's second race doesn't count but was still played), Whistlestop
+  // Summit and DK Spaceport 3, Mario Bros. Circuit 1, this mogi's first race. Three values, three groups.
   const state = mogiState(
     { roster: ffaRoster("D"), races: raced(["MBC", "CC"], [1, 1], { status: "discarded" }) },
     {
@@ -44,10 +43,10 @@ test("Vote lights tracks by usual range and strikes raced ones; Tracks opens in 
   );
   await restoreState(page, { ...state, loungeNames: ["Player 1"], trackOrder: { by: "races", count: "both" } });
   await expect(page.getByRole("list", { name: "Vote", exact: true }).getByRole("listitem")).toHaveText([
-    "Whistlestop Summit, Good",
-    "Crown City, Mixed, raced",
-    "Mario Bros. Circuit, Mixed, raced",
-    "DK Spaceport, Bad",
+    "Crown City, Good, raced",
+    "Whistlestop Summit, Mixed",
+    "DK Spaceport, Mixed",
+    "Mario Bros. Circuit, Bad, raced",
   ]);
 
   await page.goto("/?view=tracks");

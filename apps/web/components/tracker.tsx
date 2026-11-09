@@ -61,11 +61,12 @@ export function Tracker() {
   const { state, resultMogis, ready, loadError, busy, persist } = session;
   const trackOrder = savedTrackOrder(state);
   const loungeNamesKey = yourLoungeNames(state).join("\n");
-  // The mogi screen's Vote: every track with a race in the recent window, by vote light. State is replaced on each
-  // save, so this recomputes only when the mogis or the names change.
+  // The mogi screen's Vote: every track with a race in the recent window, in Tracks' sort, by vote light. State is
+  // replaced on each save, so this recomputes only when the mogis, the names or the sort change.
+  const { by, count } = trackOrder;
   const voteTracks = useMemo(
-    () => votes(trackStandings(state.mogis, loungeNamesKey ? loungeNamesKey.split("\n") : []).tracks),
-    [state.mogis, loungeNamesKey],
+    () => votes(trackStandings(state.mogis, loungeNamesKey ? loungeNamesKey.split("\n") : []).tracks, { by, count }),
+    [state.mogis, loungeNamesKey, by, count],
   );
   const galleryPicker = useRef<HTMLInputElement | null>(null);
   const captureIntake = useRef<CaptureIntakeHandle | null>(null);

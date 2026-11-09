@@ -57,7 +57,7 @@ The sum of a track's race values in the recent window (`cost` in the engine): wh
 _Avoid_: Contribution, Cost, Priority, Positions lost
 
 **Vote light**:
-A track's call for voting, from its [usual range](#usual-range): Good when the 1st quartile is above zero, Bad when the 3rd quartile is below zero, Mixed otherwise, including a track with fewer than 3 races in the recent window (`voteLight`).
+A track's call for voting, from where its value in the measure Tracks is sorted by falls among every track in the recent window: the values split into three groups at their natural breaks, the largest gaps between them. Good is the highest group, Mixed the middle, Bad the lowest. Equal values share a light; with only two distinct values there is no Mixed, and with one, every track is Mixed.
 _Avoid_: Rating, Grade, Tier
 
 **Unstable track**:

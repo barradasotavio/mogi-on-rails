@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-11-09",
+    "changes": [
+      {
+        "kind": "new",
+        "text": "The tracks to vote for follow the order chosen in Tracks › Sort, and their colours now split all the tracks' values at their largest gaps."
+      }
+    ]
+  },
+  {
     "date": "2026-11-08",
     "changes": [
       {

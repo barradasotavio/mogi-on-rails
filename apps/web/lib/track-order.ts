@@ -53,30 +53,76 @@ export function orderTracks(tracks: readonly TrackStanding[], order: TrackOrder)
     );
 }
 
-/** A track's vote light: Good, Mixed or Bad, from its usual range. */
+/** A track's vote light: Good, Mixed or Bad, from where its value falls among every shown track's. */
 export type VoteLight = "good" | "mixed" | "bad";
 export interface VoteTrack {
   track: TrackStanding["track"];
   light: VoteLight;
 }
-/** Fewer races than this in the recent window leave a track Mixed: its usual range says too little. */
-export const VOTE_MIN_RACES = 3;
-
-/** Good when even the usual range's low end gains positions (Q1 > 0), Bad when its high end loses them (Q3 < 0). */
-export function voteLight(standing: TrackStanding): VoteLight {
-  if (standing.recent < VOTE_MIN_RACES) return "mixed";
-  return standing.lowerQuartile > 0 ? "good" : standing.upperQuartile < 0 ? "bad" : "mixed";
-}
-
-const lightRank: Record<VoteLight, number> = { good: 0, mixed: 1, bad: 2 };
 
 /**
- * The mogi screen's Vote: every track in the window, Good, then Mixed, then Bad, each by Typical +/−, best first.
- * The engine's order (typical, then races, then catalog) breaks ties, since the sort is stable.
+ * The optimal split of `values` into at most `groups` groups (1-D k-means, Fisher–Jenks): the one with the least
+ * squared deviation from each group's mean, solved exactly by dynamic programming over the sorted distinct values,
+ * so equal values always share a group. Each value's group, 0 for the lowest; as many groups as distinct values when
+ * there are fewer.
  */
-export function voteTracks(tracks: readonly TrackStanding[]): VoteTrack[] {
-  return tracks
-    .map((standing) => ({ standing, light: voteLight(standing) }))
-    .sort((a, b) => lightRank[a.light] - lightRank[b.light] || b.standing.typical - a.standing.typical)
-    .map(({ standing, light }) => ({ track: standing.track, light }));
+export function naturalBreaks(values: readonly number[], groups: number): number[] {
+  const distinct = [...new Set(values)].sort((a, b) => a - b);
+  const n = distinct.length;
+  const k = Math.min(groups, n);
+  if (k <= 1) return values.map(() => 0);
+  const count = distinct.map((value) => values.filter((other) => other === value).length);
+  // Prefix sums of count, value·count and value²·count give any run's squared deviation in constant time.
+  const [w, s, q] = [[0], [0], [0]];
+  distinct.forEach((value, i) => {
+    w.push(w[i] + count[i]);
+    s.push(s[i] + value * count[i]);
+    q.push(q[i] + value * value * count[i]);
+  });
+  const deviation = (from: number, to: number) => {
+    const weight = w[to] - w[from];
+    const sum = s[to] - s[from];
+    return q[to] - q[from] - (sum * sum) / weight;
+  };
+  // best[g][j]: least deviation of the first j distinct values in g + 1 groups; start[g][j]: where the last begins.
+  const best = [Array.from({ length: n + 1 }, (_, j) => (j ? deviation(0, j) : 0))];
+  const start = [Array.from({ length: n + 1 }, () => 0)];
+  for (let g = 1; g < k; g++) {
+    best.push(Array(n + 1).fill(Infinity));
+    start.push(Array(n + 1).fill(0));
+    for (let j = g + 1; j <= n; j++)
+      for (let i = g; i < j; i++) {
+        const cost = best[g - 1][i] + deviation(i, j);
+        if (cost < best[g][j]) [best[g][j], start[g][j]] = [cost, i];
+      }
+  }
+  const groupOf = new Map<number, number>();
+  for (let g = k - 1, j = n; g >= 0; j = start[g][j], g--)
+    for (let i = start[g][j]; i < j; i++) groupOf.set(distinct[i], g);
+  return values.map((value) => groupOf.get(value)!);
+}
+
+/** The lights by how many groups the values fall into, lowest group first. */
+const lightsByGroups: Record<number, VoteLight[]> = {
+  1: ["mixed"],
+  2: ["bad", "good"],
+  3: ["bad", "mixed", "good"],
+};
+
+/**
+ * The mogi screen's Vote: every track in the window, best for voting first by the measure Tracks › Sort shows
+ * (higher is better for every measure; no race on the chosen side counts as 0). Its natural breaks over every
+ * track's value light the highest group Good, the middle Mixed and the lowest Bad. The engine's order (typical, then
+ * races, then catalog) breaks ties, since the sort is stable.
+ */
+export function voteTracks(tracks: readonly TrackStanding[], order: TrackOrder): VoteTrack[] {
+  const ranked = tracks
+    .map((standing) => ({ standing, value: measureOf(standing, order) ?? 0 }))
+    .sort((a, b) => b.value - a.value);
+  const groups = naturalBreaks(
+    ranked.map(({ value }) => value),
+    3,
+  );
+  const lights = lightsByGroups[Math.max(0, ...groups) + 1];
+  return ranked.map(({ standing }, index) => ({ track: standing.track, light: lights[groups[index]] }));
 }
