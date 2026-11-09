@@ -53,7 +53,7 @@ function heading(question: MogiQuestion) {
   if (question.kind === "name") return `Who is “${question.reading}”?`;
   if (question.kind === "race" || question.kind === "sequence") return question.reading;
   if (question.kind === "credit") return `Who gets credit for ${question.reading}?`;
-  if (question.kind === "points") return `How many points for “${question.reading}”?`;
+  if (question.kind === "points") return `What's the total for “${question.reading}” on this screenshot?`;
   if (question.kind === "team") return `Which team is “${question.reading}” on?`;
   return `Where did “${question.reading}” finish?`;
 }

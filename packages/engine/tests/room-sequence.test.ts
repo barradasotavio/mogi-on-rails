@@ -1427,19 +1427,51 @@ test("a total back at zero right after race 1, read cleanly, is a restart: the r
   assertRestartRoom((await normalizeReconstructions({ mogis: [ingest(prefix(0), ...restartAfterRace1())] })).mogis[0]);
 });
 
-test("answering a restart's zero settles it, even over a continuing total answered before (restartedTotal)", async () => {
-  // The user first typed the continuing total, 1 + 6, on p12's race-2 row, then the screen's 0.
+test("answering a restart's total on its screenshot settles it, even over a continuing total answered before (restartedTotal)", async () => {
+  // An older app stored the continuing total, 1 + 6, as p12's race-2 right column. That row shows "+6" and "0", so
+  // the user now answers its total on the screenshot, 6.
   let mogi = ingest(prefix(0), ...restartAfterRace1());
   mogi.captures!.find((capture) => capture.id === "adding-2")!.numericAnswers = [{ row: 7, field: "right", value: 7 }];
   mogi = (await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0];
-  // The room asks that row again, showing the rejected answer, and nothing else.
+  // The room asks that row again, showing the rejected answer as a screenshot total, and nothing else.
   assert.deepEqual(
-    mogiQuestions(mogi).map((question) => [question.id, question.kind === "points" ? question.rejected : undefined]),
-    [["points:adding-2:7", 7]],
+    mogiQuestions(mogi).map((question) =>
+      question.kind === "points" ? [question.id, question.rejected, question.addition] : [question.id],
+    ),
+    [["points:adding-2:7", 13, 6]],
   );
-  mogi = await answerMogiQuestion(mogi, "points:adding-2:7", { kind: "points", value: 0 });
+  mogi = await answerMogiQuestion(mogi, "points:adding-2:7", { kind: "points", value: 6 });
+  assert.deepEqual(mogi.captures!.find((capture) => capture.id === "adding-2")!.numericAnswers, [
+    { row: 7, field: "right", value: 0 },
+  ]);
   assertRestartRoom((await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0]);
 });
+
+// After the race, the screen's total is the right-hand column as it stands: see the finish-order answer in
+// mogi-questions.test.ts.
+for (const [screen, total, right] of [
+  ["twoColumns", 45, 45],
+  ["finishOrderAdding", 60, 45],
+] as const)
+  test(`a points answer is the person's total on the screenshot: ${screen} (points.screenshot-total)`, async () => {
+    // Race 4's screen misreads p1's total. The user answers the total that screenshot shows, adding any "+15", and
+    // confirms what every other question suggests.
+    const capture = source("race-4", 3, screen);
+    capture.numericRows![0].right = reading(46);
+    let mogi = (await normalizeReconstructions({ mogis: [ingest(prefix(3), capture)] })).mogis[0];
+    assert.ok(mogiQuestions(mogi).some((q) => q.id === "points:race-4:1"));
+    for (let question = mogiQuestions(mogi)[0]; question?.kind === "points"; question = mogiQuestions(mogi)[0]) {
+      assert.equal(question.rejected, undefined);
+      mogi = await answerMogiQuestion(mogi, question.id, {
+        kind: "points",
+        value: question.id === "points:race-4:1" ? total : question.suggestion!,
+      });
+      mogi = (await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0];
+    }
+    assert.deepEqual(mogiQuestions(mogi), []);
+    assert.equal(mogi.captures![0].numericAnswers?.find((answer) => answer.row === 1)?.value, right);
+    assert.equal(individualStandings(mogi).find((person) => person.id === "p1")?.points, total);
+  });
 
 test("a stored answer over a misread total stays settled, even where the room's sum disagrees (singleMisreadTotal)", async () => {
   // Race 2's screen misreads row 5's pre-race total as 1, and the user answered 15, which the sum doesn't give. The

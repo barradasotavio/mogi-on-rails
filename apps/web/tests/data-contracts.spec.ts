@@ -388,7 +388,7 @@ test("ZIP restores data and original bytes; altered files and cancellation prese
     const question = page.getByRole("dialog", { name: /^Question \d+ of \d+$/ });
     const heading =
       kind === "points"
-        ? "How many points for “Piloto 1”?"
+        ? "What's the total for “Piloto 1” on this screenshot?"
         : kind === "team"
           ? "Which team is “Piloto 1” on?"
           : "Where did “Player 1” finish?";

@@ -547,6 +547,7 @@ test("numericTextValue: digits the OCR split into spaced items show one number",
 });
 
 test("one misread game cumulative keeps its sum-derived race and asks for the corroborated total", async () => {
+  // c2 shows row 5 adding "+8" to a 7 the OCR read as 1: the question asks for the screenshot's total, 15.
   for (const timed of [true, false]) {
     let mogi = emptyFfaMogi();
     for (let index = 0; index < ffa.captures.length; index++) {
@@ -554,7 +555,7 @@ test("one misread game cumulative keeps its sum-derived race and asks for the co
       assert.equal(countedRaces(mogi).length, index + 1);
       assert.deepEqual(
         mogiQuestions(mogi).map((q) => [q.kind, q.captureId, q.row, q.suggestion]),
-        index ? [["points", "c2", 5, 7]] : [],
+        index ? [["points", "c2", 5, 15]] : [],
       );
       assert.equal(mogi.sequence!.roomAnalysis!.sessions.length, 1);
       if (index === 1)
@@ -572,18 +573,19 @@ test("one misread game cumulative keeps its sum-derived race and asks for the co
     const laterOnly = await ingestReadings(emptyFfaMogi(), [ffaReading(1, timed), ffaReading(2, timed)]);
     assert.deepEqual(
       mogiQuestions(laterOnly).map((q) => [q.kind, q.captureId, q.row, q.suggestion]),
-      [["points", "c2", 5, 7]],
+      [["points", "c2", 5, 15]],
     );
     const source = mogi.captures!.find((c) => c.id === "c2")!;
     assert.equal(source.numericRows![4].right.value, 1);
     assert.equal(source.numericAnswers?.length ?? 0, 0);
     const question = mogiQuestions(mogi)[0];
-    assert.equal(question.kind === "points" && question.read, 1);
+    assert.equal(question.kind === "points" && question.read, 9);
     mogi = (
       await normalizeReconstructions({
-        mogis: [await answerMogiQuestion(mogi, question.id, { kind: "points", value: 7 })],
+        mogis: [await answerMogiQuestion(mogi, question.id, { kind: "points", value: 15 })],
       })
     ).mogis[0];
     assert.deepEqual(mogiQuestions(mogi), []);
+    assert.deepEqual(mogi.captures!.find((c) => c.id === "c2")!.numericAnswers, [{ row: 5, field: "right", value: 7 }]);
   }
 });

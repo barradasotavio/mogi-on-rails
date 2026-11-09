@@ -1,6 +1,6 @@
 import { interpretRightList } from "../../recognition/finish-order.ts";
 import { contextPhase } from "../capture/capture-context.ts";
-import { captureNumericQuestions } from "../capture/capture-evidence.ts";
+import { captureNumericQuestions, screenAddition } from "../capture/capture-evidence.ts";
 import { screenProperties } from "../capture/screens.ts";
 import { raceNumbers, teamSizes } from "../mogi/mogi-rules.ts";
 import { type JointNames, jointNames } from "../names/joint-names.ts";
@@ -59,12 +59,15 @@ export interface NameQuestion extends CaptureQuestionBase {
   occurrences: { captureId: string; row: number; number?: number }[];
 }
 
+/** points.screenshot-total: every value is the person's total on that screenshot, the "+N" being added included. */
 export interface PointsQuestion extends CaptureQuestionBase {
   kind: "points";
   reading: string;
   suggestion: number | null;
   /** The total the OCR read on this row; a suggestion that differs comes from the other totals. */
   read: number | null;
+  /** The "+N" the screen shows beside this row's total, while the points are still being added. */
+  addition?: number;
   /** A confirmed total the other totals still contradict: the question returns once more, saying so. */
   rejected?: number;
 }
@@ -596,6 +599,9 @@ function pointsQuestions(
     const contradicted = !!entry?.conflictRows?.includes(rowNumber);
     const read = numeric?.right.value ?? null;
     const readable = read !== null && !beyondReach(mogi, capture, rowNumber, read);
+    // Stored and fitted values are the right-hand column; the question speaks of the screenshot's total.
+    const addition = screenAddition(capture, rowNumber);
+    const shown = (value: number | null) => (value === null ? null : value + addition);
     return {
       id: `points:${capture.id}:${rowNumber}`,
       kind: "points",
@@ -604,13 +610,16 @@ function pointsQuestions(
       raceId: race?.id,
       number,
       reading: person?.loungeName ?? row?.text ?? `Row ${rowNumber}`,
-      suggestion: contradicted
-        ? fits !== undefined && fits !== answer && fits !== read
-          ? fits
-          : null
-        : (answer ?? fits ?? (readable ? read : null)),
-      read,
-      ...(contradicted && answer !== undefined ? { rejected: answer } : {}),
+      suggestion: shown(
+        contradicted
+          ? fits !== undefined && fits !== answer && fits !== read
+            ? fits
+            : null
+          : (answer ?? fits ?? (readable ? read : null)),
+      ),
+      read: shown(read),
+      ...(addition ? { addition } : {}),
+      ...(contradicted && answer !== undefined ? { rejected: answer + addition } : {}),
       crop: { captureId: capture.id, location: row?.location },
     };
   });

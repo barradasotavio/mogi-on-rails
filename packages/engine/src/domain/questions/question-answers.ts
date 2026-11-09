@@ -1,4 +1,5 @@
 import { applyCaptureContext } from "../capture/capture-context.ts";
+import { screenAddition } from "../capture/capture-evidence.ts";
 import { applyReviewedRace, initialRaceReview } from "../mogi/race-review.ts";
 import { answerNameQuestion, type NameQuestionAnswer } from "../names/name-answers.ts";
 import { participationSlot } from "../participation/participation.ts";
@@ -136,11 +137,14 @@ export async function answerMogiQuestion<T extends Mogi>(mogi: T, id: string, an
     if (!Number.isSafeInteger(answer.value) || answer.value < 0 || answer.value > 9999)
       throw new Error("Enter points from 0 to 9999.");
     const source = mogi.captures!.find((source) => source.id === question.captureId)!;
+    // points.screenshot-total: the answer includes the "+N" being added; the right-hand column stands before it.
+    const addition = screenAddition(source, question.row);
+    if (answer.value < addition) throw new Error(`Enter the total with the +${addition} added.`);
     const capture = {
       ...source,
       numericAnswers: [
         ...(source.numericAnswers ?? []).filter((answer) => answer.row !== question.row),
-        { row: question.row, field: "right" as const, value: answer.value },
+        { row: question.row, field: "right" as const, value: answer.value - addition },
       ],
     };
     const { race } = questionOccurrence(mogi, capture);

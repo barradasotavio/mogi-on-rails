@@ -1,4 +1,5 @@
 import { nativePriorScale, representedPlayers } from "../numeric-readings/numeric-candidates.ts";
+import { nativePlacementPoints } from "../scoring/native-points.ts";
 import type { Capture, GameEvidence, Race } from "../types.ts";
 import { screenProperties } from "./screens.ts";
 import { consistentTeamRows } from "./team-evidence.ts";
@@ -98,6 +99,17 @@ export function acceptedCaptureEvidence(capture: Capture, race: Race): GameEvide
       }),
     ),
   };
+}
+
+/** points.screenshot-total: the "+N" a finish order still adding points shows beside a row's total. A points answer
+ * is the total on that screenshot, this addition included, while `NumericAnswer` stores the right-hand column, so
+ * stored answers keep their meaning. An unread addition is the native points of that row's place; other screens
+ * add nothing. */
+export function screenAddition(capture: Capture, row: number): number {
+  if (capture.interpretation?.screen !== "finishOrderAdding") return 0;
+  const addition = capture.numericRows?.find((entry) => entry.row === row)?.addition;
+  if (addition && !addition.uncertain && addition.value !== null) return addition.value;
+  return nativePlacementPoints(representedPlayers(capture))[row - 1] ?? 0;
 }
 
 /** Result confirmation does not close independently unresolved numeric source questions. */

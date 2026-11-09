@@ -41,11 +41,20 @@ function nameOccurrenceNote(question: NameQuestion) {
 }
 
 /** A suggestion that differs from the reading was worked out from the other totals, and says so. */
-function pointsNote(question: PointsQuestion) {
+function suggestionNote(question: PointsQuestion) {
   if (question.suggestion === question.read) return "Suggested from the screenshot.";
   return question.read === null
     ? "Worked out from the other totals."
     : `Read as ${question.read}. ${question.suggestion} fits the other totals.`;
+}
+
+/** The answer is the total on the screenshot: where points are still being added, the note says to add them. */
+function pointsNote(question: PointsQuestion, suggested: boolean) {
+  const notes = [
+    question.addition ? `Add the +${question.addition} to the total.` : undefined,
+    suggested ? suggestionNote(question) : undefined,
+  ].filter(Boolean);
+  return notes.length ? notes.join(" ") : undefined;
 }
 
 export function QuestionSheet({
@@ -248,7 +257,7 @@ function QuestionPage({
             : question.kind === "credit"
               ? `Who gets credit for ${question.reading}?`
               : question.kind === "points"
-                ? `How many points for “${question.reading}”?`
+                ? `What's the total for “${question.reading}” on this screenshot?`
                 : question.kind === "team"
                   ? `Which team is “${question.reading}” on?`
                   : `Where did “${question.reading}” finish?`;
@@ -330,11 +339,7 @@ function QuestionPage({
           <>
             <ListGroup
               title="Points"
-              note={
-                question.suggestion !== null && choice === String(question.suggestion)
-                  ? pointsNote(question)
-                  : undefined
-              }
+              note={pointsNote(question, question.suggestion !== null && choice === String(question.suggestion))}
             >
               <Input
                 variant="filled"
