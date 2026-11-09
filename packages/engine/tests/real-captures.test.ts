@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
+  countedRaces,
   individualStandings,
   type Mogi,
   mogiPlayerChanges,
@@ -11,7 +12,14 @@ import {
   teamStandings,
 } from "@mkw/engine";
 
-import { emptyRealMogi, ingestReal, replayReal } from "./support/real-captures.ts";
+import {
+  emptyFfaMogi,
+  emptyRealMogi,
+  ingestReadings,
+  ingestReal,
+  replayReal,
+  restartedFfa,
+} from "./support/real-captures.ts";
 
 test("the thirteen real captures keep their EXIF moments on ingestion", async () => {
   const mogi = await ingestReal(
@@ -256,3 +264,39 @@ function assertPlayerChanges(mogi: Mogi) {
     "mogiPlayerChanges compares competition ranks before and after race 12 and its native gains",
   );
 }
+
+test("an FFA with a restart after race 1 and board-only races 4–9 counts all twelve races with no questions", async () => {
+  // Photo order: the race-1 board and results, a 1-point restart to 0 before race 2, a race-6 board without the user's total.
+  const mogi = await ingestReadings(emptyFfaMogi(restartedFfa.roster), structuredClone(restartedFfa.captures));
+  assert.deepEqual(
+    countedRaces(mogi).map((race) => race.number),
+    Array.from({ length: 12 }, (_, i) => i + 1),
+  );
+  assert.deepEqual(mogiQuestions(mogi), []);
+  const place = (name: string, number: number) =>
+    countedRaces(mogi)
+      .find((race) => race.number === number)!
+      .placements.indexOf(mogi.participants.find((person) => person.loungeName === name)!.id) + 1;
+  assert.deepEqual(
+    [4, 5, 6].map((number) => [place("Tavo", number), place("Boolossus", number)]),
+    [
+      [4, 7],
+      [1, 5],
+      [1, 7],
+    ],
+  );
+  assert.deepEqual(Object.fromEntries(individualStandings(mogi).map((person) => [person.loungeName, person.points])), {
+    Tavo: 118,
+    "DIDDY 42": 99,
+    Boolossus: 98,
+    Chompsley: 90,
+    shellyz3: 88,
+    KoopmeansWaluigi: 83,
+    DKJ: 81,
+    lakitu: 80,
+    Wigglette: 80,
+    HlxKoopers: 66,
+    Boom: 53,
+    "Toadie Clan": 48,
+  });
+});
