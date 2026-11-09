@@ -86,10 +86,22 @@ export function singleMisreadTotal(boundary: NumberedBoundary, neighbours: Numbe
       const expected = values.get(key)! - (boundary.prior ? scale[index] : 0);
       const answer = boundary.source.numericAnswers?.find((answer) => answer.row === index + 1);
       const reading = boundary.source.numericRows?.find((reading) => reading.row === index + 1)?.right;
-      // An answered total is checked like a certain reading: a restart stands, and a contradiction is asked again.
-      const total = answer ? answer.value : reading && !reading.uncertain ? reading.value : null;
-      if (total === null || total === expected) continue;
-      const restart = restartedTotal(boundary, neighbour, key, total + (boundary.prior ? scale[index] : 0), values);
+      const read = reading && !reading.uncertain ? reading.value : null;
+      const restartAt = (total: number) =>
+        restartedTotal(boundary, neighbour, key, total + (boundary.prior ? scale[index] : 0), values);
+      if (answer && answer.value !== expected) {
+        // An answer is the user's word: it settles the row unless it is a restart, or the screen shows one there and
+        // the answer doesn't, in which case the row is asked again.
+        const restart = restartAt(answer.value);
+        if (restart === "new") restarts.push(key);
+        else if (!restart) {
+          if (read === null || read === expected || !restartAt(read)) return [];
+          conflicts.push(index + 1);
+        }
+        continue;
+      }
+      if (answer || read === null || read === expected) continue;
+      const restart = restartAt(read);
       if (restart === "new") restarts.push(key);
       else if (!restart) conflicts.push(index + 1);
     }

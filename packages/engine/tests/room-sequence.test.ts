@@ -1440,3 +1440,34 @@ test("answering a restart's zero settles it, even over a continuing total answer
   mogi = await answerMogiQuestion(mogi, "points:adding-2:7", { kind: "points", value: 0 });
   assertRestartRoom((await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0]);
 });
+
+test("a stored answer over a misread total stays settled, even where the room's sum disagrees (singleMisreadTotal)", async () => {
+  // Race 2's screen misreads row 5's pre-race total as 1, and the user answered 15, which the sum doesn't give. The
+  // answer is the user's word: only a restart the screen shows asks that row again.
+  const rotate = (n: number) => [...people.slice(n), ...people.slice(0, n)];
+  const orders = [people, rotate(3), rotate(5)];
+  const totals: Record<string, number> = Object.fromEntries(people.map((p) => [p.id, 0]));
+  const captures = orders.map((order, race) => {
+    const capture = source(`adding-${race + 1}`, 0, "finishOrderAdding");
+    capture.rows = order.map((p) => ({ text: p.ign, confidence: 100, uncertain: false, suggestedParticipantId: p.id }));
+    capture.nameAssociations = order.map((p) => ({ participantId: p.id }));
+    capture.numericRows = order.map((p, row) => ({
+      row: row + 1,
+      right: reading(totals[p.id]),
+      addition: reading(P[row]),
+    }));
+    capture.photoMoment = { at: 1_800_000_000_000 + race * 240_000, source: "exif" };
+    order.forEach((p, row) => (totals[p.id] += P[row]));
+    return capture;
+  });
+  captures[1].numericRows![4].right = { ...reading(1), confidence: 98 };
+  let mogi = ingest(prefix(0), ...captures);
+  mogi.captures!.find((capture) => capture.id === "adding-2")!.numericAnswers = [{ row: 5, field: "right", value: 15 }];
+  mogi = (await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0];
+  assert.deepEqual(
+    captures.map((capture) => number(mogi, capture.id)),
+    [1, 2, 3],
+  );
+  assert.deepEqual(mogi.sequence?.roomAnalysis?.conflicts, []);
+  assert.deepEqual(mogiQuestions(mogi), []);
+});
