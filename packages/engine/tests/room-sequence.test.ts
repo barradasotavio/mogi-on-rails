@@ -1388,3 +1388,35 @@ test("answering a later race for a counted room's screen moves its races without
   );
   assert.deepEqual(counted(moved), counted(await answered(ingest(prefix(0), ...screens()))));
 });
+
+test("a total back at zero right after race 1, read cleanly, is a restart: the room stays one and nothing asks for points (restartedTotal)", async () => {
+  // p12 finishes race 1 last, restarts at 0, then places 7th in race 2 (shows 0) and 4th in race 3 (shows 6).
+  const others = people.slice(0, 11);
+  const orders = [
+    people,
+    [...others.slice(5, 11), people[11], ...others.slice(0, 5)],
+    [...others.slice(3, 6), people[11], ...others.slice(6), ...others.slice(0, 3)],
+  ];
+  const totals: Record<string, number> = Object.fromEntries(people.map((p) => [p.id, 0]));
+  const captures = orders.map((order, race) => {
+    const capture = source(`adding-${race + 1}`, 0, "finishOrderAdding");
+    capture.rows = order.map((p) => ({ text: p.ign, confidence: 100, uncertain: false, suggestedParticipantId: p.id }));
+    capture.nameAssociations = order.map((p) => ({ participantId: p.id }));
+    capture.numericRows = order.map((p, row) => ({
+      row: row + 1,
+      right: reading(totals[p.id]),
+      addition: reading(P[row]),
+    }));
+    capture.photoMoment = { at: 1_800_000_000_000 + race * 240_000, source: "exif" };
+    order.forEach((p, row) => (totals[p.id] += P[row]));
+    if (race === 0) totals.p12 = 0;
+    return capture;
+  });
+  const mogi = (await normalizeReconstructions({ mogis: [ingest(prefix(0), ...captures)] })).mogis[0];
+  assert.deepEqual(
+    captures.map((capture) => number(mogi, capture.id)),
+    [1, 2, 3],
+  );
+  assert.deepEqual(mogiQuestions(mogi), []);
+  assert.equal(individualStandings(mogi).find((person) => person.id === "p12")?.points, 1 + 6 + 9);
+});
