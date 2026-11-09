@@ -438,3 +438,34 @@ test("answering the names of a race's finish order screen links that screenshot 
   assert.equal(confirmed.status, "confirmed");
   assert.deepEqual(confirmed.captureIds, [capture.id]);
 });
+
+test("a tag found inside a teammate's name doesn't take a row across teams against a decisive similarity", () => {
+  const mogi = synthetic(
+    "2v2",
+    [
+      "I Firestorm",
+      "NWaluigi",
+      "1 Quicksilver",
+      "KIDry",
+      "W Sunshine",
+      "Nikiro-rl",
+      "SS.Moonbeam",
+      "I Bluebird",
+      "birdo-pin",
+      "1 Snowflake",
+      "W Raindrop",
+      "SS.Sunflower",
+    ],
+    ["WaluigiG", "Nikiro_rl", "birdo_pink", "Dry009", ...pairNames.slice(4)],
+  );
+  const ids = Object.fromEntries(mogi.participants.map((person) => [person.loungeName, person.id]));
+  const linked = (reading: string) =>
+    mogi.captures[0].nameAssociations![mogi.captures[0].rows.findIndex((row) => row.text === reading)].participantId;
+  for (const [reading, name] of [
+    ["NWaluigi", "WaluigiG"],
+    ["Nikiro-rl", "Nikiro_rl"],
+    ["KIDry", "Dry009"],
+    ["birdo-pin", "birdo_pink"],
+  ])
+    assert.ok([null, ids[name]].includes(linked(reading)), `${reading} → ${linked(reading)}`);
+});
