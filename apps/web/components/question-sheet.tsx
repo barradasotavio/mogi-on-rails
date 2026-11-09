@@ -13,6 +13,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { useToast } from "@/components/ui/toast";
 import { captureLabel, chronological } from "@/lib/mogi/capture-label";
 import { reviewFile } from "@/lib/mogi/capture-review";
+import { positionShots } from "@/lib/mogi/position-shots";
 import { type MogiQuestion, type MogiQuestionAnswer, mogiQuestions } from "@/lib/mogi/questions";
 import type { Capture, Mogi, SharedFile } from "@/lib/mogi/types";
 import { settled } from "@/lib/settled";
@@ -144,7 +145,9 @@ export function QuestionSheet({
         }))
       : capture && shown.crop
         ? [{ capture, row: shown.row }]
-        : [];
+        : shown.kind === "position"
+          ? positionShots(presentation.mogi, shown)
+          : [];
   return (
     <QuestionPage
       question={shown}
@@ -182,7 +185,8 @@ export function QuestionSheet({
 
 interface Shot {
   capture: Capture;
-  row: number;
+  /** The row to crop to; without one, the whole screenshot. */
+  row?: number;
   label?: string;
 }
 
@@ -319,7 +323,11 @@ function QuestionPage({
                     <figcaption className="text-sm text-muted-foreground">{shot.label}</figcaption>
                   )}
                   <CaptureViewerTrigger index={index} label={shot.label ? `Enlarge ${shot.label}` : undefined}>
-                    <CaptureRowCrop capture={shot.capture} row={shot.row} whole={whole} />
+                    <CaptureRowCrop
+                      capture={shot.capture}
+                      row={shot.row ?? 0}
+                      whole={whole || shot.row === undefined}
+                    />
                   </CaptureViewerTrigger>
                 </figure>
               ))}
