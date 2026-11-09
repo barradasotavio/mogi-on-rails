@@ -345,9 +345,11 @@ test("a contradictory D1 prior total asks one numeric correction and preserves t
     mogiQuestions(mogi).some((q) => q.kind === "sequence"),
     false,
   );
-  const answered = await answerMogiQuestion(mogi, question.id, { kind: "points", value: 7 });
+  // The row shows "+15" beside its 7: the screenshot's total is 22.
+  const answered = await answerMogiQuestion(mogi, question.id, { kind: "points", value: 22 });
   mogi = (await normalizeReconstructions({ mogis: [answered] })).mogis[0];
   assert.equal(mogi.captures![1].numericRows![0].right.value, 8);
+  assert.equal(mogi.captures![1].numericAnswers![0].value, 7);
   assert.equal(mogiQuestions(mogi).length, 0);
 });
 
