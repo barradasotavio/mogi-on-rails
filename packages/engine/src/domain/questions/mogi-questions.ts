@@ -18,7 +18,7 @@ import {
   rosterSlots,
 } from "../participation/participation.ts";
 import { teamLabel } from "../participation/team-tags.ts";
-import { usefulQuestion } from "../reconstruction/known-positions.ts";
+import { type UsefulQuestion, usefulQuestion } from "../reconstruction/known-positions.ts";
 import { creditSuggestion } from "../scoring/credit.ts";
 import { countedRaces, raceNumber } from "../scoring/scoring.ts";
 import {
@@ -28,7 +28,7 @@ import {
 } from "../sequence/capture-explanation.ts";
 import { cumulativeRacePointRows } from "../sequence/first-race.ts";
 import { sourcePairSignature } from "../sequence/source-pair-signature.ts";
-import type { Capture, CaptureRow, Mogi, NameAssociation, Participant } from "../types.ts";
+import type { Capture, CaptureRow, Mogi, NameAssociation, Participant, Race } from "../types.ts";
 import { blankUnknownScreen, contextQuestions } from "./questions.ts";
 import type { SequenceAnswer } from "./sequence-answer.ts";
 
@@ -220,7 +220,7 @@ export function mogiQuestions(mogi: Mogi): MogiQuestion[] {
   if (roomOrder) questions.push(roomOrder);
   for (const capture of captures) questions.push(...questionsForCapture(mogi, capture, names, grouping, askedTeams));
   questions.push(...rosterTeamQuestions(mogi, askedTeams));
-  const position = positionQuestion(mogi);
+  const position = positionQuestion(mogi, questions);
   if (position) questions.push(position);
   questions.push(...contextSequenceQuestions(mogi, captures), ...creditQuestions(mogi));
   const ordered = uniqueQuestions(questions).sort(questionOrder);
@@ -670,10 +670,13 @@ function rosterTeamQuestions(mogi: Mogi, askedTeams: Set<string>): TeamQuestion[
     }));
 }
 
-function positionQuestion(mogi: Mogi): PositionQuestion | undefined {
+/** The position question is the last resort: when a screenshot bounding the race hides the total of someone whose
+ * place is in doubt, the points question on that row asks the total instead, and the place follows from it. */
+function positionQuestion(mogi: Mogi, asked: MogiQuestion[]): PositionQuestion | undefined {
   const position = usefulQuestion(mogi);
   if (!position) return;
   const race = mogi.races.find((race) => race.id === position.raceId)!;
+  if (totalOnScreenshot(mogi, race, position, asked)) return;
   const occupied = new Set(
     mogi.assistance?.facts.filter((fact) => fact.raceId === race.id).map((fact) => fact.position),
   );
@@ -695,6 +698,25 @@ function positionQuestion(mogi: Mogi): PositionQuestion | undefined {
     options,
     suggestion: options.some((option) => option.value === suggested) ? suggested : (options[0]?.value ?? null),
   };
+}
+
+function totalOnScreenshot(mogi: Mogi, race: Race, position: UsefulQuestion, asked: MogiQuestion[]): boolean {
+  const bounds = new Set([
+    ...(race.reconstruction?.sourceCaptureIds ?? []),
+    ...(race.reconstruction?.boundaryAnalysis?.sourceCaptureIds ?? []),
+  ]);
+  const places = (id: string) =>
+    new Set(
+      position.hypotheses.map((hypothesis) =>
+        hypothesis.results.find((result) => result.raceId === race.id)?.placements.indexOf(id),
+      ),
+    );
+  return asked.some((question) => {
+    if (question.kind !== "points" || !bounds.has(question.captureId)) return false;
+    const capture = mogi.captures?.find((capture) => capture.id === question.captureId);
+    const id = capture && captureNameAssociations(capture)[question.row - 1]?.participantId;
+    return !!id && places(id).size > 1;
+  });
 }
 
 /** Continuity, validity and person-continuity questions between two captures. */

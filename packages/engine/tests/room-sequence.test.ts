@@ -1577,3 +1577,28 @@ test("a race-1 result screen photographed after the race-1 board shares its star
     );
   }
 });
+
+test("two unread totals on the lobby after a race ask the total on that screenshot, never a position (placesForced)", async () => {
+  // Race 4: everyone keeps their place except p5 and p6, who swap; the lobby before race 5 hides both their totals.
+  const race4 = people.map((p) => p.id);
+  [race4[4], race4[5]] = [race4[5], race4[4]];
+  const after4 = people.map((p, i) => 3 * P[i] + P[race4.indexOf(p.id)]);
+  const lobby = preRace("before-5", after4);
+  for (const row of [5, 6]) lobby.numericRows![row - 1].right = { ...reading(0), value: null, uncertain: true };
+  let mogi = ingest(
+    prefix(3),
+    preRace(
+      "before-4",
+      P.map((points) => 3 * points),
+    ),
+    lobby,
+  );
+  mogi = (await normalizeReconstructions({ mogis: [mogi] })).mogis[0];
+  const question = mogiQuestions(mogi)[0];
+  assert.ok(question?.kind === "points" && question.captureId === "before-5", JSON.stringify(question));
+  assert.ok(!mogiQuestions(mogi).some((q) => q.kind === "position"));
+  const answer = { kind: "points" as const, value: after4[question.row - 1] };
+  mogi = (await normalizeReconstructions({ mogis: [await answerMogiQuestion(mogi, question.id, answer)] })).mogis[0];
+  assert.deepEqual(mogiQuestions(mogi), []);
+  assert.deepEqual(mogi.races.find((race) => race.number === 4)?.placements, race4);
+});
