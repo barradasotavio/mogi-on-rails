@@ -287,7 +287,7 @@ export function missingTotalsByScale(anchor: Map<string, number>, boundary: Nume
     if (steps === 1) {
       if (gains.some((gain) => !scale.includes(gain)) || new Set(gains).size !== gains.length) continue;
       const remaining = scale.filter((value) => !gains.includes(value));
-      if (remaining.length !== missing.length) continue;
+      if (remaining.length !== missing.length || !placesForced(boundary, missing)) continue;
       missing.forEach((key, index) => completed.set(key, anchor.get(key)! + remaining[index]));
     } else {
       if (missing.length !== MAX_MISSING_TOTALS) continue;
@@ -310,6 +310,12 @@ export function missingTotalsByScale(anchor: Map<string, number>, boundary: Nume
         })),
       };
   }
+}
+
+/** points.sum: a lobby lists its rows in no particular order, so two missing totals there could have taken the
+ * remaining places either way: the sum settles only one. Result screens keep assigning them by row order. */
+function placesForced(boundary: NumericBoundary, missing: string[]): boolean {
+  return missing.length === 1 || screenProperties(boundary.source.interpretation?.screen)?.order !== "none";
 }
 
 /** Deduce the totals a capture is missing from the previous vector: `missingTotalsByScale`, else one remainder. */
