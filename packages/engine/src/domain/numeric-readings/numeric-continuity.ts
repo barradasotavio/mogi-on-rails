@@ -85,17 +85,11 @@ export function singleMisreadTotal(boundary: NumberedBoundary, neighbours: Numbe
     for (const [index, key] of boundary.keys.entries()) {
       const expected = values.get(key)! - (boundary.prior ? scale[index] : 0);
       const answer = boundary.source.numericAnswers?.find((answer) => answer.row === index + 1);
-      if (answer && answer.value !== expected) return [];
       const reading = boundary.source.numericRows?.find((reading) => reading.row === index + 1)?.right;
-      if (answer || !reading || reading.value === null || reading.value === expected) continue;
-      if (reading.uncertain) continue;
-      const restart = restartedTotal(
-        boundary,
-        neighbour,
-        key,
-        reading.value + (boundary.prior ? scale[index] : 0),
-        values,
-      );
+      // An answered total is checked like a certain reading: a restart stands, and a contradiction is asked again.
+      const total = answer ? answer.value : reading && !reading.uncertain ? reading.value : null;
+      if (total === null || total === expected) continue;
+      const restart = restartedTotal(boundary, neighbour, key, total + (boundary.prior ? scale[index] : 0), values);
       if (restart === "new") restarts.push(key);
       else if (!restart) conflicts.push(index + 1);
     }

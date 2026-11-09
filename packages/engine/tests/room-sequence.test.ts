@@ -1389,8 +1389,9 @@ test("answering a later race for a counted room's screen moves its races without
   assert.deepEqual(counted(moved), counted(await answered(ingest(prefix(0), ...screens()))));
 });
 
-test("a total back at zero right after race 1, read cleanly, is a restart: the room stays one and nothing asks for points (restartedTotal)", async () => {
-  // p12 finishes race 1 last, restarts at 0, then places 7th in race 2 (shows 0) and 4th in race 3 (shows 6).
+/** Three adding screens: p12 finishes race 1 last, restarts at 0, then places 7th in race 2 (shows 0) and 4th in
+ * race 3 (shows 6). */
+function restartAfterRace1(): Capture[] {
   const others = people.slice(0, 11);
   const orders = [
     people,
@@ -1398,7 +1399,7 @@ test("a total back at zero right after race 1, read cleanly, is a restart: the r
     [...others.slice(3, 6), people[11], ...others.slice(6), ...others.slice(0, 3)],
   ];
   const totals: Record<string, number> = Object.fromEntries(people.map((p) => [p.id, 0]));
-  const captures = orders.map((order, race) => {
+  return orders.map((order, race) => {
     const capture = source(`adding-${race + 1}`, 0, "finishOrderAdding");
     capture.rows = order.map((p) => ({ text: p.ign, confidence: 100, uncertain: false, suggestedParticipantId: p.id }));
     capture.nameAssociations = order.map((p) => ({ participantId: p.id }));
@@ -1412,11 +1413,30 @@ test("a total back at zero right after race 1, read cleanly, is a restart: the r
     if (race === 0) totals.p12 = 0;
     return capture;
   });
-  const mogi = (await normalizeReconstructions({ mogis: [ingest(prefix(0), ...captures)] })).mogis[0];
+}
+function assertRestartRoom(mogi: Mogi) {
   assert.deepEqual(
-    captures.map((capture) => number(mogi, capture.id)),
+    ["adding-1", "adding-2", "adding-3"].map((id) => number(mogi, id)),
     [1, 2, 3],
   );
   assert.deepEqual(mogiQuestions(mogi), []);
   assert.equal(individualStandings(mogi).find((person) => person.id === "p12")?.points, 1 + 6 + 9);
+}
+
+test("a total back at zero right after race 1, read cleanly, is a restart: the room stays one and nothing asks for points (restartedTotal)", async () => {
+  assertRestartRoom((await normalizeReconstructions({ mogis: [ingest(prefix(0), ...restartAfterRace1())] })).mogis[0]);
+});
+
+test("answering a restart's zero settles it, even over a continuing total answered before (restartedTotal)", async () => {
+  // The user first typed the continuing total, 1 + 6, on p12's race-2 row, then the screen's 0.
+  let mogi = ingest(prefix(0), ...restartAfterRace1());
+  mogi.captures!.find((capture) => capture.id === "adding-2")!.numericAnswers = [{ row: 7, field: "right", value: 7 }];
+  mogi = (await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0];
+  // The room asks that row again, showing the rejected answer, and nothing else.
+  assert.deepEqual(
+    mogiQuestions(mogi).map((question) => [question.id, question.kind === "points" ? question.rejected : undefined]),
+    [["points:adding-2:7", 7]],
+  );
+  mogi = await answerMogiQuestion(mogi, "points:adding-2:7", { kind: "points", value: 0 });
+  assertRestartRoom((await normalizeReconstructions({ mogis: [reconcileSequence(mogi)] })).mogis[0]);
 });
