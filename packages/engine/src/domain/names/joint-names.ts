@@ -118,8 +118,7 @@ export function tiedPartitionLinks(
 
 /**
  * Groups rows into teams by their tags (longest shared prefix with a boundary); see `tagBoundary` and `tiedPartitionLinks`.
- * Inside a word, at index 1–2 ("CVSPeach" beside "VS Kamek"), a tag supports a row only when some row carries it with
- * a boundary, so "ki" inside "Nikiro" never joins that row to "KIDry".
+ * A tag only ever starts the IGN: "ki" inside "Nikiro" is part of the name.
  */
 function tagGroups(capture: Capture, size: number): { rows: number[]; tag: string }[] {
   const count = capture.rows.length;
@@ -148,8 +147,7 @@ function tagGroups(capture: Capture, size: number): { rows: number[]; tag: strin
           distinct.includes(tag) &&
           distinct.some((other) => other !== tag && other.startsWith(tag) && boundary(row, other))
         ) &&
-        (text.startsWith(tag) ||
-          (distinct.includes(tag) && tag.length >= 2 && text.indexOf(tag) > 0 && text.indexOf(tag) <= 2)),
+        text.startsWith(tag),
     ),
   );
   const { subsets, rows: subsetRows, choices } = partitionPlan(size);
