@@ -182,7 +182,11 @@ export function sharedPhotoMoment(mogi: Mogi, source: Capture): boolean {
 }
 
 export function distance(anchor: Map<string, number>, boundary: RoomBoundary) {
-  anchor = rowAnchors(anchor, boundary);
+  // A restart the room proved (`restartedTotal`) leaves the comparison: right after race 1 it can still look like a gain.
+  anchor = rowAnchors(
+    boundary.restarted ? new Map([...anchor].filter(([key]) => !boundary.restarted!.has(key))) : anchor,
+    boundary,
+  );
   return vectorDistance(
     anchor,
     missingTotalsByScale(anchor, boundary)?.values ?? boundary.values,
