@@ -59,6 +59,20 @@ export async function normalizeReconstructions<State extends { mogis: Mogi[] }>(
       if (mogi.sequence) {
         for (const target of mogi.races) {
           if (target.placements.length && target.origin !== "reconstructed") continue;
+          // The joint search below revalidates its own confirmed group. A one-race proof may replace
+          // it, but a one-race search that finds the sibling unknown must not undo it: that undid the
+          // group on every other pass, so the outcome depended on how many times captures arrived.
+          if (
+            target.assistedGroupId !== undefined &&
+            target.assistedGroupId === mogi.assistance?.id &&
+            mogi.assistance.confirmed &&
+            !target.reconstruction
+          ) {
+            if (!boundaryEquations(mogi, [target]).length || target.participationReview) continue;
+            const exact = await reconstructOne(mogi, target);
+            if (exact.status === "unique") mogi = applyReconstruction(mogi, target, exact);
+            continue;
+          }
           const prior = target.reconstruction;
           if (!prior && pendingCaptureRead(mogi, target)) continue;
           const equations = boundaryEquations(mogi, [target]);
