@@ -1503,3 +1503,77 @@ test("a stored answer over a misread total stays settled, even where the room's 
   assert.deepEqual(mogi.sequence?.roomAnalysis?.conflicts, []);
   assert.deepEqual(mogiQuestions(mogi), []);
 });
+
+/** An FFA mogi as the boards and result screens of a live session read it: a pre-race board before races 1–10 and
+ * result screens for races 1–3 and 10–12. p12 finishes race 1 last and restarts at 0. Each race's points, in people
+ * order. */
+const lobbyGapRaces = [
+  [15, 12, 10, 9, 8, 6, 4, 7, 3, 2, 5, 1],
+  [4, 15, 5, 9, 6, 2, 1, 12, 8, 7, 10, 3],
+  [1, 8, 2, 5, 3, 9, 10, 12, 4, 6, 15, 7],
+  [9, 15, 1, 7, 2, 4, 10, 12, 6, 8, 5, 3],
+  [15, 5, 4, 12, 2, 10, 6, 9, 8, 3, 1, 7],
+  [15, 5, 1, 3, 7, 10, 12, 4, 6, 8, 2, 9],
+  ...[0, 1, 2, 3, 4, 5].map((race) => people.map((_, i) => P[(i + race * 5) % 12])),
+];
+function lobbyGap(): Capture[] {
+  const totals = people.map(() => 0);
+  const before = [[...totals]];
+  lobbyGapRaces.forEach((points, race) => {
+    points.forEach((gain, i) => (totals[i] += gain));
+    if (race === 0) totals[11] = 0;
+    before.push([...totals]);
+  });
+  const result = (race: number) => {
+    const points = lobbyGapRaces[race];
+    const order = [...people].sort((a, b) => points[people.indexOf(b)] - points[people.indexOf(a)]);
+    const capture = source(`adding-${race + 1}`, 0, "finishOrderAdding");
+    capture.rows = order.map((p) => ({ text: p.ign, confidence: 100, uncertain: false, suggestedParticipantId: p.id }));
+    capture.nameAssociations = order.map((p) => ({ participantId: p.id }));
+    capture.numericRows = order.map((p, row) => ({
+      row: row + 1,
+      right: reading(before[race][people.indexOf(p)]),
+      addition: reading(P[row]),
+    }));
+    return capture;
+  };
+  const board = (race: number) => preRace(`before-${race + 1}`, before[race]);
+  const captures = [
+    ...[0, 1, 2].flatMap((race) => [board(race), result(race)]),
+    ...[3, 4, 5, 6, 7, 8, 9].map(board),
+    ...[9, 10, 11].map(result),
+  ];
+  const capture = (id: string) => captures.find((entry) => entry.id === id)!;
+  // The race-1 result screen reads its zeros below certainty, two of them not at all.
+  capture("adding-1").numericRows!.forEach((row, i) => {
+    row.right = i < 2 ? { ...reading(0), text: "", value: null, confidence: 0, uncertain: true } : uncertainZero();
+  });
+  // The race-2 board shows p12's restart as a legible zero.
+  capture("before-2").numericRows![11].right = { ...reading(0), confidence: 80 };
+  // The race-6 board drops the user's highlighted row.
+  const dropped = capture("before-6");
+  dropped.rows.shift();
+  dropped.nameAssociations!.shift();
+  dropped.numericRows = dropped.numericRows!.slice(1).map((row, i) => ({ ...row, row: i + 1 }));
+  captures.forEach((entry, i) => (entry.photoMoment = { at: 1_800_000_000_000 + i * 180_000, source: "exif" }));
+  return captures;
+}
+const uncertainZero = () => ({
+  ...reading(0),
+  confidence: 70,
+  uncertain: true,
+  alternatives: [{ text: "0", confidence: 70, value: 0 }],
+});
+
+test("a race-1 result screen photographed after the race-1 board shares its start, so the boards after it settle every race (zeroColumnRoomStart)", async () => {
+  const mogi = (await normalizeReconstructions({ mogis: [ingest(prefix(0), ...lobbyGap())] })).mogis[0];
+  assert.deepEqual(mogiQuestions(mogi), []);
+  for (const [race, points] of lobbyGapRaces.entries()) {
+    const placements = mogi.races.find((entry) => entry.number === race + 1)?.placements ?? [];
+    assert.deepEqual(
+      placements.map((id) => points[people.findIndex((p) => p.id === id)]),
+      P,
+      `race ${race + 1}`,
+    );
+  }
+});

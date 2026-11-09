@@ -113,8 +113,9 @@ export function zeroColumnRoomStart(mogi: Mogi, source: Capture): boolean {
       )
     )
       return false;
+    // An earlier zero column is the same start photographed before (the pre-race screen, then the race-1 result).
     if (other.photoMoment && source.photoMoment && other.photoMoment.at !== source.photoMoment.at)
-      return other.photoMoment.at < source.photoMoment.at;
+      return other.photoMoment.at < source.photoMoment.at && !zeroGameCumulativeColumn(other);
     if (zeroGameCumulativeColumn(other)) return true;
     const prior = nativePriorScale(other);
     const shared = other.rows.flatMap((row, index) => {
