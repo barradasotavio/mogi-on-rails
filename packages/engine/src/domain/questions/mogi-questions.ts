@@ -66,10 +66,6 @@ export interface PointsQuestion extends CaptureQuestionBase {
   suggestion: number | null;
   /** The total the OCR read on this row; a suggestion that differs comes from the other totals. */
   read: number | null;
-  /** The "+N" the screen shows beside this row's total, while the points are still being added. */
-  addition?: number;
-  /** A confirmed total the other totals still contradict: the question returns once more, saying so. */
-  rejected?: number;
 }
 export interface RaceQuestion extends CaptureQuestionBase {
   sessionCaptureIds?: string[];
@@ -610,16 +606,15 @@ function pointsQuestions(
       raceId: race?.id,
       number,
       reading: person?.loungeName ?? row?.text ?? `Row ${rowNumber}`,
+      // A contradicted answer is withdrawn quietly: the question returns empty.
       suggestion: shown(
         contradicted
-          ? fits !== undefined && fits !== answer && fits !== read
+          ? answer === undefined && fits !== undefined && fits !== read
             ? fits
             : null
           : (answer ?? fits ?? (readable ? read : null)),
       ),
       read: shown(read),
-      ...(addition ? { addition } : {}),
-      ...(contradicted && answer !== undefined ? { rejected: answer + addition } : {}),
       crop: { captureId: capture.id, location: row?.location },
     };
   });
