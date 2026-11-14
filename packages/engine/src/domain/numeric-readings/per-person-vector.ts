@@ -118,8 +118,10 @@ export function vectorDistance(
   const gains = shared.map(([id, value]) => value - anchor.get(id)!);
   if (gains.every((gain) => gain === 0)) return 0;
   const positive = gains.filter((gain) => gain >= 0);
-  if (anchor.size > represented && shared.length === current.size) {
+  if (anchor.size > represented) {
     // Restarts (a person back near zero) leave the comparison to everyone else; the room shrank, it never reopened.
+    // A row the board leaves unidentified (an unread name) only drops out of the comparison: its race may still have
+    // been played at the larger size, so a lobby one row short stays in the room its other totals continue.
     if (!restartsAside(positive, shared.length)) return;
     const possible = mixedRoomRaceCounts(positive, represented, anchor.size).filter((races) =>
       restartsFit(shared, anchor, races),

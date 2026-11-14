@@ -3,6 +3,8 @@ import test from "node:test";
 
 import { isScreen, momentLabels, momentOffset, screenProperties, screens } from "@mkw/engine";
 
+import { occupiedCard } from "../src/recognition/lobby-cards.ts";
+
 test("each screen implies its name, moment, order, stability, offset and game groups", () => {
   assert.deepEqual(
     Object.entries(screens).map(([id, p]) => [
@@ -41,4 +43,37 @@ test("each screen implies its name, moment, order, stability, offset and game gr
     Object.keys(momentLabels).map((moment) => momentOffset(moment as keyof typeof momentLabels)),
     [1, 0, 0],
   );
+});
+
+test("a team lobby board yields every filled card, green ones with no lit edge included, and skips darker empty slots", () => {
+  const width = 1920,
+    height = 1080,
+    data = new Uint8ClampedArray(width * height * 4);
+  const paint = (x0: number, y0: number, w: number, h: number, [r, g, b]: number[]) => {
+    for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) data.set([r, g, b, 255], (y * width + x) * 4);
+  };
+  paint(0, 0, width, height, [8, 14, 22]);
+  // Four teams of three: each team holds three slots in each column, filled from the top of the left column.
+  const teams = [
+    { filled: [252, 57, 5], edge: [255, 140, 110], empty: [77, 20, 20] },
+    { filled: [3, 116, 255], edge: [90, 170, 255], empty: [1, 38, 83] },
+    { filled: [255, 176, 13], edge: [255, 220, 120], empty: [77, 63, 34] },
+    { filled: [17, 174, 134], edge: [17, 176, 136], empty: [6, 53, 35] }, // Green: the edge is as bright as the body.
+  ];
+  const filled = new Set(["0,0", "0,1", "1,0", "0,3", "0,4", "1,3", "0,6", "0,7", "1,6", "0,9", "0,10", "1,9"]);
+  for (let column = 0; column < 2; column++)
+    for (let slot = 0; slot < 12; slot++) {
+      const team = teams[Math.floor(slot / 3)],
+        x = 45 + column * 505,
+        y = 89 + slot * 76;
+      const full = filled.has(`${column},${slot}`);
+      paint(x, y, 490, 64, full ? team.filled : team.empty);
+      paint(x, y, 490, 3, full ? team.edge : team.empty);
+    }
+  const occupied = [0, 1].flatMap((column) =>
+    Array.from({ length: 12 }, (_, slot) => slot).flatMap((slot) =>
+      occupiedCard({ data, width, height }, column, slot) ? [`${column},${slot}`] : [],
+    ),
+  );
+  assert.deepEqual(new Set(occupied), filled);
 });
