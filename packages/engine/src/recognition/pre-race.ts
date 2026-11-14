@@ -1,27 +1,9 @@
 import type { CaptureNumericRow, NumericReading } from "../domain/capture/observations.ts";
+import { occupiedCard } from "./lobby-cards.ts";
 import { readNameRegion } from "./names.ts";
 import { readNumberRegion } from "./numbers.ts";
 import { trackBanner } from "./track-banner.ts";
 import type { OCRReader } from "./worker.ts";
-
-function occupiedCard(canvas: HTMLCanvasElement, column: number, slot: number): boolean {
-  const context = canvas.getContext("2d", { willReadFrequently: true })!;
-  const light = (y: number) => {
-    const pixels = context.getImageData(400 + column * 505, y + slot * 76, 40, 1).data;
-    let total = 0;
-    for (let n = 0; n < pixels.length; n += 4)
-      total += (pixels[n] * 299 + pixels[n + 1] * 587 + pixels[n + 2] * 114) / 1000;
-    return total / 40;
-  };
-  const edge = Math.max(...Array.from({ length: 9 }, (_, n) => light(87 + n)));
-  const inside = light(104),
-    outside = light(84);
-  const body = context.getImageData(400 + column * 505, 104 + slot * 76, 40, 1).data;
-  const channels = [0, 0, 0];
-  for (let n = 0; n < body.length; n += 4) for (let c = 0; c < 3; c++) channels[c] += body[n + c] / 40;
-  const colored = Math.max(...channels) > 140 && Math.max(...channels) - Math.min(...channels) > 60;
-  return edge > outside + 16 && (edge > inside + 8 || (colored && edge > inside + 2));
-}
 
 function observedHue(canvas: HTMLCanvasElement, column: number, slot: number): number | undefined {
   const pixels = canvas
@@ -72,10 +54,11 @@ export async function recognizePreRace(
   cancelled: () => boolean,
 ) {
   const cells: { column: number; slot: number; right: NumericReading }[] = [];
+  const image = canvas.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, canvas.width, canvas.height);
   for (let column = 0; column < 2; column++)
     for (let slot = 0; slot < 12; slot++) {
       if (cancelled()) throw new DOMException("Cancelled", "AbortError");
-      if (!occupiedCard(canvas, column, slot)) continue;
+      if (!occupiedCard(image, column, slot)) continue;
       cells.push({
         column,
         slot,

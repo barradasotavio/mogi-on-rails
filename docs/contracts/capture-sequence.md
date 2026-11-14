@@ -19,7 +19,7 @@ The limits (six shared people, strict majority, 82 per race, 15 per person) are 
 ## Rule 1 — Per-person continuity
 
 - The scale follows the represented players: 82, 67 and 56 with 12, 11 and 10 ([scoring](scoring.md)). Whoever is missing from the capture leaves the comparison; an unknown identity or illegible reading counts as unknown, distinct from absence.
-- Across a shrinking room, `vectorDistance` requires exactly one feasible race count over all mixes of room sizes between the boundaries; a single race requires distinct native gains. A number suggestion uses the smallest feasible count; only a reopening adds the preceding races to the room's cumulatives.
+- Across a shrinking room, `vectorDistance` requires exactly one feasible race count over all mixes of room sizes between the boundaries; a single race requires distinct native gains. Rows the smaller screen leaves unidentified drop out of that comparison, so a lobby one row short (OCR missed a card) stays in the room its other totals continue. A number suggestion uses the smallest feasible count; only a reopening adds the preceding races to the room's cumulatives.
 - A discarded occurrence advances cumulatives and physical position; the race number stays where it was.
 - A pre-race source represents the next race; a post-race one, the race just completed (`momentOffset`). A lobby with the same cumulatives enters as context only.
 - A distance greater than one race leaves the races in between pending, with only their place known; the proven contiguous prefix stays.

@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-11-14",
+    "changes": [
+      {
+        "kind": "fix",
+        "text": "A team lobby screenshot now reads every player, green team included, and one that still misses a player keeps the races after it counted instead of asking about every later screenshot."
+      }
+    ]
+  },
+  {
     "date": "2026-11-09",
     "changes": [
       {

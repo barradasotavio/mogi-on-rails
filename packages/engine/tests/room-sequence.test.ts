@@ -989,6 +989,37 @@ test("a legible total below one the room's sum filled in for an unreadable row i
   );
 });
 
+test("a lobby board one row short, with two names unread, stays in the room its other totals continue (vectorDistance)", () => {
+  // Everyone keeps their place each race. OCR drops p8's row from the pre-race-5 board, and p5 and p6 read as "X".
+  const board = (id: string, races: number, dropped?: number) => {
+    const capture = preRace(
+      id,
+      P.map((points) => races * points),
+    );
+    for (const row of [4, 5]) {
+      capture.rows[row] = { text: "X", confidence: 100, uncertain: false, suggestedParticipantId: "" };
+      capture.nameAssociations![row] = { participantId: null };
+    }
+    if (dropped !== undefined) {
+      capture.rows.splice(dropped, 1);
+      capture.nameAssociations!.splice(dropped, 1);
+      capture.numericRows = capture
+        .numericRows!.filter((_, i) => i !== dropped)
+        .map((row, i) => ({ ...row, row: i + 1 }));
+    }
+    return capture;
+  };
+  const mogi = ingest(prefix(3), board("before-4", 3), board("before-5", 4, 7), board("before-6", 5));
+  assert.equal(mogi.sequence?.roomAnalysis?.sessions.length, 1);
+  assert.deepEqual(mogi.sequence?.roomAnalysis?.conflicts, []);
+  assert.deepEqual(
+    ["before-4", "before-5", "before-6"].map(
+      (id) => mogi.sequence?.roomAnalysis?.captures.find((entry) => entry.captureId === id)?.number,
+    ),
+    [4, 5, 6],
+  );
+});
+
 test("a result screen one player short, with another back at zero, continues the room: that player restarted, the room never reopened (restartsAside)", async () => {
   // p11 reconnects before race 4 and shows 0 there; p12 dropped out during race 4, so its screen lists eleven.
   const race4 = source("adding-4", 3, "finishOrderAdding", P.slice(1));
