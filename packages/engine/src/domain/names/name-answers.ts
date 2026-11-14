@@ -12,6 +12,7 @@ import type { Capture, Mogi, NameAssociation } from "../types.ts";
 import { jointNames } from "./joint-names.ts";
 import { type NameEvidence, nameEvidence } from "./name-evidence.ts";
 import { recognizedParticipant } from "./name-recognition.ts";
+import { boardSlots, rowTotals, sameReadingTotals } from "./same-reading.ts";
 import { normalizedName, spelling } from "./spelling.ts";
 import { withdrawnAssociation } from "./synonyms.ts";
 
@@ -118,6 +119,18 @@ export function resolveCaptureNames(
       variants.length ? { variants } : {},
     );
   });
+  // Rows reading the same name: the board slot first, then the totals.
+  for (const [rule, settle] of [
+    ["name.slot", boardSlots],
+    ["name.continuity", sameReadingTotals],
+  ] as const) {
+    const settled = settle(mogi, capture, answers, people);
+    for (const [index, participantId] of settled?.rows ?? []) {
+      const ign = capture.rows[index].text.trim();
+      answers[index] = { participantId, ...(ign ? { ign } : {}), origin: "deduced" };
+      record(index, rule, "deduced", { anchorCaptureId: settled!.anchorCaptureId });
+    }
+  }
   // Proven earlier totals identify a row only when its value is unique on both sides.
   // No finish-order hypothesis takes part in the proof.
   const anchor = number ?? questionOccurrence(mogi, capture).number ?? cumulativeNumber(capture);
@@ -258,19 +271,6 @@ function interruptedContinuity(mogi: Mogi, capture: Capture): boolean {
     const from = mogi.captures?.find((source) => source.id === link.fromCaptureId),
       to = mogi.captures?.find((source) => source.id === link.toCaptureId);
     return from && to && link.signature === sourcePairSignature(from, to);
-  });
-}
-
-/** Accepted total of each row: an answer, the room's deduction or a certain reading. */
-function rowTotals(capture: Capture): (number | undefined)[] {
-  return capture.rows.map((_, index) => {
-    const row = index + 1,
-      reading = capture.numericRows?.find((entry) => entry.row === row)?.right;
-    return (
-      capture.numericAnswers?.find((answer) => answer.row === row)?.value ??
-      capture.numericDeductions?.find((deduction) => deduction.row === row)?.value ??
-      (reading && !reading.uncertain && reading.value != null ? reading.value : undefined)
-    );
   });
 }
 

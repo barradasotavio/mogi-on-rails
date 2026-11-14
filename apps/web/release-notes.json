@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "fix",
+        "text": "Two teammates with the same in-game name are told apart by their place on the board and their totals: one answer names both on every screenshot, instead of a question for every total."
+      },
+      {
+        "kind": "fix",
         "text": "A team lobby screenshot now reads every player, green team included, and one that still misses a player keeps the races after it counted instead of asking about every later screenshot."
       }
     ]

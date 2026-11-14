@@ -18,6 +18,8 @@ import type { Capture, Mogi, SharedFile } from "@/lib/mogi/types";
 import { settled } from "@/lib/settled";
 
 const SUB = "__substitute";
+// A screen repeating a reading (two players named only by their tag): the crop shows which one.
+const slotWord = (slot: number) => ["first", "second", "third", "fourth", "fifth", "sixth"][slot - 1] ?? `${slot}th`;
 
 function nameOccurrenceNote(question: NameQuestion) {
   if (!question.occurrences.length) return null;
@@ -234,7 +236,7 @@ function QuestionPage({
     question.kind === "image"
       ? "Is this screenshot from this mogi?"
       : question.kind === "name"
-        ? `Who is “${question.reading}”?`
+        ? `Who is ${question.slot ? `the ${slotWord(question.slot)} ` : ""}“${question.reading}”?`
         : question.kind === "race"
           ? otherRace
             ? "Which race is this?"

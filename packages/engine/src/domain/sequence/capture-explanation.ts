@@ -23,6 +23,7 @@ export type RuleCode =
   | "name.tag"
   | "name.exclusion"
   | "name.continuity"
+  | "name.slot"
   | "name.token"
   | "name.spelling-group"
   | "name.answered"
