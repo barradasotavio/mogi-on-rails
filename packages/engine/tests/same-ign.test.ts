@@ -135,10 +135,10 @@ const place = (mogi: Mogi, number: number, name: string) =>
 
 test("a known position the race's totals rule out is asked again with the totals' place, and the mogi ends with every race counted", async () => {
   let mogi = await answerFirstX(await ingestReadings(emptyMogi(), structuredClone(data.captures)));
-  // The board missing one row (c05) still leaves Daisy's total on the race-7 board to confirm (#82).
-  const daisy = mogiQuestions(mogi).find((question) => question.kind === "points")!;
-  assert.ok(daisy?.kind === "points");
-  mogi = await normalized(await answerMogiQuestion(mogi, daisy.id, { kind: "points", value: daisy.read! }));
+  // The board missing one row (c05) leaves that total unknown: the room lost the rejoined player's 14 points, so
+  // 82 per race minus the others would read 49 where a later board shows 40 (unseenRowParticipant).
+  assert.deepEqual(mogiQuestions(mogi), []);
+  assert.equal(countedRaces(mogi).length, 12);
   const race = (number: number) => mogi.races.find((entry) => entry.number === number)!.id;
   // Answered while the X rows were swapped: Pauline gained 1 point in race 1 (12th), Birdo 15 in race 3 (1st).
   mogi = changePositionFact(mogi, { raceId: race(1), participantId: person(mogi, "Pauline"), position: 3 });
