@@ -18,7 +18,12 @@ import {
   rosterSlots,
 } from "../participation/participation.ts";
 import { teamLabel } from "../participation/team-tags.ts";
-import { type UsefulQuestion, usefulQuestion } from "../reconstruction/known-positions.ts";
+import {
+  type ContradictedFact,
+  contradictedFacts,
+  type UsefulQuestion,
+  usefulQuestion,
+} from "../reconstruction/known-positions.ts";
 import { creditSuggestion } from "../scoring/credit.ts";
 import { countedRaces, raceNumber } from "../scoring/scoring.ts";
 import {
@@ -218,8 +223,9 @@ export function mogiQuestions(mogi: Mogi): MogiQuestion[] {
   if (roomOrder) questions.push(roomOrder);
   for (const capture of captures) questions.push(...questionsForCapture(mogi, capture, names, grouping, askedTeams));
   questions.push(...rosterTeamQuestions(mogi, askedTeams));
-  const position = positionQuestion(mogi, questions);
-  if (position) questions.push(position);
+  const contradicted = contradictedFacts(mogi).map((fact) => contradictedPositionQuestion(mogi, fact));
+  const position = contradicted.length ? undefined : positionQuestion(mogi, questions);
+  questions.push(...contradicted, ...(position ? [position] : []));
   questions.push(...contextSequenceQuestions(mogi, captures), ...creditQuestions(mogi));
   const ordered = uniqueQuestions(questions).sort(questionOrder);
   for (const question of ordered) question.captureIds ??= affectedCaptureIds(mogi, question, captures);
@@ -671,6 +677,30 @@ function rosterTeamQuestions(mogi: Mogi, askedTeams: Set<string>): TeamQuestion[
 
 /** The position question is the last resort: when a screenshot bounding the race hides the total of someone whose
  * place is in doubt, the points question on that row asks the total instead, and the place follows from it. */
+/** position.contradicted: the known position the totals rule out returns, with their place as the suggestion. */
+function contradictedPositionQuestion(mogi: Mogi, { race, fact, place }: ContradictedFact): PositionQuestion {
+  const occupied = new Set(
+    mogi.assistance?.facts
+      .filter((other) => other.raceId === race.id && other.id !== fact.id)
+      .map((other) => other.position),
+  );
+  const options: PositionQuestion["options"] = raceNumbers()
+    .filter((value) => !occupied.has(value))
+    .map((value) => ({ value, label: ordinal(value) }));
+  options.push({ value: "absent", label: "Absent from the results" });
+  return {
+    id: `position:${race.id}:${fact.participantId}`,
+    kind: "position",
+    raceId: race.id,
+    number: raceNumber(mogi, race),
+    row: 0,
+    participantId: fact.participantId,
+    reading: mogi.participants.find((person) => person.id === fact.participantId)!.loungeName,
+    options,
+    suggestion: options.some((option) => option.value === place) ? place! : null,
+  };
+}
+
 function positionQuestion(mogi: Mogi, asked: MogiQuestion[]): PositionQuestion | undefined {
   const position = usefulQuestion(mogi);
   if (!position) return;
