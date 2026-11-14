@@ -72,6 +72,7 @@ export const rulePhrases: Record<RuleCode, (step: DisplayStep) => Phrase> = {
     reason: step.format === "FFA" ? "the only player left" : "the only player left on the team",
   }),
   "name.continuity": (step) => ({ decision: named(step), reason: `their total continues from ${reference(step)}` }),
+  "name.slot": (step) => ({ decision: named(step), reason: `same slot on the board as in ${reference(step)}` }),
   "name.token": (step) => ({
     decision: named(step),
     reason: `"${step.evidence.token}" only matches ${step.playerName}`,

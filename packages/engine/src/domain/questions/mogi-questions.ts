@@ -57,6 +57,8 @@ export interface NameQuestion extends CaptureQuestionBase {
   options: { id: string; loungeName: string }[];
   suggestion: string | null;
   occurrences: { captureId: string; row: number; number?: number }[];
+  /** When the screen shows this reading more than once: which of them, in row order, from 1. */
+  slot?: number;
 }
 
 /** points.screenshot-total: every value is the person's total on that screenshot, the "+N" being added included. */
@@ -524,6 +526,7 @@ function nameQuestions(
         )
       : [];
     const options = [...selectedIdentity.options, ...teammates].map(({ id, loungeName }) => ({ id, loungeName }));
+    const twins = capture.rows.flatMap((other, at) => (spelling(other.text) === spelling(row.text) ? [at] : []));
     questions.push({
       id,
       kind: "name",
@@ -536,6 +539,7 @@ function nameQuestions(
       occurrences: [],
       suggestion: selectedIdentity.suggestion,
       crop: { captureId: capture.id, location: row.location },
+      ...(twins.length > 1 && spelling(row.text) ? { slot: twins.indexOf(index) + 1 } : {}),
     });
   });
   return questions;

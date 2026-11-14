@@ -129,11 +129,15 @@ export function roomBoundary(
   const keys = source.rows.slice(0, represented).map((row, index) => {
     const answer = source.nameAssociations?.[index];
     const accepted = answer?.participantId ?? (!answer?.unlinked ? recognizedParticipant(mogi, row) : undefined);
+    // A reading the screen repeats names nobody; on a team board its slot still does (`boardSlots`).
+    const slot = spellings.slice(0, index).filter((key) => key === spellings[index]).length + 1;
     const key =
       accepted ||
       (spellings[index] && frequencies.get(spellings[index]) === 1
         ? `name:${spellings[index]}`
-        : `row:${source.id}:${index}`);
+        : spellings[index] && source.interpretation?.screen === "twoColumnsByTeam"
+          ? `slot:${spellings[index]}:${slot}`
+          : `row:${source.id}:${index}`);
     if (shown[index] !== undefined) values.set(key, shown[index]! + (prior ? scale[index] : 0));
     return key;
   });
