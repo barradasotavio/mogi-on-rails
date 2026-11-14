@@ -8,6 +8,8 @@ import type { Assistance, Mogi, PositionFact, Race, ReconstructionHypothesis } f
 const FACT_HISTORY_LIMIT = 100;
 // Positions run from first to twelfth in a room of twelve.
 const MAX_POSITION = 12;
+// Rooms whose native scale a single race's gain can follow.
+const ROOM_SIZES = [12, 11, 10];
 
 export function assistanceState(mogi: Mogi): Assistance {
   return (
@@ -190,4 +192,43 @@ function bestQuestion(
     }
   }
   return best && { raceId: best.raceId, participantId: best.participantId, key: best.key, hypotheses };
+}
+
+export interface ContradictedFact {
+  race: Race;
+  fact: PositionFact;
+  /** The place the totals give, when one scale does. */
+  place?: number;
+}
+
+/**
+ * position.contradicted: a known position that its race's own totals rule out. A race alone between two checked
+ * boundaries gives each person one native gain; a fact no room size's scale places there was answered against other
+ * evidence (most often a row then linked to the wrong person), so its question returns, one per race, suggesting
+ * the totals' place, instead of leaving the race in conflict with nothing to answer.
+ */
+export function contradictedFacts(mogi: Mogi): ContradictedFact[] {
+  const found: ContradictedFact[] = [];
+  for (const race of [...mogi.races].sort((x, y) => racePhysicalNumber(mogi, x) - racePhysicalNumber(mogi, y))) {
+    const analysis = race.reconstruction?.boundaryAnalysis;
+    if (race.status !== "pending" || race.placements.length || analysis?.status !== "conflict") continue;
+    for (const fact of mogi.assistance?.facts.filter((entry) => entry.raceId === race.id) ?? []) {
+      const gains = analysis.equations.flatMap((equation) =>
+        equation.boundary &&
+        equation.participantId === fact.participantId &&
+        equation.targetIndices.length === 1 &&
+        !equation.known
+          ? [equation.gain]
+          : [],
+      );
+      if (gains.length !== 1) continue;
+      const places = ROOM_SIZES.map((size) => nativePlacementPoints(size).indexOf(gains[0]) + 1);
+      const fits = fact.position === "absent" ? gains[0] === 0 : places.includes(fact.position);
+      if (fits) continue;
+      const place = places[0] || undefined;
+      found.push({ race, fact, ...(place ? { place } : {}) });
+      break;
+    }
+  }
+  return found;
 }

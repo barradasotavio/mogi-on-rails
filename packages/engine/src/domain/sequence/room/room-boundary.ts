@@ -98,6 +98,23 @@ function unseenRowParticipant(
   return id;
 }
 
+/** A person's total never falls between screenshots without a restart. A sum-derived total above what a later photo
+ * shows (or below an earlier one) means the room lost points, a rejoin's, so the race sum no longer gives it. */
+function unseenTotalFits(mogi: Mogi, source: Capture, id: string, total: number): boolean {
+  const at = source.photoMoment?.at;
+  if (at === undefined) return true;
+  return !mogi.captures?.some((other) => {
+    const row = other.nameAssociations?.findIndex((answer) => answer.participantId === id) ?? -1;
+    const when = other.photoMoment?.at;
+    if (other.id === source.id || row < 0 || when === undefined || when === at) return false;
+    const reading = other.numericRows?.find((entry) => entry.row === row + 1)?.right;
+    const shown =
+      other.numericAnswers?.find((answer) => answer.row === row + 1)?.value ??
+      (reading && !reading.uncertain ? reading.value : undefined);
+    return shown != null && (when > at ? shown < total : shown > total);
+  });
+}
+
 export function roomBoundary(
   mogi: Mogi,
   source: Capture,
@@ -143,10 +160,11 @@ export function roomBoundary(
   });
   const unseen = prior || completed !== undefined ? undefined : unseenRowParticipant(mogi, source, keys, values);
   const unseenRaces = unseen ? raceNumberBySum([...values.values(), undefined], FULL_ROOM_PLAYERS) : undefined;
-  if (unseen && unseenRaces !== undefined) {
+  const unseenTotal = unseenRaces === undefined ? undefined : FULL_ROOM_POINTS * unseenRaces - sum(values.values());
+  if (unseen && unseenTotal !== undefined && unseenTotalFits(mogi, source, unseen, unseenTotal)) {
     keys.push(unseen);
-    values.set(unseen, FULL_ROOM_POINTS * unseenRaces - sum(values.values()));
-    localRace = unseenRaces + offset;
+    values.set(unseen, unseenTotal);
+    localRace = unseenRaces! + offset;
   }
   if (values.size < MIN_SHARED_PLAYERS && localRace === undefined) return;
   const fact = mogi.sequence?.numbers.find(

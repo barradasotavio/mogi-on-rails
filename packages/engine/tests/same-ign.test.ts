@@ -2,9 +2,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { answerMogiQuestion, type MogiQuestion, mogiQuestions, normalizeReconstructions } from "@mkw/engine";
+import {
+  answerMogiQuestion,
+  changePositionFact,
+  countedRaces,
+  type MogiQuestion,
+  mogiQuestions,
+  normalizeReconstructions,
+} from "@mkw/engine";
 
 import type { Capture, Mogi } from "../../../apps/web/lib/mogi/types.ts";
+import { questionsWithOverviewInvariant } from "./support/question-invariant.ts";
 import { ingestReadings } from "./support/real-captures.ts";
 
 // Real 3v3 of 2026-11-14 as the app read its 13 screenshots, in photo order: the race-1 board (all zeros),
@@ -118,3 +126,45 @@ for (const [mode, ingest] of [
       [],
     );
   });
+
+const normalized = async (mogi: Mogi) => (await normalizeReconstructions({ version: 1, mogis: [mogi] })).mogis[0];
+const place = (mogi: Mogi, number: number, name: string) =>
+  countedRaces(mogi)
+    .find((race) => race.number === number)!
+    .placements.indexOf(person(mogi, name)) + 1;
+
+test("a known position the race's totals rule out is asked again with the totals' place, and the mogi ends with every race counted", async () => {
+  let mogi = await answerFirstX(await ingestReadings(emptyMogi(), structuredClone(data.captures)));
+  // The board missing one row (c05) leaves that total unknown: the room lost the rejoined player's 14 points, so
+  // 82 per race minus the others would read 49 where a later board shows 40 (unseenRowParticipant).
+  assert.deepEqual(mogiQuestions(mogi), []);
+  assert.equal(countedRaces(mogi).length, 12);
+  const race = (number: number) => mogi.races.find((entry) => entry.number === number)!.id;
+  // Answered while the X rows were swapped: Pauline gained 1 point in race 1 (12th), Birdo 15 in race 3 (1st).
+  mogi = changePositionFact(mogi, { raceId: race(1), participantId: person(mogi, "Pauline"), position: 3 });
+  mogi = await normalized(
+    changePositionFact(mogi, { raceId: race(3), participantId: person(mogi, "Birdo"), position: 11 }),
+  );
+  for (const [number, name, totalsPlace] of [
+    [1, "Pauline", 12],
+    [3, "Birdo", 1],
+  ] as const) {
+    const question = questionsWithOverviewInvariant(mogi)[0];
+    assert.ok(question?.kind === "position", `A question settles race ${number}`);
+    assert.deepEqual(
+      [question.number, who(mogi, question.participantId), question.suggestion],
+      [number, name, totalsPlace],
+    );
+    mogi = await normalized(await answerMogiQuestion(mogi, question.id, { kind: "position", value: totalsPlace }));
+  }
+  assert.deepEqual(mogiQuestions(mogi), []);
+  assert.deepEqual(
+    countedRaces(mogi).map((entry) => entry.number),
+    Array.from({ length: 12 }, (_, index) => index + 1),
+  );
+  // Race 1 comes from the zero board and the board after it; in race 3, Lakitulaki rejoined at 0 after placing 11th.
+  assert.deepEqual(
+    [place(mogi, 1, "Wiggler15"), place(mogi, 1, "Tavo"), place(mogi, 3, "Lakitulaki"), place(mogi, 3, "Pauline")],
+    [1, 5, 11, 12],
+  );
+});

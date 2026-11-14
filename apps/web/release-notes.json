@@ -8,6 +8,10 @@
       },
       {
         "kind": "fix",
+        "text": "A race left in conflict by a finishing position answered earlier now asks that position again, suggesting the place the totals give, instead of staying pending with nothing to answer."
+      },
+      {
+        "kind": "fix",
         "text": "A team lobby screenshot now reads every player, green team included, and one that still misses a player keeps the races after it counted instead of asking about every later screenshot."
       }
     ]
