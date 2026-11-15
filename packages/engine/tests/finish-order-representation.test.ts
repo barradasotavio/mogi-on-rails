@@ -384,7 +384,9 @@ for (const distance of [-1, 0, 1])
       mogiQuestions(mogi).some((question) => question.id === `representation:${hinted.id}`),
       false,
     );
-    assert.equal(mogi.races.find((race) => race.number === 5)?.status, "confirmed");
+    // Two screens answered as race 5 conflict: the race waits for the continuity answer, never confirmed under review.
+    assert.equal(mogi.races.find((race) => race.number === 5)?.status, distance === 0 ? "pending" : "confirmed");
+    if (distance === 0) assert.ok(mogiQuestions(mogi).some((question) => question.kind === "sequence"));
   });
 
 test("a complete scale of additions keeps the finish order when OCR reads rank 7 as 1 (showsFinishOrder)", () => {

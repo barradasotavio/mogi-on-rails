@@ -30,6 +30,12 @@ interface RoomStartContext {
 
 /** race.answered / race.reopen-first / race.vector-continuity: establish from room's absolute start. */
 export function roomStart(group: RoomBoundary[], context: RoomStartContext): number | undefined {
+  const start = anyRoomStart(group, context);
+  // An answer below its local race contradicts the totals: the room keeps no start and the conflict asks again.
+  return start === undefined || start >= 1 ? start : undefined;
+}
+
+function anyRoomStart(group: RoomBoundary[], context: RoomStartContext): number | undefined {
   const chosen = context.continuation;
   if (chosen && chosen.boundary.localRace !== undefined) {
     return chosen.boundary.answeredNumber !== undefined

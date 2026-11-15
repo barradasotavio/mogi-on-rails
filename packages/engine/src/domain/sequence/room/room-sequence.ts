@@ -137,12 +137,14 @@ export function analyzeRoomSequence(mogi: Mogi): RoomAnalysis {
           boundary.source.numericAnswers?.some((answer) => answer.row === index + 1),
         ),
       ) ||
-        (!result.order && !reopening && !state.previousSession && gaplessRoom(group)))
+        (!result.order && !result.sessions.length && !reopening && !state.previousSession && gaplessRoom(group)))
     ) {
       const answered = group.find(
         (boundary) => boundary.answeredNumber !== undefined && boundary.localRace !== undefined,
       );
-      if (answered) room.start = answered.answeredNumber! - answered.localRace! + 1;
+      // An answer below its local race contradicts the totals, as in `roomStart`.
+      const start = answered && answered.answeredNumber! - answered.localRace! + 1;
+      if (start !== undefined && start >= 1) room.start = start;
     }
     remaining.splice(remaining.indexOf(group), 1);
     const id = `room:${group[0].source.id}`;
