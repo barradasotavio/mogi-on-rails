@@ -15,6 +15,7 @@ import {
   readGameCumulatives,
   recordDeducedTotal,
   totalByRemainder,
+  zeroBeforeByLaterTotals,
   zeroGameCumulativeColumn,
 } from "../../numeric-readings/numeric-deduction.ts";
 import {
@@ -129,6 +130,7 @@ export function roomBoundary(
   if (screenProperties(source.interpretation.screen).cumulative !== "final" && !prior) return;
   const readable = shown.filter((value): value is number => value !== undefined);
   firstRacePermutation(numeric, shown, scale, prior);
+  if (prior) zeroBeforeByLaterTotals(mogi, numeric, shown, scale);
   const missing = shown.flatMap((value, index) => (value === undefined ? [index] : []));
   const duplicateRows = duplicateFirstRaceRows(source, shown, readable, prior);
   const completed = raceNumberBySum(shown, represented);

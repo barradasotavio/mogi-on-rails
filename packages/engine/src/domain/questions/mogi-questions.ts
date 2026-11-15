@@ -32,6 +32,7 @@ import {
   roomExplanationSteps,
 } from "../sequence/capture-explanation.ts";
 import { cumulativeRacePointRows } from "../sequence/first-race.ts";
+import { analyzeRoomSequence } from "../sequence/room/room-sequence.ts";
 import { sourcePairSignature } from "../sequence/source-pair-signature.ts";
 import type { Capture, CaptureRow, Mogi, NameAssociation, Participant, Race } from "../types.ts";
 import { blankUnknownScreen, contextQuestions } from "./questions.ts";
@@ -221,7 +222,9 @@ export function mogiQuestions(mogi: Mogi): MogiQuestion[] {
   const questions: MogiQuestion[] = [];
   const roomOrder = roomOrderQuestion(mogi);
   if (roomOrder) questions.push(roomOrder);
-  for (const capture of captures) questions.push(...questionsForCapture(mogi, capture, names, grouping, askedTeams));
+  const numbers = contradictedNumbers(mogi);
+  for (const capture of captures)
+    questions.push(...questionsForCapture(mogi, capture, names, grouping, askedTeams, numbers.get(capture.id)));
   questions.push(...rosterTeamQuestions(mogi, askedTeams));
   const contradicted = contradictedFacts(mogi).map((fact) => contradictedPositionQuestion(mogi, fact));
   const position = contradicted.length ? undefined : positionQuestion(mogi, questions);
@@ -251,9 +254,11 @@ function questionsForCapture(
   names: NameEvidence,
   grouping: NameGrouping,
   askedTeams: Set<string>,
+  totalsNumber?: number,
 ): MogiQuestion[] {
   // An unrecognized screen with no legible name (a game error, a loading screen) holds nothing to ask about.
   if (blankUnknownScreen(capture)) return [];
+  if (totalsNumber !== undefined) return [contradictedNumberQuestion(capture, totalsNumber)];
   const occurrence = questionOccurrence(mogi, capture);
   const identity = jointNames(mogi, capture, captureNameAssociations(capture), occurrence.people, false, names);
   const questions: MogiQuestion[] = [];
@@ -420,6 +425,40 @@ export function reopenedRoomQuestion(
     options: suggestedRaceFirst(candidates, suggestion),
     suggestion,
     sessionCaptureIds: session.captureIds,
+    crop: { captureId: capture.id },
+  };
+}
+
+/**
+ * number.contradicted: while the sequence conflicts, a race number answered for a screenshot that its totals place
+ * elsewhere (an answer given before the totals could number the room) is asked again, suggesting the totals' number.
+ * The totals' number comes from the room analysis without any answered number. Returns screenshot → that number.
+ */
+export function contradictedNumbers(mogi: Mogi): Map<string, number> {
+  const found = new Map<string, number>();
+  const sequence = mogi.sequence;
+  if (!sequence?.conflict || !sequence.numbers.length) return found;
+  const byTotals = analyzeRoomSequence({ ...mogi, sequence: { ...sequence, numbers: [] } });
+  for (const fact of sequence.numbers) {
+    const number = byTotals.captures.find((entry) => entry.captureId === fact.captureId)?.number;
+    const answered = fact.physicalNumber ?? fact.number;
+    if (number !== undefined && answered !== undefined && number !== answered) found.set(fact.captureId, number);
+  }
+  return found;
+}
+
+function contradictedNumberQuestion(capture: Capture, suggestion: number): RaceQuestion {
+  const options = raceNumbers().map((value) => ({ value, label: `Race ${value}` }));
+  return {
+    id: `race:${capture.id}:contradicted`,
+    kind: "race",
+    captureId: capture.id,
+    row: 0,
+    reading: "Which race is this?",
+    options: suggestedRaceFirst(options, suggestion),
+    suggestion,
+    // The answer replaces this screenshot's number alone.
+    sessionCaptureIds: [capture.id],
     crop: { captureId: capture.id },
   };
 }

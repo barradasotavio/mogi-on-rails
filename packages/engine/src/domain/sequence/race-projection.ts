@@ -82,10 +82,29 @@ export function projectOccurrencesIntoRaces<T extends Mogi>(
     mogi = {
       ...detached,
       races: detached.races.map((race) =>
-        priorProjected.has(race.id) ? { ...race, participationReview: sequenceConflictReview } : race,
+        !priorProjected.has(race.id)
+          ? race
+          : race.status === "confirmed" && race.origin === "observed"
+            ? conflictedResult(race)
+            : { ...race, participationReview: sequenceConflictReview },
       ),
     };
   return { mogi, conflict };
+}
+
+/** A race awaiting review never stays confirmed. Its result came from screenshots the conflict may have numbered
+ * wrongly, so it waits empty, histories kept, and counts again from them once the conflict clears. */
+function conflictedResult(race: Race): Race {
+  const kept: Race = { ...race, status: "pending", placements: [], participationReview: sequenceConflictReview };
+  for (const key of [
+    "captureIds",
+    "absentParticipantIds",
+    "gameEvidence",
+    "nativePoints",
+    "nativePointOrigins",
+  ] as const)
+    delete kept[key];
+  return kept;
 }
 
 /** Give each numbered occurrence its race: reuse a pending race of that number, or add one. */

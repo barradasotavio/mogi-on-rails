@@ -115,6 +115,30 @@ export function groupRoomSources(mogi: Mogi, nodes: RoomBoundary[]) {
   return { groups, pairs };
 }
 
+/** race.vector-continuity: from the placed sources, place the rest one comparison at a time, forward or backward, the
+ * shortest first, like `placeAlong`: a longer comparison can hide a restart or a smaller room. Returns the races
+ * completed at each placed source. */
+export function placeAlongShortest(
+  group: RoomBoundary[],
+  completed: Map<RoomBoundary, number>,
+): Map<RoomBoundary, number> {
+  if (!completed.size) return completed;
+  for (;;) {
+    let next: { to: RoomBoundary; races: number; steps: number } | undefined;
+    for (const [from, races] of completed)
+      for (const to of group) {
+        if (completed.has(to)) continue;
+        const forward = distance(from.values, to);
+        const backward = forward === undefined ? distance(to.values, from) : undefined;
+        const steps = forward ?? (backward === undefined ? undefined : -backward);
+        if (steps !== undefined && (!next || Math.abs(steps) < Math.abs(next.steps)))
+          next = { to, races: races + steps, steps };
+      }
+    if (!next) return completed;
+    completed.set(next.to, next.races);
+  }
+}
+
 export function completeRoomPositions(group: RoomBoundary[], start: number | undefined) {
   // A room short of its native points (a player left with no points) fits no sum: an answered number then anchors
   // its capture, relative to the room's start when known, and per-person continuity places the rest.
@@ -125,13 +149,15 @@ export function completeRoomPositions(group: RoomBoundary[], start: number | und
     ? group.find((boundary) => boundary.answeredNumber !== undefined)
     : undefined;
   if (anchor) anchor.localRace = anchor.answeredNumber;
-  for (let pass = 0; pass < group.length && group.some((boundary) => boundary.localRace === undefined); pass++)
-    for (const from of group)
-      for (const to of group) {
-        if (from.localRace === undefined || to.localRace !== undefined) continue;
-        const steps = distance(from.values, to);
-        if (steps !== undefined) to.localRace = from.localRace - from.offset + steps + to.offset;
-      }
+  const completed = placeAlongShortest(
+    group,
+    new Map(
+      group.flatMap((boundary) =>
+        boundary.localRace === undefined ? [] : [[boundary, boundary.localRace - boundary.offset] as const],
+      ),
+    ),
+  );
+  for (const [boundary, races] of completed) boundary.localRace ??= races + boundary.offset;
   group.sort(
     (from, to) =>
       (from.localRace === undefined ? Infinity : from.localRace - from.offset) -

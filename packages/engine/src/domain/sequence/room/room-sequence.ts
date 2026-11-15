@@ -13,7 +13,7 @@ import { type RoomBoundary, roomBoundary } from "./room-boundary.ts";
 import { completeRoomPositions, groupRoomSources } from "./room-grouping.ts";
 import { projectRoom } from "./room-projection.ts";
 import { zeroRoomBoundary } from "./room-reopening.ts";
-import { raceNumberCandidates, roomSequenceState, selectRoom } from "./room-start.ts";
+import { gaplessRoom, raceNumberByCeiling, raceNumberCandidates, roomSequenceState, selectRoom } from "./room-start.ts";
 
 export { raceNumberBySum, sharedPhotoMoment } from "./room-boundary.ts";
 export { roomPositionsAgree } from "./room-grouping.ts";
@@ -22,7 +22,9 @@ export { initialFactsFit, raceNumberWithinCeiling } from "./room-projection.ts";
 export { answeredReopening, epochByPhotoTime, precedesAnchor, reopeningByTotals } from "./room-reopening.ts";
 export {
   continuityBySmallestDistance,
+  gaplessRoom,
   initialRoomByContinuity,
+  raceNumberByCeiling,
   raceNumberCandidates,
   roomStart,
 } from "./room-start.ts";
@@ -118,19 +120,31 @@ export function analyzeRoomSequence(mogi: Mogi): RoomAnalysis {
     const room = selectRoom(mogi, remaining, state, result, photoOrder);
     const { group, reopening } = room;
     completeRoomPositions(group, room.start);
-    // Confirmed totals that fit no sum use their answered number as the room anchor.
     if (
       room.start === undefined &&
-      group.some((boundary) =>
+      !reopening &&
+      !state.previousSession &&
+      !result.order &&
+      raceNumberByCeiling(mogi, group)
+    )
+      room.start = 1;
+    // Confirmed totals that fit no sum use their answered number as the room anchor, and so does any answer in a first
+    // room whose screens leave no race unseen (`gaplessRoom`).
+    if (
+      room.start === undefined &&
+      (group.some((boundary) =>
         boundary.source.rows.every((_, index) =>
           boundary.source.numericAnswers?.some((answer) => answer.row === index + 1),
         ),
-      )
+      ) ||
+        (!result.order && !result.sessions.length && !reopening && !state.previousSession && gaplessRoom(group)))
     ) {
       const answered = group.find(
         (boundary) => boundary.answeredNumber !== undefined && boundary.localRace !== undefined,
       );
-      if (answered) room.start = answered.answeredNumber! - answered.localRace! + 1;
+      // An answer below its local race contradicts the totals, as in `roomStart`.
+      const start = answered && answered.answeredNumber! - answered.localRace! + 1;
+      if (start !== undefined && start >= 1) room.start = start;
     }
     remaining.splice(remaining.indexOf(group), 1);
     const id = `room:${group[0].source.id}`;

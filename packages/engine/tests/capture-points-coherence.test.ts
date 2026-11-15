@@ -18,7 +18,8 @@ function coherent(mogi: Mogi) {
     const steps = captureExplanation(mogi, capture.id).filter((s) => s.kind === "points");
     const summary = steps.filter((s) => s.rule === "points.as-shown");
     assert.equal(summary.length, 1, `${capture.id}: one summary`);
-    assert.equal(summary[0].evidence.compared, capture.rows.length);
+    // An eleven-player screen keeps the OCR's twelfth, empty row.
+    assert.equal(summary[0].evidence.compared, capture.interpretation?.represented ?? capture.rows.length);
     const exceptions = steps.filter((s) => s.evidence.row !== undefined);
     assert.deepEqual(
       exceptions.map((s) => s.evidence.row),

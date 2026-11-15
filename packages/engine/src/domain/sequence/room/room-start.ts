@@ -1,12 +1,12 @@
 import { contextPhase } from "../../capture/capture-context.ts";
 import { representedPlayers } from "../../numeric-readings/numeric-candidates.ts";
 import { FULL_ROOM_PLAYERS, zeroGameCumulativeColumn } from "../../numeric-readings/numeric-deduction.ts";
-import { MAX_COUNTED_RACES } from "../../numeric-readings/per-person-vector.ts";
+import { MAX_COUNTED_RACES, MAX_POINTS_PER_RACE, sum } from "../../numeric-readings/per-person-vector.ts";
 import { nativePlacementPoints } from "../../scoring/native-points.ts";
 import type { Mogi } from "../../types.ts";
 import type { CaptureExplanationStep } from "../capture-explanation.ts";
 import { distance, type RoomBoundary } from "./room-boundary.ts";
-import { completeRoomPositions } from "./room-grouping.ts";
+import { completeRoomPositions, placeAlongShortest } from "./room-grouping.ts";
 import { answeredNumberTieBreak, orderQuestion, photoTimeTieBreak, rememberPhotoOrder } from "./room-order.ts";
 import { answeredReopening, precedesAnchor, reopeningByTotals } from "./room-reopening.ts";
 import type { RoomAnalysis, RoomSession } from "./room-sequence.ts";
@@ -30,6 +30,12 @@ interface RoomStartContext {
 
 /** race.answered / race.reopen-first / race.vector-continuity: establish from room's absolute start. */
 export function roomStart(group: RoomBoundary[], context: RoomStartContext): number | undefined {
+  const start = anyRoomStart(group, context);
+  // An answer below its local race contradicts the totals: the room keeps no start and the conflict asks again.
+  return start === undefined || start >= 1 ? start : undefined;
+}
+
+function anyRoomStart(group: RoomBoundary[], context: RoomStartContext): number | undefined {
   const chosen = context.continuation;
   if (chosen && chosen.boundary.localRace !== undefined) {
     return chosen.boundary.answeredNumber !== undefined
@@ -48,6 +54,40 @@ export function roomStart(group: RoomBoundary[], context: RoomStartContext): num
     group.some((boundary) => boundary.localRace === 1 && !zeroGameCumulativeColumn(boundary.source))
   )
     return context.leadingRaces + 1;
+}
+
+/** Fewest races that can have produced these totals: nobody gains more than 15 a race, a room gives at most its
+ * top places, and one race gives distinct points. Rejoins, departures and unseen rows only lower totals. */
+function fewestRaces(values: number[]): number {
+  if (values.every((value) => value === 0)) return 0;
+  const top = sum(nativePlacementPoints(FULL_ROOM_PLAYERS).slice(0, values.length));
+  const races = Math.max(1, Math.ceil(Math.max(...values) / MAX_POINTS_PER_RACE), Math.ceil(sum(values) / top));
+  return races === 1 && new Set(values).size !== values.length ? 2 : races;
+}
+
+/** race.vector-continuity: a room whose totals fit no race sum (an 11-player race, a rejoin at 0, a departure) still
+ * has a number when its chained screens leave room for one start only: each screen's totals need at least so many
+ * races, and no screen can show a race past the ceiling. Returns whether it placed the room. */
+export function raceNumberByCeiling(mogi: Mogi, group: RoomBoundary[]): boolean {
+  if (group.some((boundary) => boundary.localRace !== undefined)) return false;
+  const completed = placeAlongShortest(group, new Map([[group[0], 0]]));
+  if (completed.size !== group.length) return false;
+  const ceiling = MAX_COUNTED_RACES + mogi.races.filter((race) => race.status === "discarded").length;
+  const lowest = Math.max(
+    ...group.map((boundary) => fewestRaces([...boundary.values.values()]) - completed.get(boundary)!),
+  );
+  const highest = Math.min(...group.map((boundary) => ceiling - completed.get(boundary)! - boundary.offset));
+  if (lowest !== highest) return false;
+  for (const boundary of group) boundary.localRace = completed.get(boundary)! + lowest + boundary.offset;
+  return true;
+}
+
+/** race.answered: per-person continuity placed every screen of the room one race apart at most, so no race between
+ * them lacks a screen: one answered number then numbers them all. Across an unseen race the validity stays open. */
+export function gaplessRoom(group: RoomBoundary[]): boolean {
+  if (group.some((boundary) => boundary.localRace === undefined)) return false;
+  const completed = [...new Set(group.map((boundary) => boundary.localRace! - boundary.offset))].sort((a, b) => a - b);
+  return completed.every((races, index) => !index || races === completed[index - 1] + 1);
 }
 
 /** race.vector-continuity: prefer the smallest physical interval, then existing answers and photo time. */
