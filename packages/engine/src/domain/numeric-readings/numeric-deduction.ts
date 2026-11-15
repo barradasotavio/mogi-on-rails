@@ -238,6 +238,45 @@ export function firstRacePermutation(
   }
 }
 
+/** points.race1-permutation: an adding screen whose totals column is mostly unread still shows race 1 when another
+ * screen's totals equal its race points for at least six people and differ for nobody: those totals were 0 before
+ * it. Its readable totals must all be 0; the unread ones are deduced 0. Only where `zeroColumnRoomStart` lets it
+ * start the mogi: later zeros (a reopened room) keep their number open. */
+export function zeroBeforeByLaterTotals(
+  mogi: Mogi,
+  plan: NumericPlan,
+  shown: (number | undefined)[],
+  scale: readonly number[],
+): void {
+  const source = plan.source;
+  if (!shown.includes(undefined) || shown.some((value) => value !== undefined && value !== 0)) return;
+  if (!zeroColumnRoomStart(mogi, source)) return;
+  const gains = new Map(
+    shown.flatMap((_, index) => {
+      const id = source.nameAssociations?.[index]?.participantId;
+      return id ? [[id, scale[index]] as const] : [];
+    }),
+  );
+  const later = (mogi.captures ?? []).some((other) => {
+    if (other.id === source.id) return false;
+    const shared = other.rows.flatMap((_, index) => {
+      const id = other.nameAssociations?.[index]?.participantId;
+      const reading = other.numericRows?.find((entry) => entry.row === index + 1)?.right;
+      const value =
+        other.numericAnswers?.find((answer) => answer.row === index + 1)?.value ??
+        (reading && !reading.uncertain ? reading.value : undefined);
+      return id && gains.has(id) && value != null ? [value === gains.get(id)] : [];
+    });
+    return shared.length >= MIN_SHARED_PLAYERS && shared.every(Boolean);
+  });
+  if (!later) return;
+  shown.forEach((value, index) => {
+    if (value !== undefined) return;
+    shown[index] = 0;
+    recordDeducedTotal(plan, index + 1, 0, "points.race1-permutation");
+  });
+}
+
 /** Ambiguity asks only for the points of the ambiguous rows: repeated race-one values mark just those rows. */
 export function duplicateFirstRaceRows(
   source: Capture,

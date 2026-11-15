@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "fix",
+        "text": "Screenshots whose totals follow one another now number their races on their own, even after an 11-player race, a rejoin at 0 or a player leaving, and one race answer places all the screenshots around it, instead of asking which race each one is."
+      },
+      {
+        "kind": "fix",
         "text": "Updates no longer get stuck when a backup can't be checked: the app keeps an unchecked copy of your data before updating, and Settings says what is holding an update back."
       },
       {
