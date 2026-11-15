@@ -11,6 +11,8 @@ export interface AutomaticBackup {
   build: string;
   mogiCount: number;
   size: number;
+  /** `false` for a copy saved as stored because this build's check refused the state; absent means checked. */
+  checked?: false;
 }
 interface StoredBackup extends AutomaticBackup {
   zip: Blob;
@@ -27,14 +29,33 @@ function openBackups(): Promise<IDBDatabase> {
   });
 }
 
+/**
+ * A state this build's check refuses must not block the update that may repair it, so the backup falls back to an
+ * unchecked copy of the stored state and its screenshots. Only creating the ZIP falls back: a write that fails still
+ * blocks the update, because then nothing was kept.
+ */
 export async function saveAutomaticBackup(state: TrackerState, build: string): Promise<void> {
-  const zip = await createBackup(state);
+  let zip: Blob,
+    checked = true;
+  try {
+    zip = await createBackup(state);
+  } catch {
+    zip = await createBackup(state, { check: false });
+    checked = false;
+  }
   const db = await openBackups();
   try {
     await new Promise<void>((resolve, reject) => {
       const transaction = db.transaction("automatic backups", "readwrite");
       const store = transaction.objectStore("automatic backups");
-      store.add({ zip, createdAt: new Date().toISOString(), build, mogiCount: state.mogis.length, size: zip.size });
+      store.add({
+        zip,
+        createdAt: new Date().toISOString(),
+        build,
+        mogiCount: state.mogis.length,
+        size: zip.size,
+        ...(checked ? {} : { checked: false }),
+      });
       // Increasing keys give stable order even for two writes in the same millisecond.
       const keys = store.getAllKeys();
       keys.onsuccess = () => keys.result.slice(0, -AUTOMATIC_BACKUPS_KEPT).forEach((id) => store.delete(id));
@@ -49,9 +70,14 @@ export async function saveAutomaticBackup(state: TrackerState, build: string): P
 
 export async function listAutomaticBackups(): Promise<AutomaticBackup[]> {
   const entries = await readBackups();
-  return entries
-    .reverse()
-    .map(({ id, createdAt, build, mogiCount, size }) => ({ id, createdAt, build, mogiCount, size }));
+  return entries.reverse().map(({ id, createdAt, build, mogiCount, size, checked }) => ({
+    id,
+    createdAt,
+    build,
+    mogiCount,
+    size,
+    ...(checked === false ? { checked } : {}),
+  }));
 }
 async function readBackups(): Promise<StoredBackup[]> {
   const db = await openBackups();

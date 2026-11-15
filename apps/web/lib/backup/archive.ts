@@ -37,8 +37,12 @@ function serializable(value: unknown, depth = 0): void {
   }
   throw new Error("A data field isn't supported by the backup format. Export stopped.");
 }
-export async function createBackup(state: TrackerState): Promise<Blob> {
-  validateTracker(state);
+/**
+ * `check: false` writes the state exactly as stored, skipping the record checks, so an update can keep a state this build
+ * refuses (an older build's bug) instead of being blocked by it. Restore still checks the file in full.
+ */
+export async function createBackup(state: TrackerState, { check = true } = {}): Promise<Blob> {
+  if (check) validateTracker(state);
   const files: Zippable = {};
   let expanded = 0;
   const mogis = [];
@@ -56,7 +60,11 @@ export async function createBackup(state: TrackerState): Promise<Blob> {
       expanded += bytes.byteLength;
       if (expanded > MAX_EXPANDED_BYTES) throw new Error("The data exceeds the 2 GB backup limit.");
       const sha256 = await digest(bytes);
-      if (capture.fingerprint !== undefined && capture.fingerprint !== (capture.compressedFrom?.sha256 ?? sha256))
+      if (
+        check &&
+        capture.fingerprint !== undefined &&
+        capture.fingerprint !== (capture.compressedFrom?.sha256 ?? sha256)
+      )
         throw new Error("A screenshot fingerprint doesn't match its original file.");
       files[path] = [bytes, { level: 0 }];
       captures.push({
@@ -86,6 +94,7 @@ export async function createBackup(state: TrackerState): Promise<Blob> {
       if (expanded > MAX_EXPANDED_BYTES) throw new Error("The data exceeds 2 GB.");
       files[path] = [bytes, { level: 0 }];
       if (
+        check &&
         state.sourceUndo?.fileId === file.id &&
         state.sourceUndo.capture?.fingerprint !== undefined &&
         state.sourceUndo.capture.fingerprint !==

@@ -291,7 +291,10 @@ test("an open question and two windows defer updates; the next trigger retries; 
     await openSettings(page);
     await hidden(page);
     await expect(
-      page.getByText("Close the other windows of this app to finish the update", { exact: true }),
+      page.getByText(
+        "Close the other windows of this app to finish the update. Updating with them open could lose data.",
+        { exact: true },
+      ),
     ).toBeVisible();
     await visible(page);
     await waitForBuild(page, before);
@@ -370,6 +373,69 @@ test("a write error prevents activation and Settings explains how to retry", asy
     const path = info.outputPath("automatic-with-originals.zip");
     await (await downloading).saveAs(path);
     const entries = unzipSync(readFileSync(path));
+    expect(Buffer.from(entries["images/0/0.bin"])).toEqual(
+      readFileSync(new URL("./fixtures/spec29/finish-order-totals.jpeg", import.meta.url)),
+    );
+  } finally {
+    await server.close();
+  }
+});
+
+test("a stored state the backup check refuses still updates, keeping an unchecked copy with its screenshots", async ({
+  page,
+  baseURL,
+}, info) => {
+  const server = await serveUpdateGenerations(baseURL!);
+  try {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(server.origin);
+    await controlled(page);
+    await restoreState(page, nameQuestions(mogiState({ roster })));
+    // An older build may have stored a state the current check refuses (#87); write one in place, as it would be found.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          const request = indexedDB.open("mkw-on-rails");
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            const db = request.result;
+            const write = db.transaction("tracker", "readwrite");
+            const store = write.objectStore("tracker");
+            const read = store.get("state");
+            read.onsuccess = () => {
+              read.result.mogis[0].deletedCaptureIds = ["removed", "removed"];
+              store.put(read.result, "state");
+            };
+            write.oncomplete = () => {
+              db.close();
+              resolve();
+            };
+            write.onabort = () => reject(write.error);
+          };
+        }),
+    );
+    await page.reload();
+    await expect(page.getByRole("heading", { level: 1, name: "Mogi Tier D", exact: true })).toBeVisible();
+    await nextGeneration(page, server);
+    await openSettings(page);
+    // Restart Now is enabled only once the reopened app is idle, so the attempt can't miss its moment.
+    const reload = page.waitForEvent("framenavigated", { predicate: (frame) => frame === page.mainFrame() });
+    await page.getByRole("button", { name: "Restart Now", exact: true }).click();
+    await reload;
+    await waitForBuild(page, server.build());
+    await openBackup(page);
+    const row = page.getByRole("list", { name: "Before updates", exact: true }).getByRole("button");
+    await expect(row).toHaveText([/Unchecked · 1 mogi · /]);
+    await row.click();
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download ZIP", exact: true }).click();
+    const path = info.outputPath("unchecked.zip");
+    await (await downloading).saveAs(path);
+    const entries = unzipSync(readFileSync(path));
+    expect(JSON.parse(strFromU8(entries["manifest.json"])).state.mogis[0].deletedCaptureIds).toEqual([
+      "removed",
+      "removed",
+    ]);
     expect(Buffer.from(entries["images/0/0.bin"])).toEqual(
       readFileSync(new URL("./fixtures/spec29/finish-order-totals.jpeg", import.meta.url)),
     );

@@ -8,7 +8,7 @@ import { saveAutomaticBackup } from "@/lib/backup/automatic";
 import { base, withBase } from "@/lib/base-path";
 import type { TrackerState } from "@/lib/mogi/types";
 import { message, precacheWhenIdle, warmCachedOCRWhenIdle } from "@/lib/offline/client";
-import { decideUpdate, type UpdateTrigger } from "@/lib/offline/update";
+import { backupFailureReason, decideUpdate, otherWindowsReason, type UpdateTrigger } from "@/lib/offline/update";
 import { settled } from "@/lib/settled";
 export function useOfflinePanel({
   idle,
@@ -61,17 +61,17 @@ export function useOfflinePanel({
           };
           const decision = decideUpdate(conditions);
           if (decision === "other-windows") {
-            setUpdateStatus("Close the other windows of this app to finish the update");
+            setUpdateStatus(otherWindowsReason);
             return;
           }
           if (decision !== "backup") return;
           setUpdateStatus("Saving a backup before the update…");
           try {
             await saveAutomaticBackup(current.current.state, sourceBuild.current);
-          } catch {
+          } catch (cause) {
+            // A state this build's check refuses is kept as an unchecked copy, so only an unwritable backup lands here.
             const failed = decideUpdate({ ...conditions, backup: "failed" });
-            if (failed === "backup-failed")
-              setUpdateStatus("Couldn't save a backup first. Free up space and try again.");
+            if (failed === "backup-failed") setUpdateStatus(backupFailureReason(cause));
             return;
           }
           if (

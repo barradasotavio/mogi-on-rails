@@ -48,10 +48,10 @@ Updates follow the waiting worker and reload exactly once, keeping URL, mogi and
 
 - **Triggers**: opening, before any interaction; or a `hidden` page. Outside them, “Restart Now” in Settings.
 - **Idle**: [`updateIdle` and `updatesBlocked`](../../apps/web/components/ui/update-activity.ts) guard tracker and surface activity; surface work is checked again at activation time.
-- **Backup first**: writes the [automatic backup](backup.md#automatic-backups-before-updating); a failure blocks the attempt.
-- **Other windows**: refuses, leaving them intact, and tries at the next trigger.
+- **Backup first**: writes the [automatic backup](backup.md#automatic-backups-before-updating). A state the backup check refuses is kept as an unchecked copy and never blocks; only a backup that can't be written blocks the attempt.
+- **Other windows**: refuses, leaving them intact, and tries at the next trigger; the refusal protects their data.
 
-With an update pending, only Settings shows the refusal reason and the manual path (Save Backup in Storage).
+With an update pending, only Settings shows the refusal: the real reason from `otherWindowsReason` or `backupFailureReason` (`lib/offline/update.ts`) and the way through, Restart Now.
 
 Snapshots are validated on load and before saving. A client with an incompatible `state.version` blocks writing and directs the user to update while connected; updating the SW preserves saved data.
 
