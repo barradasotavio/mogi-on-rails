@@ -40,7 +40,7 @@ export function AutomaticBackups({ onSelect }: { onSelect: (entry: AutomaticBack
             key={entry.id}
             accessory="chevron"
             onSelect={() => onSelect(entry)}
-            description={`${entry.mogiCount} ${entry.mogiCount === 1 ? "mogi" : "mogis"} · ${backupSize(entry.size)}`}
+            description={`${entry.checked === false ? "Unchecked · " : ""}${entry.mogiCount} ${entry.mogiCount === 1 ? "mogi" : "mogis"} · ${backupSize(entry.size)}`}
           >
             {backupDate(entry.createdAt)}
           </ListRow>

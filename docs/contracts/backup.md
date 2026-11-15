@@ -15,7 +15,10 @@ Invariants:
 
 ## Automatic backups before updating
 
-Before activating a waiting worker, the app writes a complete ZIP (same format as the manual one) to a separate database and waits for the write to confirm. Retention follows [`AUTOMATIC_BACKUPS_KEPT`](../../apps/web/lib/backup/automatic.ts), on the device only; restoring keeps them. A creation, quota or write failure blocks that activation and leaves the update pending in Settings with a reason and a manual path ([offline.md](offline.md#navigation-and-updates)). Each automatic backup opens the same inspection, preview and replacement as the manual file.
+Before activating a waiting worker, the app writes a complete ZIP (same format as the manual one) to a separate database and waits for the write to confirm. Retention follows [`AUTOMATIC_BACKUPS_KEPT`](../../apps/web/lib/backup/automatic.ts), on the device only; restoring keeps them. Each automatic backup opens the same inspection, preview and replacement as the manual file.
+
+- **Unchecked copy**: when `validateTracker` refuses the stored state, `saveAutomaticBackup` writes it as stored, screenshots included (`createBackup(state, { check: false })`), marks the entry `checked: false` ("Unchecked" in Before updates) and the update goes on. Reason: an older build's bug can store a state the check refuses, and the update that repairs it must still arrive (#88). Restoring the copy still checks it in full; Download ZIP always works.
+- **Blocking failures**: an unwritable backup (quota, aborted write, a field without a JSON representation) blocks that activation and leaves the update pending in Settings with its reason ([offline.md](offline.md#navigation-and-updates)).
 
 ## Contract
 
