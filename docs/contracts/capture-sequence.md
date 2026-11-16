@@ -6,6 +6,10 @@ Recognition is persisted before `ingestCaptureReview` consumes the original, in 
 
 `photoMoment: { at, source }` is computed once, at ingestion, by `apps/web/lib/images/photo-moment.ts` (priority `exif` → `switch-name` → `pasted` → `file-date`; cases in `photo-moment.test.ts`). `exif` reads DateTimeOriginal, else the main directory's DateTime, the only date the Switch writes into its own captures; loading and ZIP use the stored value. Only a paste sets `pasted`; images from a [watched folder](experience.md#watched-folders) go through ingestion as Add Images does. `file-date` counts only when it precedes receipt by more than 60 s: a date close to receipt is the copy's. Unknown or equal times supply no ordering evidence in epochs or tie-breaks, and neither does a moment several captures share to the second, a phone's batch save time (`sharedPhotoMoment`); distinct times break ties the totals cannot settle. EXIF comes only from JPEG; ingestion accepts PNG, JPEG and WebP, so HEIC stays out.
 
+## Images that fail to decode
+
+Ingestion (`receivedImage` in `apps/web/lib/images/policy.ts`) stores the received bytes untouched whenever they decode. Only a file that fails to decode is drawn once through an `<img>`: Chrome refuses a JPEG cut short (a Switch capture ending in zero padding, with no end marker) yet paints what it holds. If the first pixel is drawn, ingestion stores that drawing as WebP at the [finished image quality](backup.md#compressed-images) (PNG where WebP can't be encoded), and takes the photo moment from the received bytes' EXIF. A file that still can't be drawn is refused as before. Test: `data-contracts.spec.ts` › a JPEG cut short.
+
 ## Named rules
 
 `analyzeRoomSequence` (`packages/engine/src/domain/sequence/room/room-sequence.ts`) decides the sequence from the current facts. Each rule is an exported function with its `RuleCode` in the comment. Tests exercise the rules through the public `@mkw/engine` API, with glossary-worded titles that may cite the rule name:

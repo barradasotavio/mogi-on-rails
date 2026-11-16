@@ -489,6 +489,23 @@ test("an image whose file was moved after addition does not prevent later writes
   await expect(page.getByRole("alertdialog", { name: "Couldn't Save on This Device", exact: true })).toHaveCount(0);
 });
 
+test("a JPEG cut short is redrawn and kept, with its own photo time (#92)", async ({ page }, info) => {
+  // A Switch capture that ends in zero padding with no end marker: Chrome refuses to decode it as it is.
+  const intact = readFileSync(originalPath);
+  const truncated = Buffer.concat([intact.subarray(0, Math.floor(intact.length * 0.95)), Buffer.alloc(512)]);
+  await useFixedRecognition(page);
+  await restoreState(page, mogiState({ roster }));
+  await addScreenshots(page, { name: "truncated.jpeg", mimeType: "image/jpeg", buffer: truncated });
+  await expect(page.getByRole("status").filter({ hasText: /^Reading / })).toHaveCount(0, { timeout: 60000 });
+  await expect(page.getByText("truncated.jpeg couldn't be opened", { exact: false })).toHaveCount(0);
+  const files = unzipSync(readFileSync(await downloadBackup(page, info.outputPath("truncated.zip"))));
+  const manifest = JSON.parse(strFromU8(files["manifest.json"]));
+  const [saved] = manifest.state.sharedReceipts.flatMap(
+    (receipt: { files: { name: string; mimeType: string; photoMoment?: { source: string } }[] }) => receipt.files,
+  );
+  expect(saved).toMatchObject({ name: "truncated.jpeg", mimeType: "image/webp", photoMoment: { source: "exif" } });
+});
+
 test("finished mogi compresses older JPEG backups without changing results or original-file duplicates", async ({
   page,
 }, info) => {

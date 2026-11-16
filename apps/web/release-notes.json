@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-11-15",
+    "changes": [
+      {
+        "kind": "fix",
+        "text": "A Switch screenshot that was saved incomplete, which the Switch itself can't open, is now read instead of refused."
+      }
+    ]
+  },
+  {
     "date": "2026-11-14",
     "changes": [
       {
