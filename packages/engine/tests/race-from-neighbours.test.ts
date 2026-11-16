@@ -46,7 +46,8 @@ const normalize = async (mogi: Mogi) => (await normalizeReconstructions({ mogis:
 const names = (mogi: Mogi, ids: string[] = []) =>
   ids.map((id) => mogi.participants.find((person) => person.id === id)!.loungeName);
 const raceTwo = (mogi: Mogi) => mogi.races.find((race) => race.number === 2);
-const asked = (mogi: Mogi) => questionsWithOverviewInvariant(mogi).map((question) => [question.kind, question.number]);
+const asked = (mogi: Mogi, before?: Mogi) =>
+  questionsWithOverviewInvariant(mogi, before).map((question) => [question.kind, question.number]);
 
 test("a race with no screenshot is read from the race-1 screen and the totals after it (raceTwoFromNeighbours)", async () => {
   const mogi = await ingest();
@@ -60,12 +61,14 @@ test("a race with no screenshot is read from the race-1 screen and the totals af
 
 test("a race entered by hand that its neighbours' totals contradict asks once, and changes only with the answer (result.typed-contradicted)", async () => {
   const read = await ingest();
-  const typed = await normalize({
+  const entered: Mogi = {
     ...read,
     races: read.races.map((race) =>
       race.number === 2 ? { id: race.id, number: 2, origin: "manual", status: "confirmed", ...data.typedRace2 } : race,
     ),
-  });
+  };
+  const typed = await normalize(entered);
+  questionsWithOverviewInvariant(typed, entered);
   const questions = mogiQuestions(typed).filter((question) => question.number === 2);
   assert.equal(questions.length, 1);
   const question = questions[0];
@@ -83,5 +86,5 @@ test("a race entered by hand that its neighbours' totals contradict asks once, a
 
   const kept = await normalize(await answerMogiQuestion(typed, question.id, { kind: "sequence", value: "typed" }));
   assert.deepEqual(raceTwo(kept)?.placements, data.typedRace2.placements);
-  assert.ok(asked(kept).every(([, number]) => number !== 2));
+  assert.ok(asked(kept, typed).every(([, number]) => number !== 2));
 });

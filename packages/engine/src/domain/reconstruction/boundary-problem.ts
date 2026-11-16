@@ -1,6 +1,7 @@
 import { boundaryCompletedSteps, captureBoundaries } from "../capture/capture-boundary.ts";
 import { momentOffset } from "../capture/screens.ts";
 import { representedPlayers } from "../numeric-readings/numeric-candidates.ts";
+import { readGameCumulatives } from "../numeric-readings/numeric-deduction.ts";
 import { participantsForOccurrence } from "../participation/participation.ts";
 import { nativePlacementPoints } from "../scoring/native-points.ts";
 import { raceNumber } from "../scoring/scoring.ts";
@@ -179,22 +180,25 @@ export function nativeScaleOrder(gains: Map<string, number>): { placements: stri
   };
 }
 
-/** Totals before race 1 on its own results screen: every one of twelve identified rows reads, is deduced or is
- * answered 0. Undefined as soon as one row is missing, unidentified or not 0. */
+/** Totals before race 1 on its own results screen, read as the room chaining reads them (`readGameCumulatives`):
+ * the column must start the room (`zeroColumnRoomStart`) and every one of twelve identified rows be 0, read, deduced
+ * or answered. Undefined as soon as one row is missing, unidentified or not 0. */
 function zeroStartTotals(mogi: Mogi, captureId: string): Map<string, GameValue> | undefined {
   const capture = mogi.captures?.find((entry) => entry.id === captureId);
   if (capture?.interpretation?.screen !== "finishOrderAdding" || representedPlayers(capture) !== FULL_ROOM) return;
+  const { numeric, shown, zeroStart } = readGameCumulatives(mogi, capture);
+  if (!zeroStart || shown.length < FULL_ROOM) return;
   const values = new Map<string, GameValue>();
   for (let row = 1; row <= FULL_ROOM; row++) {
     const id = capture.nameAssociations?.[row - 1]?.participantId;
-    const answer = capture.numericAnswers?.find((entry) => entry.row === row && entry.field === "right");
-    const deduced = capture.numericDeductions?.find((entry) => entry.row === row && entry.field === "right");
-    const read = capture.numericRows?.find((entry) => entry.row === row)?.right?.value;
-    const value = answer?.value ?? deduced?.value ?? read;
-    if (!id || values.has(id) || value !== 0) return;
+    if (!id || values.has(id) || shown[row - 1] !== 0) return;
     values.set(id, {
       value: 0,
-      origin: answer ? "manual" : deduced ? "deduced" : "observed",
+      origin: capture.numericAnswers?.some((answer) => answer.row === row)
+        ? "manual"
+        : numeric.deductions.some((deduction) => deduction.row === row)
+          ? "deduced"
+          : "observed",
       sourceCaptureId: capture.id,
       sourceRow: row,
       sourceField: "right",
