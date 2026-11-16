@@ -18,6 +18,7 @@ import {
   rosterSlots,
 } from "../participation/participation.ts";
 import { teamLabel } from "../participation/team-tags.ts";
+import { neighbourResult, typedResultKey } from "../reconstruction/boundary-problem.ts";
 import {
   type ContradictedFact,
   contradictedFacts,
@@ -100,7 +101,7 @@ export interface PositionQuestion extends QuestionBase {
 export interface SequenceQuestion extends CaptureQuestionBase {
   kind: "sequence";
   reading: string;
-  options: { value: string; label: string; answer: SequenceAnswer }[];
+  options: { value: string; label: string; description?: string; answer: SequenceAnswer }[];
   suggestion: string | null;
 }
 
@@ -229,7 +230,7 @@ export function mogiQuestions(mogi: Mogi): MogiQuestion[] {
   const contradicted = contradictedFacts(mogi).map((fact) => contradictedPositionQuestion(mogi, fact));
   const position = contradicted.length ? undefined : positionQuestion(mogi, questions);
   questions.push(...contradicted, ...(position ? [position] : []));
-  questions.push(...contextSequenceQuestions(mogi, captures), ...creditQuestions(mogi));
+  questions.push(...contextSequenceQuestions(mogi, captures), ...typedResultQuestions(mogi), ...creditQuestions(mogi));
   const ordered = uniqueQuestions(questions).sort(questionOrder);
   for (const question of ordered) question.captureIds ??= affectedCaptureIds(mogi, question, captures);
   const grouped = groupNameTeams(groupSpellings(mogi, ordered, captures, names), grouping.teams);
@@ -785,6 +786,60 @@ function totalOnScreenshot(mogi: Mogi, race: Race, position: UsefulQuestion, ask
     const id = capture && captureNameAssociations(capture)[question.row - 1]?.participantId;
     return !!id && places(id).size > 1;
   });
+}
+
+/** result.typed-contradicted: a race entered by hand, with no screenshot of its own, whose neighbours' totals give
+ * another finish order asks once which one is right. Nothing changes until the answer; keeping the entered result
+ * stores that choice, so the question returns only if the totals later give yet another order. */
+function typedResultQuestions(mogi: Mogi): SequenceQuestion[] {
+  const questions: SequenceQuestion[] = [];
+  for (const race of mogi.races) {
+    if (
+      race.origin !== "manual" ||
+      race.status !== "confirmed" ||
+      race.participationReview ||
+      !race.placements.length ||
+      race.captureIds?.length
+    )
+      continue;
+    const result = neighbourResult(mogi, race);
+    const entered = { placements: race.placements, absent: race.absentParticipantIds ?? [] };
+    if (!result || typedResultKey(result) === typedResultKey(entered)) continue;
+    if (race.keptTypedResult === typedResultKey(result)) continue;
+    const number = raceNumber(mogi, race);
+    const captureId = result.captureIds.at(-1)!;
+    const choice = (
+      value: "totals" | "typed",
+      label: string,
+      order: typeof entered,
+    ): SequenceQuestion["options"][number] => ({
+      value,
+      label,
+      description: finishOrderText(mogi, order),
+      answer: { kind: "typed-result", raceId: race.id, value, key: typedResultKey(result) },
+    });
+    questions.push({
+      id: `typed-result:${race.id}`,
+      kind: "sequence",
+      raceId: race.id,
+      number,
+      captureId,
+      crop: { captureId },
+      captureIds: result.captureIds,
+      row: 0,
+      reading: `Which result is right for race ${number}?`,
+      options: [choice("totals", "The one the totals give", result), choice("typed", "The one entered", entered)],
+      suggestion: "totals",
+    });
+  }
+  return questions;
+}
+
+/** "1 Spike, 2 Rosa, … · Absent: Nabbit" in Lounge names; a place never wraps apart from its name. */
+function finishOrderText(mogi: Mogi, order: { placements: string[]; absent: string[] }): string {
+  const name = (id: string) => mogi.participants.find((person) => person.id === id)?.loungeName ?? "?";
+  const places = order.placements.map((id, index) => `${index + 1}\u00a0${name(id)}`).join(", ");
+  return order.absent.length ? `${places} · Absent: ${order.absent.map(name).join(", ")}` : places;
 }
 
 /** Continuity, validity and person-continuity questions between two captures. */

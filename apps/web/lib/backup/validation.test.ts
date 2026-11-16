@@ -138,6 +138,14 @@ test("restore refuses a race track outside the track list", () => {
     }, /^Error: Invalid race track\.$/);
 });
 
+test("restore accepts a typed result kept against the totals, and refuses an empty mark", () => {
+  const kept = (s: State, mark: string) => {
+    Object.assign(s.mogis[0].races[0], { keptTypedResult: mark });
+  };
+  validateTracker(((s) => (kept(s, '[["p0"],[]]'), s))(state()));
+  refuses((s) => kept(s, ""), /Kept result: invalid text/);
+});
+
 test("restore refuses an original list that is not non-empty text up to 10,000 characters", () => {
   for (const invalid of [42, "", "x".repeat(10001)])
     refuses((s) => {

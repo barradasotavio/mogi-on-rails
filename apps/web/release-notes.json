@@ -4,6 +4,10 @@
     "changes": [
       {
         "kind": "fix",
+        "text": "Race 2 with no readable screenshot is now read from the race-1 and race-3 screenshots, and a race you enter by hand that the totals around it contradict asks once which result is right, instead of counting as entered without a word."
+      },
+      {
+        "kind": "fix",
         "text": "A Switch screenshot that was saved incomplete, which the Switch itself can't open, is now read instead of refused."
       }
     ]

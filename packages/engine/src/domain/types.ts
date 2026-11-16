@@ -48,6 +48,9 @@ export interface Race {
   nativePoints?: Record<string, number>;
   /** "manual" is legacy and read-only: current races are re-modeled on load (`withModeledNativePoints`). */
   nativePointOrigins?: Record<string, "modeled" | "manual">;
+  /** A result entered by hand that the user kept against the one its neighbours' totals give
+   * (`typedResultKey` of that result); a different result from the totals asks again. */
+  keptTypedResult?: string;
 }
 
 /** Source row identity is its ordinal in the immutable Capture.rows array. */
