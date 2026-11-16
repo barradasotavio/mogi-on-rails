@@ -1,11 +1,13 @@
 import { boundaryCompletedSteps, captureBoundaries } from "../capture/capture-boundary.ts";
 import { momentOffset } from "../capture/screens.ts";
+import { representedPlayers } from "../numeric-readings/numeric-candidates.ts";
+import { readGameCumulatives } from "../numeric-readings/numeric-deduction.ts";
 import { participantsForOccurrence } from "../participation/participation.ts";
 import { nativePlacementPoints } from "../scoring/native-points.ts";
 import { raceNumber } from "../scoring/scoring.ts";
 import { numberedRoomSpan } from "../sequence/room/room-sequence.ts";
 import { sequenceLinkSignature } from "../sequence/sequence.ts";
-import type { AssistanceAnalysis, AssistanceEquation, Mogi, Race } from "../types.ts";
+import type { AssistanceAnalysis, AssistanceEquation, GameValue, Mogi, Race } from "../types.ts";
 import { native12OriginScope } from "./origin-scope.ts";
 
 /** Only demonstrated, numbered physical boundaries delimit solver terms.
@@ -87,6 +89,8 @@ export function boundaryEquations(mogi: Mogi, targets: Race[]): AssistanceEquati
       });
     }
   }
+  for (const relation of mogi.sequence.relations)
+    equations.push(...raceTwoFromNeighbours(mogi, boundaries, relation, targets, ids));
   for (const fact of mogi.sequence.origins ?? []) {
     const source = mogi.captures?.find((capture) => capture.id === fact.captureId);
     const to = boundaries.find((boundary) => boundary.captureId === fact.captureId);
@@ -157,6 +161,145 @@ export function boundaryEquations(mogi: Mogi, targets: Race[]): AssistanceEquati
     }
   }
   return equations;
+}
+
+// A full room: the zero start below needs every one of its twelve totals.
+const FULL_ROOM = 12;
+// Room sizes with a native scale; the people left out of a smaller one gained nothing (absent).
+const SCALE_SIZES = [12, 11, 10];
+
+/** The finish order the gains give, when they are exactly one native scale (each value once) and zeros for the
+ * absent; otherwise undefined. */
+export function nativeScaleOrder(gains: Map<string, number>): { placements: string[]; absent: string[] } | undefined {
+  const scored = [...gains].filter(([, gain]) => gain !== 0).sort((a, b) => b[1] - a[1]);
+  const scale = nativePlacementPoints(scored.length);
+  if (!SCALE_SIZES.includes(scored.length) || scored.some(([, gain], index) => gain !== scale[index])) return;
+  return {
+    placements: scored.map(([id]) => id),
+    absent: [...gains].filter(([, gain]) => gain === 0).map(([id]) => id),
+  };
+}
+
+/** Totals before race 1 on its own results screen, read as the room chaining reads them (`readGameCumulatives`):
+ * the column must start the room (`zeroColumnRoomStart`) and every one of twelve identified rows be 0, read, deduced
+ * or answered. Undefined as soon as one row is missing, unidentified or not 0. */
+function zeroStartTotals(mogi: Mogi, captureId: string): Map<string, GameValue> | undefined {
+  const capture = mogi.captures?.find((entry) => entry.id === captureId);
+  if (capture?.interpretation?.screen !== "finishOrderAdding" || representedPlayers(capture) !== FULL_ROOM) return;
+  const { numeric, shown, zeroStart } = readGameCumulatives(mogi, capture);
+  if (!zeroStart || shown.length < FULL_ROOM) return;
+  const values = new Map<string, GameValue>();
+  for (let row = 1; row <= FULL_ROOM; row++) {
+    const id = capture.nameAssociations?.[row - 1]?.participantId;
+    if (!id || values.has(id) || shown[row - 1] !== 0) return;
+    values.set(id, {
+      value: 0,
+      origin: capture.numericAnswers?.some((answer) => answer.row === row)
+        ? "manual"
+        : numeric.deductions.some((deduction) => deduction.row === row)
+          ? "deduced"
+          : "observed",
+      sourceCaptureId: capture.id,
+      sourceRow: row,
+      sourceField: "right",
+    });
+  }
+  return values;
+}
+
+/** raceTwoFromNeighbours: race 2 with no result of its own, between the race-1 results screen (totals 0 before
+ * race 1, its finish order confirmed) and a confirmed screen of totals after race 2. The race-1 screen has no
+ * neighbour to check its column against, so the general boundaries never use it. Only when all twelve totals are
+ * read and race 2's gains are exactly one native scale; otherwise nothing, as before. */
+function raceTwoFromNeighbours(
+  mogi: Mogi,
+  boundaries: ReturnType<typeof captureBoundaries>,
+  relation: NonNullable<Mogi["sequence"]>["relations"][number],
+  targets: Race[],
+  ids: Set<string>,
+): AssistanceEquation[] {
+  const from = boundaries.find((source) => source.captureId === relation.fromCaptureId);
+  const to = boundaries.find((source) => source.captureId === relation.toCaptureId);
+  if (!from || from.values.size || from.physicalNumber !== 1 || from.number !== 1 || to?.number === undefined)
+    return [];
+  const start = zeroStartTotals(mogi, from.captureId);
+  if (!start || !numberedRoomSpan(mogi, relation.fromCaptureId, relation.toCaptureId, relation.completedSteps))
+    return [];
+  const right = (to.physicalNumber ?? to.number) - momentOffset(to.phase);
+  const before = { phase: "before", sequenceOffset: from.sequenceOffset };
+  if (right !== 2 || boundaryCompletedSteps(before, to, relation.completedSteps) !== 2) return [];
+  const first = mogi.races.find((race) => race.id === from.occurrenceId);
+  const after = mogi.races.find((race) => race.id === to.occurrenceId);
+  const inside = mogi.races.filter((race) => [1, 2].includes(race.physicalNumber ?? raceNumber(mogi, race) ?? 0));
+  const index = targets.findIndex((race) => race.id !== first?.id && inside.some((entry) => entry.id === race.id));
+  if (
+    !first ||
+    !after ||
+    ids.has(first.id) ||
+    index < 0 ||
+    inside.length !== 2 ||
+    !inside.some((race) => race.id === first.id) ||
+    [first, after].some((race) => race.status !== "confirmed" || race.participationReview) ||
+    first.origin === "reconstructed" ||
+    first.placements.length !== FULL_ROOM ||
+    first.absentParticipantIds?.length ||
+    first.placements.some(
+      (id, rank) =>
+        first.nativePoints?.[id] !== undefined && first.nativePoints[id] !== nativePlacementPoints(FULL_ROOM)[rank],
+    )
+  )
+    return [];
+  const people = participantsForOccurrence(mogi, targets[index]).map((person) => person.id);
+  const scale = nativePlacementPoints(FULL_ROOM);
+  const gains = new Map<string, number>();
+  for (const id of start.keys()) {
+    const newer = to.values.get(id);
+    if (!newer || !relation.stableParticipantIds.includes(id) || !people.includes(id)) return [];
+    gains.set(id, newer.value - scale[first.placements.indexOf(id)]);
+  }
+  if (people.length !== start.size || !nativeScaleOrder(gains)) return [];
+  return [...start].map(([id, older]) => ({
+    boundary: true as const,
+    boundaryChecks: to.check ? [to.check] : [],
+    knownRaceIds: [first.id],
+    participantId: id,
+    targetIndices: [index],
+    gain: gains.get(id)!,
+    known: scale[first.placements.indexOf(id)],
+    fromCaptureId: from.captureId,
+    toCaptureId: to.captureId,
+    fromNumber: from.number!,
+    toNumber: to.number!,
+    older,
+    newer: to.values.get(id)!,
+    session: "physical-boundaries",
+    segment: id,
+  }));
+}
+
+/** The result the totals around a race give on their own: every participant's gain from one consistent set of
+ * boundary equations, forming exactly one native scale. Used to check a result entered by hand, never to change it. */
+export function neighbourResult(
+  mogi: Mogi,
+  race: Race,
+): { placements: string[]; absent: string[]; captureIds: string[] } | undefined {
+  const equations = boundaryEquations(mogi, [race]);
+  const gains = new Map<string, number>();
+  for (const equation of equations) {
+    if (gains.has(equation.participantId) && gains.get(equation.participantId) !== equation.gain) return;
+    gains.set(equation.participantId, equation.gain);
+  }
+  const people = participantsForOccurrence(mogi, race).map((person) => person.id);
+  if (!gains.size || people.length !== gains.size || people.some((id) => !gains.has(id))) return;
+  const order = nativeScaleOrder(gains);
+  if (!order) return;
+  const captureIds = equations.flatMap((equation) => [equation.fromCaptureId, equation.toCaptureId]);
+  return { ...order, captureIds: [...new Set(captureIds.filter((id): id is string => !!id))] };
+}
+
+/** Identity of a finish order and its absences, as `keptTypedResult` stores it. */
+export function typedResultKey(result: { placements: string[]; absent: string[] }): string {
+  return JSON.stringify([result.placements, [...result.absent].sort()]);
 }
 
 /** Snapshot the independent native contributions actually subtracted by the equations. */

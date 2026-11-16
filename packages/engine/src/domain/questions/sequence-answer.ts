@@ -1,7 +1,9 @@
 import { interpretRightList } from "../../recognition/finish-order.ts";
 import { physicalNumberForValid } from "../participation/participation.ts";
+import { neighbourResult, typedResultKey } from "../reconstruction/boundary-problem.ts";
+import { nativePlacementPoints } from "../scoring/native-points.ts";
 import { sequenceInputSignature, sequenceLinkSignature } from "../sequence/sequence.ts";
-import type { Mogi } from "../types.ts";
+import type { Mogi, Race } from "../types.ts";
 export type SequenceAnswer =
   | { kind: "representation"; captureId: string; value: 10 | 11 | 12 }
   | { kind: "room-order"; firstCaptureId: string }
@@ -15,7 +17,9 @@ export type SequenceAnswer =
   | { kind: "origin"; captureId: string; value: "zero-valid-12" | "unknown" }
   | { kind: "number"; captureId: string; value: number | null }
   | { kind: "validity"; gapId: string; value: "counted" | "discarded" | "unknown" }
-  | { kind: "continuity"; gapId: string; value: "continuous-12" | "reset" | "unknown" };
+  | { kind: "continuity"; gapId: string; value: "continuous-12" | "reset" | "unknown" }
+  /** `key` is the totals' result the question showed (`typedResultKey`). */
+  | { kind: "typed-result"; raceId: string; value: "totals" | "typed"; key: string };
 
 /** Apply facts only against the source signature used to render the question. */
 export function applySequenceAnswer<T extends Mogi>(item: T, action: SequenceAnswer, signature: string): T {
@@ -30,6 +34,25 @@ export function applySequenceAnswer<T extends Mogi>(item: T, action: SequenceAns
     gaps: [],
     inputSignature: "",
   };
+  if (action.kind === "typed-result") {
+    const race = item.races.find((entry) => entry.id === action.raceId);
+    const result = race && neighbourResult(item, race);
+    if (!race || !result || typedResultKey(result) !== action.key)
+      throw new Error("This question changed. Open the questions again.");
+    const scale = nativePlacementPoints(result.placements.length);
+    const answered: Race =
+      action.value === "typed"
+        ? { ...race, keptTypedResult: action.key }
+        : {
+            ...race,
+            placements: result.placements,
+            absentParticipantIds: result.absent,
+            nativePoints: Object.fromEntries(result.placements.map((id, index) => [id, scale[index]])),
+            nativePointOrigins: Object.fromEntries(result.placements.map((id) => [id, "modeled" as const])),
+          };
+    if (action.value === "totals") delete answered.keptTypedResult;
+    return { ...item, races: item.races.map((entry) => (entry.id === race.id ? answered : entry)) };
+  }
   if (action.kind === "representation") {
     const source = item.captures?.find((capture) => capture.id === action.captureId);
     if (!source?.interpretation || !source.numericRows || ![10, 11, 12].includes(action.value))

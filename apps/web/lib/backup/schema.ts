@@ -1016,6 +1016,7 @@ function race<I extends v.GenericSchema>({ label, id, historical, forbid, remove
           ),
         ),
         participationReview: v.optional(text("Participation review")),
+        keptTypedResult: v.optional(text("Kept result")),
         participationHistory: nested(
           "participationHistory",
           list(

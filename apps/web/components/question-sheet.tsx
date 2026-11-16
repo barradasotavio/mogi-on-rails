@@ -360,7 +360,9 @@ function QuestionPage({
                   description:
                     question.kind === "credit" && "value" in option && option.value === question.suggestion
                       ? question.reason
-                      : undefined,
+                      : question.kind === "sequence" && "description" in option
+                        ? (option.description as string | undefined)
+                        : undefined,
                   trail:
                     ("id" in option ? option.id : option.value) === question.suggestion ? (
                       <span className="text-xs">Suggested</span>
