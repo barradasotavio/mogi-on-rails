@@ -3,7 +3,7 @@ import type { SharedReceipt, TrackerState } from "../mogi/types.ts";
 import { type CompressedImage, originalFingerprint } from "./compressed.ts";
 import { fingerprint } from "./fingerprint.ts";
 import { type ImageReceiptTime, importedPhotoMoment, PHOTO_MOMENT_BYTES } from "./photo-moment.ts";
-import { assertPendingImageDimensions, pendingImageMime } from "./policy.ts";
+import { pendingImageMime, receivedImage } from "./policy.ts";
 export function receivedImageTime(pastedAt?: number): ImageReceiptTime {
   return { receivedAt: pastedAt ?? Date.now(), pastedAt };
 }
@@ -91,11 +91,13 @@ export async function galleryReceipt(
   const fingerprints = await knownPlaces(knownOriginals);
   for (const [index, file] of files.entries()) {
     try {
-      const mimeType = await pendingImageMime(file);
-      if (!mimeType) throw new Error("Choose a PNG, JPEG or WebP screenshot of up to 25 MB.");
+      const receivedType = await pendingImageMime(file);
+      if (!receivedType) throw new Error("Choose a PNG, JPEG or WebP screenshot of up to 25 MB.");
       // Copy the bytes: a disk File is reread on every write and fails if moved or changed.
-      const original = new Blob([await file.arrayBuffer()], { type: mimeType });
-      await assertPendingImageDimensions(original);
+      const received = new Blob([await file.arrayBuffer()], { type: receivedType });
+      // The received bytes themselves, unless they had to be redrawn to decode.
+      const original = await receivedImage(received);
+      const mimeType = original.type;
       const hash = await fingerprint(original);
       if (fingerprints.has(hash)) {
         ids.push(undefined);
@@ -114,7 +116,7 @@ export async function galleryReceipt(
         receivedAt: time.receivedAt,
         pastedAt,
         photoMoment: importedPhotoMoment(
-          new Uint8Array(await original.slice(0, PHOTO_MOMENT_BYTES).arrayBuffer()),
+          new Uint8Array(await received.slice(0, PHOTO_MOMENT_BYTES).arrayBuffer()),
           file.name,
           { ...time, pastedAt, lastModified: file.lastModified },
         ),
